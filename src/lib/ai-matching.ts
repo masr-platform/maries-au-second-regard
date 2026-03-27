@@ -466,3 +466,4 @@ export async function invaliderCacheUser(userId: string): Promise<void> {
     cacheDel(`profile:${userId}`),
   ])
 }
+// openai key configured Fri Mar 27 19:16:25 CET 2026
