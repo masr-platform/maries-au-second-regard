@@ -38,12 +38,19 @@ export interface DimensionScores {
   physique:      number
 }
 
+export interface ExplicationCompatibilite {
+  explication:      string     // 2-3 phrases en langage humain
+  pointsForts:      string[]   // 3 points forts (ex: "Foi commune", "Projet de vie partagé")
+  pointsAttention:  string[]   // 0-2 points d'attention (ex: "Villes différentes")
+}
+
 export interface MatchResult {
   scoreGlobal:      number
   dimensions:       DimensionScores
   forteCompatibilite: boolean
   filtresBloquants: string[]
   recommande:       boolean
+  explication?:     ExplicationCompatibilite
 }
 
 // ─── 1. Générer l'embedding d'un profil ───────────────────────────
@@ -308,7 +315,83 @@ function verifierFiltresBloquants(
   return blocages
 }
 
-// ─── 5. CALCUL PRINCIPAL DU SCORE ─────────────────────────────────
+// ─── 5. Explication IA en langage humain ──────────────────────────
+export async function genererExplicationCompatibilite(
+  r1: QuestionnaireReponse,
+  r2: QuestionnaireReponse,
+  dimensions: DimensionScores
+): Promise<ExplicationCompatibilite> {
+  const cacheKey = `explication:${[r1.userId, r2.userId].sort().join(':')}`
+  const cached = await cacheGet<ExplicationCompatibilite>(cacheKey)
+  if (cached) return cached
+
+  // Construire le contexte pour GPT
+  const pratique1 = r1.niveauPratique?.replace('_', ' ') || 'non renseigné'
+  const pratique2 = r2.niveauPratique?.replace('_', ' ') || 'non renseigné'
+  const projet1   = r1.objectifMariage?.replace(/_/g, ' ') || 'non renseigné'
+  const projet2   = r2.objectifMariage?.replace(/_/g, ' ') || 'non renseigné'
+
+  const dimTriees = Object.entries(dimensions)
+    .sort(([, a], [, b]) => b - a)
+    .map(([k, v]) => {
+      const labels: Record<string, string> = {
+        foi: 'Foi & pratique religieuse',
+        personnalite: 'Personnalité & caractère',
+        projetVie: 'Projet de vie & famille',
+        communication: 'Communication & gestion des conflits',
+        styleVie: 'Style de vie',
+        carriere: 'Carrière & ambitions',
+        physique: 'Critères physiques',
+      }
+      return `${labels[k] || k}: ${Math.round(v)}/100`
+    })
+
+  const prompt = `Tu es un conseiller en compatibilité conjugale islamique. Analyse cette compatibilité entre deux profils et génère une explication bienveillante en français.
+
+Scores par dimension:
+${dimTriees.join('\n')}
+
+Profil A: pratique="${pratique1}", objectif="${projet1}", foyer="${r1.visionFoyer?.slice(0, 100) || ''}", partenaire idéal="${r1.partenaireIdeal5Mots || ''}"
+Profil B: pratique="${pratique2}", objectif="${projet2}", foyer="${r2.visionFoyer?.slice(0, 100) || ''}", partenaire idéal="${r2.partenaireIdeal5Mots || ''}"
+
+Génère UNIQUEMENT un JSON valide sans markdown:
+{
+  "explication": "2-3 phrases max, chaleureuses et concrètes, qui expliquent POURQUOI ces profils sont compatibles (jamais 'Profil A' ou 'Profil B', parler de 'vous')",
+  "pointsForts": ["max 3 points forts très courts (2-4 mots chacun)"],
+  "pointsAttention": ["0-2 points d'attention très courts si score <65 sur une dimension importante, sinon tableau vide"]
+}`
+
+  try {
+    const response = await openai.chat.completions.create({
+      model: 'gpt-4o-mini',
+      messages: [{ role: 'user', content: prompt }],
+      temperature: 0.7,
+      max_tokens: 400,
+      response_format: { type: 'json_object' },
+    })
+
+    const raw = response.choices[0]?.message?.content || '{}'
+    const parsed = JSON.parse(raw) as ExplicationCompatibilite
+
+    const result: ExplicationCompatibilite = {
+      explication:     parsed.explication     || 'Votre compatibilité repose sur des valeurs partagées et une vision commune du mariage.',
+      pointsForts:     Array.isArray(parsed.pointsForts)    ? parsed.pointsForts.slice(0, 3)    : [],
+      pointsAttention: Array.isArray(parsed.pointsAttention) ? parsed.pointsAttention.slice(0, 2) : [],
+    }
+
+    // Cache 24h — l'explication ne change pas
+    await cacheSet(cacheKey, result, 86400)
+    return result
+  } catch {
+    return {
+      explication:     'Votre compatibilité repose sur des valeurs partagées et une vision commune du mariage islamique.',
+      pointsForts:     ['Valeurs communes', 'Vision du foyer', 'Foi partagée'],
+      pointsAttention: [],
+    }
+  }
+}
+
+// ─── 6. CALCUL PRINCIPAL DU SCORE ─────────────────────────────────
 export async function calculerCompatibilite(
   userId1: string,
   userId2: string
@@ -397,7 +480,7 @@ export async function calculerCompatibilite(
   }
 }
 
-// ─── 6. Trouver les meilleurs matchs pour un utilisateur ──────────
+// ─── 7. Trouver les meilleurs matchs pour un utilisateur ──────────
 export async function trouverMeilleursMatchs(
   userId: string,
   nombre: number = 3
@@ -423,20 +506,21 @@ export async function trouverMeilleursMatchs(
       where: {
         genre: genreOppose,
         questionnaireCompleted: true,
-        isVerified: true,
+        // isVerified: true, // désactivé — tous les profils actifs sont analysés
         isBanned: false,
         isSuspended: false,
-        // Exclure ceux avec qui on a déjà eu un match
+        // Exclure l'utilisateur lui-même et ses matchs existants
+        NOT: { id: userId },
         matchesAsUser1: { none: { user2Id: userId } },
         matchesAsUser2: { none: { user1Id: userId } },
       },
       select: { id: true },
-      take: 100, // Analyser les 100 premiers candidats
+      take: 100,
     })
 
     // Calculer les scores pour chaque candidat
     const scores = await Promise.all(
-      candidats.map(async (c) => {
+      candidats.map(async (c: { id: string }) => {
         const score = await calculerCompatibilite(userId, c.id)
         return { userId: c.id, score }
       })
@@ -459,7 +543,7 @@ export async function trouverMeilleursMatchs(
   }
 }
 
-// ─── 7. Invalider le cache d'un utilisateur ───────────────────────
+// ─── 8. Invalider le cache d'un utilisateur ───────────────────────
 export async function invaliderCacheUser(userId: string): Promise<void> {
   await Promise.all([
     cacheDel(`suggestions:${userId}`),

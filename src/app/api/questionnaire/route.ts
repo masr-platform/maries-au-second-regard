@@ -3,7 +3,7 @@ import { waitUntil } from '@vercel/functions'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
-import { genererEmbedding, invaliderCacheUser } from '@/lib/ai-matching'
+import { genererEmbedding, invaliderCacheUser, trouverMeilleursMatchs } from '@/lib/ai-matching'
 
 export async function POST(req: NextRequest) {
   const session = await getServerSession(authOptions)
@@ -36,10 +36,11 @@ export async function POST(req: NextRequest) {
       data:  { questionnaireCompleted: true },
     })
 
-    // Générer l'embedding IA en arrière-plan (waitUntil garde la fonction vivante sur Vercel)
+    // Générer l'embedding + déclencher le matching IA en arrière-plan
     waitUntil(
       (async () => {
         try {
+          // 1. Générer le vecteur d'embedding
           const embedding = await genererEmbedding(reponse)
           await prisma.questionnaireReponse.update({
             where: { userId },
@@ -50,8 +51,71 @@ export async function POST(req: NextRequest) {
           })
           await invaliderCacheUser(userId)
           console.log(`Embedding généré pour userId=${userId} (${embedding.length} dims)`)
+
+          // 2. Calculer et créer les matchs automatiquement
+          const user = await prisma.user.findUnique({
+            where: { id: userId },
+            select: { genre: true, profilesParSemaine: true },
+          })
+          if (!user) return
+
+          const meilleurs = await trouverMeilleursMatchs(userId, user.profilesParSemaine ?? 1)
+          if (meilleurs.length === 0) {
+            console.log(`Aucun match trouvé pour userId=${userId}`)
+            return
+          }
+
+          // Créer les matchs en base
+          await Promise.all(
+            meilleurs.map(async ({ userId: candidatId, score }) => {
+              const [u1, u2] = [userId, candidatId].sort()
+              return prisma.match.upsert({
+                where: { user1Id_user2Id: { user1Id: u1, user2Id: u2 } },
+                create: {
+                  user1Id: u1, user2Id: u2,
+                  scoreGlobal:         score.scoreGlobal,
+                  scoresFoi:           score.dimensions.foi,
+                  scoresPersonalite:   score.dimensions.personnalite,
+                  scoresProjetVie:     score.dimensions.projetVie,
+                  scoresCommunication: score.dimensions.communication,
+                  scoresStyleVie:      score.dimensions.styleVie,
+                  scoresCarriere:      score.dimensions.carriere,
+                  scoresPhysique:      score.dimensions.physique,
+                  dimensionDetails:    JSON.stringify(score.dimensions),
+                  status:              'PROPOSE',
+                },
+                update: {},
+              })
+            })
+          )
+
+          // Notifier les deux utilisateurs
+          await Promise.all(
+            meilleurs.map(async ({ userId: candidatId, score }) => {
+              return prisma.notification.createMany({
+                data: [
+                  {
+                    userId,
+                    type: 'NOUVEAU_MATCH',
+                    titre: 'Un profil compatible a été trouvé !',
+                    contenu: `Notre IA a identifié un profil compatible à ${score.scoreGlobal}%.`,
+                    data: JSON.stringify({ score: score.scoreGlobal }),
+                  },
+                  {
+                    userId: candidatId,
+                    type: 'NOUVEAU_MATCH',
+                    titre: 'Un profil compatible vous attend !',
+                    contenu: `Notre IA a identifié un profil compatible à ${score.scoreGlobal}%.`,
+                    data: JSON.stringify({ score: score.scoreGlobal }),
+                  },
+                ],
+              })
+            })
+          )
+
+          console.log(`${meilleurs.length} match(s) créé(s) pour userId=${userId}`)
         } catch (err) {
-          console.error('Erreur génération embedding:', err)
+          console.error('Erreur post-questionnaire async:', err)
         }
       })()
     )
