@@ -249,23 +249,25 @@ export default function InscriptionPage() {
               {errors.passwordConf && <p className="text-red-400 text-xs mt-1">{errors.passwordConf.message}</p>}
             </div>
 
-            {/* CGU */}
+            {/* CGU + CGV */}
             <div className="flex items-start gap-3">
               <input
                 {...register('accepteCGU')}
                 type="checkbox"
                 id="cgu"
-                className="mt-0.5 accent-gold-500"
+                className="mt-0.5 accent-gold-500 w-4 h-4 shrink-0"
               />
-              <label htmlFor="cgu" className="text-sm text-dark-300 cursor-pointer">
+              <label htmlFor="cgu" className="text-sm text-dark-300 cursor-pointer leading-relaxed">
                 J&apos;accepte les{' '}
-                <Link href="/cgu" className="text-gold-400 hover:underline">conditions générales</Link>{' '}
+                <Link href="/cgu" target="_blank" className="text-gold-400 hover:underline">CGU</Link>,
+                les{' '}
+                <Link href="/cgv" target="_blank" className="text-gold-400 hover:underline">CGV</Link>{' '}
                 et la{' '}
-                <Link href="/confidentialite" className="text-gold-400 hover:underline">politique de confidentialité</Link>.
-                Je comprends que mes conversations peuvent être supervisées en cas de signalement.
+                <Link href="/confidentialite" target="_blank" className="text-gold-400 hover:underline">politique de confidentialité</Link>.{' '}
+                <span className="text-dark-400">Je comprends que mes échanges peuvent être supervisés en cas de signalement et que tout échange de coordonnées personnelles entraîne un bannissement immédiat.</span>
               </label>
             </div>
-            {errors.accepteCGU && <p className="text-red-400 text-xs">{errors.accepteCGU.message}</p>}
+            {errors.accepteCGU && <p className="text-red-400 text-xs mt-1">{errors.accepteCGU.message}</p>}
 
             {/* Submit */}
             <button

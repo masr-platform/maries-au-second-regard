@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { hash } from 'bcryptjs'
 import { prisma } from '@/lib/prisma'
 import { checkRateLimit } from '@/lib/redis'
+import { emailService } from '@/lib/email'
 import { z } from 'zod'
 
 const inscriptionSchema = z.object({
@@ -65,9 +66,10 @@ export async function POST(req: NextRequest) {
       },
     })
 
-    // Envoyer l'email de bienvenue (async, ne bloque pas la réponse)
+    // Envoyer l'email de bienvenue (non bloquant)
     setImmediate(() => {
-      // TODO: sendWelcomeEmail(user.email, user.prenom)
+      emailService.sendWelcome({ email: user.email, prenom: user.prenom })
+        .catch((err) => console.error('Email bienvenue échoué:', err))
     })
 
     return NextResponse.json({

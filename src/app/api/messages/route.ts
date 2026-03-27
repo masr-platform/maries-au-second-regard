@@ -6,6 +6,7 @@ import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { superviserMessage, verifierProgressionEtape } from '@/lib/supervision-chat'
 import { checkRateLimit } from '@/lib/redis'
+import { emailService } from '@/lib/email'
 
 // GET — Récupérer les messages d'une conversation
 export async function GET(req: NextRequest) {
@@ -158,6 +159,8 @@ export async function POST(req: NextRequest) {
         try {
           await superviserMessage(message.id, conversationId, contenu)
           await verifierProgressionEtape(conversationId)
+
+          // Notification en base
           await prisma.notification.create({
             data: {
               userId: autreUserId,
@@ -167,6 +170,24 @@ export async function POST(req: NextRequest) {
               data: JSON.stringify({ conversationId }),
             },
           })
+
+          // Email de notification si l'autre utilisateur est inactif (> 1h)
+          const autreUser = await prisma.user.findUnique({
+            where: { id: autreUserId },
+            select: { email: true, prenom: true, lastActiveAt: true },
+          })
+          const inactiveThreshold = 60 * 60 * 1000 // 1 heure
+          const isInactive = !autreUser?.lastActiveAt ||
+            (Date.now() - new Date(autreUser.lastActiveAt).getTime()) > inactiveThreshold
+
+          if (autreUser && isInactive) {
+            await emailService.sendNewMessage({
+              email: autreUser.email,
+              prenom: autreUser.prenom,
+              expediteur: message.sender.prenom,
+              apercu: contenu,
+            })
+          }
         } catch (err) {
           console.error('Erreur post-message async:', err)
         }

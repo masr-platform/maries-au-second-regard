@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { emailService } from '@/lib/email'
 import Stripe from 'stripe'
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
@@ -104,6 +105,8 @@ export async function PUT(req: NextRequest) {
       const { userId, plan } = session.metadata as { userId: string; plan: 'STANDARD' | 'PREMIUM' }
 
       if (userId && plan && PLANS[plan]) {
+        const nextBilling = new Date(Date.now() + 30 * 24 * 3600 * 1000)
+
         await prisma.user.update({
           where: { id: userId },
           data: {
@@ -122,7 +125,7 @@ export async function PUT(req: NextRequest) {
             stripePriceId:       PLANS[plan].priceId,
             status:              'ACTIVE',
             currentPeriodStart:  new Date(),
-            currentPeriodEnd:    new Date(Date.now() + 30 * 24 * 3600 * 1000),
+            currentPeriodEnd:    nextBilling,
           },
         })
 
@@ -134,6 +137,41 @@ export async function PUT(req: NextRequest) {
             contenu: `Votre abonnement ${plan} est actif. Vous recevez maintenant ${PLANS[plan].profilesParSemaine} profils/semaine.`,
           },
         })
+
+        // Emails : confirmation d'abonnement + reçu
+        const user = await prisma.user.findUnique({
+          where: { id: userId },
+          select: { email: true, prenom: true },
+        })
+        if (user) {
+          const montant = plan === 'STANDARD' ? '19,00 €' : '39,00 €'
+          const dateStr = new Date().toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })
+          const nextStr = nextBilling.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })
+
+          await Promise.all([
+            emailService.sendSubscriptionConfirm({
+              email: user.email, prenom: user.prenom,
+              plan, montant, nextBilling: nextStr,
+            }),
+            emailService.sendPaymentConfirm({
+              email: user.email, prenom: user.prenom,
+              montant, plan, date: dateStr,
+            }),
+          ])
+        }
+      }
+      break
+    }
+
+    case 'invoice.payment_failed': {
+      const invoice = event.data.object as Stripe.Invoice
+      const customerId = invoice.customer as string
+      const userRecord = await prisma.user.findFirst({
+        where: { stripeCustomerId: customerId },
+        select: { id: true, email: true, prenom: true },
+      })
+      if (userRecord) {
+        await emailService.sendPaymentFailed({ email: userRecord.email, prenom: userRecord.prenom })
       }
       break
     }
@@ -143,6 +181,9 @@ export async function PUT(req: NextRequest) {
       const userId = sub.metadata?.userId
 
       if (userId) {
+        const endDate = new Date(sub.current_period_end * 1000)
+          .toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })
+
         await prisma.user.update({
           where: { id: userId },
           data: {
@@ -151,6 +192,41 @@ export async function PUT(req: NextRequest) {
             stripeSubscriptionId: null,
           },
         })
+
+        const user = await prisma.user.findUnique({
+          where: { id: userId },
+          select: { email: true, prenom: true },
+        })
+        if (user) {
+          await emailService.sendSubscriptionCancelled({
+            email: user.email, prenom: user.prenom, endDate,
+          })
+        }
+      }
+      break
+    }
+
+    case 'customer.subscription.updated': {
+      // Renouvellement automatique
+      const sub = event.data.object as Stripe.Subscription
+      const userId = sub.metadata?.userId
+      if (userId && sub.status === 'active') {
+        const plan = sub.metadata?.plan as 'STANDARD' | 'PREMIUM'
+        if (plan && PLANS[plan]) {
+          const nextBilling = new Date(sub.current_period_end * 1000)
+            .toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })
+          const user = await prisma.user.findUnique({
+            where: { id: userId },
+            select: { email: true, prenom: true },
+          })
+          if (user) {
+            const montant = plan === 'STANDARD' ? '19,00 €' : '39,00 €'
+            await emailService.sendSubscriptionRenewed({
+              email: user.email, prenom: user.prenom,
+              plan, montant, nextBilling,
+            })
+          }
+        }
       }
       break
     }
