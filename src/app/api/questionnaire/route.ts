@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { waitUntil } from '@vercel/functions'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
@@ -35,22 +36,25 @@ export async function POST(req: NextRequest) {
       data:  { questionnaireCompleted: true },
     })
 
-    // Générer l'embedding IA en arrière-plan
-    setImmediate(async () => {
-      try {
-        const embedding = await genererEmbedding(reponse)
-        await prisma.questionnaireReponse.update({
-          where: { userId },
-          data: {
-            embeddingVector:   JSON.stringify(embedding),
-            embeddingUpdatedAt: new Date(),
-          },
-        })
-        await invaliderCacheUser(userId)
-      } catch (err) {
-        console.error('Erreur génération embedding:', err)
-      }
-    })
+    // Générer l'embedding IA en arrière-plan (waitUntil garde la fonction vivante sur Vercel)
+    waitUntil(
+      (async () => {
+        try {
+          const embedding = await genererEmbedding(reponse)
+          await prisma.questionnaireReponse.update({
+            where: { userId },
+            data: {
+              embeddingVector:    JSON.stringify(embedding),
+              embeddingUpdatedAt: new Date(),
+            },
+          })
+          await invaliderCacheUser(userId)
+          console.log(`Embedding généré pour userId=${userId} (${embedding.length} dims)`)
+        } catch (err) {
+          console.error('Erreur génération embedding:', err)
+        }
+      })()
+    )
 
     return NextResponse.json({
       success: true,
