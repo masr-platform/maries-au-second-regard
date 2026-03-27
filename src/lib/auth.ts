@@ -64,7 +64,7 @@ export const authOptions: NextAuthOptions = {
     }),
   ],
   callbacks: {
-    async jwt({ token, user }) {
+    async jwt({ token, user, trigger }) {
       if (user) {
         token.id                    = user.id
         token.role                  = (user as any).role
@@ -72,6 +72,18 @@ export const authOptions: NextAuthOptions = {
         token.isVerified            = (user as any).isVerified
         token.questionnaireCompleted = (user as any).questionnaireCompleted
         token.genre                 = (user as any).genre
+      }
+      // Rafraîchit questionnaireCompleted depuis la DB après update() client
+      if (trigger === 'update' && token.id) {
+        const fresh = await prisma.user.findUnique({
+          where:  { id: token.id as string },
+          select: { questionnaireCompleted: true, plan: true, isVerified: true },
+        })
+        if (fresh) {
+          token.questionnaireCompleted = fresh.questionnaireCompleted
+          token.plan                  = fresh.plan
+          token.isVerified            = fresh.isVerified
+        }
       }
       return token
     },

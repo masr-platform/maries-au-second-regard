@@ -490,7 +490,7 @@ function ScaleInput({ value, onChange, min = 1, max = 5, aide }: {
 
 // ─── Page principale ───────────────────────────────────────────────
 export default function QuestionnairePage() {
-  const { data: session } = useSession()
+  const { data: session, update } = useSession()
   const router = useRouter()
 
   const [sectionIndex, setSectionIndex] = useState(0)
@@ -551,6 +551,7 @@ export default function QuestionnairePage() {
 
       if (res.ok) {
         toast.success('Questionnaire complété ! Notre IA analyse votre profil.')
+        await update() // Rafraîchit le JWT (questionnaireCompleted → true)
         router.push('/tableau-de-bord')
       } else {
         toast.error(json.error || 'Erreur lors de la sauvegarde')
