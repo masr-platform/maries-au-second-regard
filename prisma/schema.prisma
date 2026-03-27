@@ -75,7 +75,6 @@ model User {
   messagesSent           Message[] @relation("SentMessages")
   notifications          Notification[]
   praticienProfil        Praticien?
-  imamSessionsAsImam     ImamSession[] @relation("ImamSessions")
   imamSessionsAsUser1    ImamSession[] @relation("ImamUser1")
   imamSessionsAsUser2    ImamSession[] @relation("ImamUser2")
   subscriptions          Subscription[]
