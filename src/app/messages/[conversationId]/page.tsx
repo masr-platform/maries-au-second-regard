@@ -207,7 +207,7 @@ export default function ChatPage() {
 
     const supabase = getSupabaseClient()
 
-    // Souscrire aux INSERT sur la table Message pour cette conversation
+    // Souscrire aux INSERT sur la table Message (filtre client-side pour compatibilité camelCase)
     const channel = supabase
       .channel(`conv:${conversationId}`)
       .on(
@@ -216,7 +216,6 @@ export default function ChatPage() {
           event: 'INSERT',
           schema: 'public',
           table: 'Message',
-          filter: `conversationId=eq.${conversationId}`,
         },
         async (payload) => {
           const newMsg = payload.new as {
@@ -224,10 +223,14 @@ export default function ChatPage() {
             content: string
             type: string
             senderId: string
+            conversationId: string
             createdAt: string
             isRead: boolean
             isFlagged: boolean
           }
+
+          // Filtrer côté client (évite les problèmes de filtre camelCase côté Supabase)
+          if (newMsg.conversationId !== conversationId) return
 
           // Ne pas dupliquer nos propres messages (déjà ajoutés à l'envoi)
           if (newMsg.senderId === userId) return
