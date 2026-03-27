@@ -1,821 +1,591 @@
 'use client'
 
-import { motion, useInView } from 'framer-motion'
+import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
-import { useRef, useEffect, useState } from 'react'
+import { motion, useInView, AnimatePresence } from 'framer-motion'
 import {
-  Shield, Brain, MessageCircle, Star, ChevronDown,
-  CheckCircle2, Users, Lock, Sparkles, ArrowRight, Heart
+  Users, Heart, CheckCircle, Star, ArrowRight, Shield,
+  MessageCircle, Zap, Globe, Lock, ChevronDown, Menu, X
 } from 'lucide-react'
 
-// ─── Variants animation ────────────────────────────────────────────
+// ─── Palette (calquée sur admin.html) ────────────────────────
+const C = {
+  bg:      '#0f1521',
+  card:    '#1a2236',
+  card2:   '#1e2a40',
+  border:  'rgba(255,255,255,0.07)',
+  amber:   '#e8a020',
+  green:   '#22c55e',
+  blue:    '#3b82f6',
+  purple:  '#a855f7',
+  text:    '#f1f5f9',
+  muted:   '#94a3b8',
+  dimmed:  '#475569',
+}
+
 const fadeUp = {
-  hidden: { opacity: 0, y: 40 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.7, ease: 'easeOut' } },
+  hidden: { opacity: 0, y: 24 },
+  show:   { opacity: 1, y: 0, transition: { duration: 0.55, ease: 'easeOut' } },
 }
 const stagger = {
-  visible: { transition: { staggerChildren: 0.12 } },
+  hidden: {},
+  show:   { transition: { staggerChildren: 0.1 } },
 }
 
-// ─── Geometric SVG background ─────────────────────────────────────
-function GeometricBg() {
-  return (
-    <svg
-      className="absolute inset-0 w-full h-full opacity-[0.04] pointer-events-none"
-      xmlns="http://www.w3.org/2000/svg"
-    >
-      <defs>
-        <pattern id="geo" x="0" y="0" width="80" height="80" patternUnits="userSpaceOnUse">
-          <path d="M40 0 L80 20 L80 60 L40 80 L0 60 L0 20 Z" fill="none" stroke="#D4A853" strokeWidth="0.5" />
-          <path d="M40 10 L70 25 L70 55 L40 70 L10 55 L10 25 Z" fill="none" stroke="#D4A853" strokeWidth="0.3" />
-          <circle cx="40" cy="40" r="4" fill="none" stroke="#D4A853" strokeWidth="0.4" />
-        </pattern>
-      </defs>
-      <rect width="100%" height="100%" fill="url(#geo)" />
-    </svg>
-  )
-}
-
-// ─── Counter animé ─────────────────────────────────────────────────
 function Counter({ to, suffix = '' }: { to: number; suffix?: string }) {
   const [count, setCount] = useState(0)
-  const ref = useRef(null)
+  const ref = useRef<HTMLSpanElement>(null)
   const inView = useInView(ref, { once: true })
-
   useEffect(() => {
     if (!inView) return
     let start = 0
-    const duration = 1400
-    const step = 16
-    const increment = to / (duration / step)
-    const timer = setInterval(() => {
-      start += increment
-      if (start >= to) { setCount(to); clearInterval(timer) }
-      else setCount(Math.floor(start))
-    }, step)
-    return () => clearInterval(timer)
+    const step = to / 50
+    const t = setInterval(() => {
+      start = Math.min(start + step, to)
+      setCount(Math.floor(start))
+      if (start >= to) clearInterval(t)
+    }, 30)
+    return () => clearInterval(t)
   }, [inView, to])
-
-  return <span ref={ref}>{count}{suffix}</span>
+  return <span ref={ref}>{count.toLocaleString('fr-FR')}{suffix}</span>
 }
 
-// ─── Mock carte compatibilité hero ────────────────────────────────
-function MockCompatCard() {
-  const dims = [
-    { label: 'Foi & pratique', score: 96 },
-    { label: 'Projet de vie', score: 100 },
-    { label: 'Communication', score: 80 },
-    { label: 'Personnalité', score: 95 },
-  ]
+function Tag({ children, color = C.amber }: { children: React.ReactNode; color?: string }) {
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 40, rotateY: 8 }}
-      animate={{ opacity: 1, y: 0, rotateY: 0 }}
-      transition={{ duration: 0.9, delay: 0.5, ease: 'easeOut' }}
-      style={{ perspective: '1000px' }}
-      className="w-full max-w-sm mx-auto"
-    >
-      <div
-        className="rounded-2xl border p-6 shadow-gold-lg"
-        style={{
-          background: 'linear-gradient(145deg, #161616 0%, #1a1a1a 100%)',
-          borderColor: '#D4A853',
-          borderWidth: '1px',
-          boxShadow: '0 0 60px rgba(212, 168, 83, 0.15), 0 20px 60px rgba(0,0,0,0.5)',
-        }}
-      >
-        {/* Badge forte compatibilité */}
-        <div className="flex items-center gap-2 mb-4">
-          <span style={{ background: 'rgba(212,168,83,0.15)', border: '1px solid rgba(212,168,83,0.4)', color: '#D4A853' }}
-            className="text-xs font-semibold px-3 py-1 rounded-full tracking-wide">
-            ★ Forte compatibilité détectée
-          </span>
-        </div>
+    <span style={{ color, borderColor: color + '40', backgroundColor: color + '15' }}
+      className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1 rounded-full border uppercase tracking-wider">
+      {children}
+    </span>
+  )
+}
 
-        {/* Profil + score */}
-        <div className="flex items-center gap-4 mb-5">
-          <div className="w-14 h-14 rounded-full flex items-center justify-center text-2xl"
-            style={{ background: 'rgba(212,168,83,0.1)', border: '2px solid rgba(212,168,83,0.3)' }}>
-            🌙
-          </div>
-          <div className="flex-1">
-            <p className="text-white font-semibold">Yasmine, 27 ans</p>
-            <p className="text-xs" style={{ color: '#888' }}>Paris · Pratiquante · Après nikah</p>
-          </div>
-          {/* Jauge circulaire */}
-          <div className="relative w-14 h-14">
-            <svg width="56" height="56" style={{ transform: 'rotate(-90deg)' }}>
-              <circle cx="28" cy="28" r="22" fill="none" stroke="#2a2a2a" strokeWidth="5" />
-              <circle cx="28" cy="28" r="22" fill="none" stroke="#D4A853" strokeWidth="5"
-                strokeDasharray={`${2 * Math.PI * 22}`}
-                strokeDashoffset={`${2 * Math.PI * 22 * (1 - 0.94)}`}
-                strokeLinecap="round"
-                style={{ transition: 'stroke-dashoffset 1.5s ease 0.8s' }} />
-            </svg>
-            <div className="absolute inset-0 flex items-center justify-center">
-              <span className="text-xs font-bold" style={{ color: '#D4A853' }}>94</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Dimensions */}
-        <div className="space-y-2.5">
-          {dims.map((d) => (
-            <div key={d.label}>
-              <div className="flex justify-between text-xs mb-1">
-                <span style={{ color: '#999' }}>{d.label}</span>
-                <span style={{ color: '#D4A853' }} className="font-medium">{d.score}</span>
-              </div>
-              <div className="h-1 rounded-full overflow-hidden" style={{ background: '#2a2a2a' }}>
-                <motion.div
-                  initial={{ width: 0 }}
-                  animate={{ width: `${d.score}%` }}
-                  transition={{ duration: 0.8, delay: 0.9 }}
-                  className="h-full rounded-full"
-                  style={{ background: 'linear-gradient(90deg, #B8960C, #D4A853)' }}
-                />
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {/* Bouton */}
-        <div className="mt-5 h-9 rounded-lg flex items-center justify-center text-sm font-semibold"
-          style={{ background: 'rgba(212,168,83,0.12)', color: '#D4A853', border: '1px solid rgba(212,168,83,0.3)' }}>
-          Ouvrir la conversation →
+function StatCard({ value, label, suffix = '', color, icon: Icon }: {
+  value: number; label: string; suffix?: string; color: string; icon: React.ElementType
+}) {
+  return (
+    <motion.div variants={fadeUp}
+      className="rounded-2xl p-6 border flex flex-col gap-3"
+      style={{ background: C.card, borderColor: C.border }}>
+      <div className="flex items-center justify-between">
+        <span className="text-sm font-medium" style={{ color: C.muted }}>{label}</span>
+        <div className="w-9 h-9 rounded-xl flex items-center justify-center"
+          style={{ background: color + '20' }}>
+          <Icon size={16} style={{ color }} />
         </div>
       </div>
-
-      {/* Floating pill */}
-      <motion.div
-        animate={{ y: [0, -6, 0] }}
-        transition={{ repeat: Infinity, duration: 3, ease: 'easeInOut' }}
-        className="mt-4 mx-auto w-fit px-4 py-2 rounded-full text-xs font-medium flex items-center gap-2"
-        style={{
-          background: 'rgba(212,168,83,0.08)',
-          border: '1px solid rgba(212,168,83,0.2)',
-          color: '#D4A853',
-        }}
-      >
-        <Sparkles size={12} /> IA · Analyse en cours
-      </motion.div>
+      <div className="text-3xl font-bold tracking-tight" style={{ color }}>
+        <Counter to={value} suffix={suffix} />
+      </div>
     </motion.div>
   )
 }
 
-// ─── Données ────────────────────────────────────────────────────────
-const ETAPES = [
-  { num: '01', titre: 'Inscription & Vérification', desc: 'Profil sécurisé, identité vérifiée. Chaque membre est authentifié avant d\'accéder aux matchs.', icon: Shield },
-  { num: '02', titre: 'Questionnaire Approfondi', desc: '7 dimensions : foi, personnalité, projet de vie, communication, style de vie, famille, carrière.', icon: Brain },
-  { num: '03', titre: 'L\'IA Analyse Votre Profil', desc: 'Embeddings vectoriels + scoring multi-dimensionnel pour identifier les compatibilités profondes.', icon: Sparkles },
-  { num: '04', titre: 'Propositions Personnalisées', desc: '1 à 3 profils compatibles par semaine selon votre abonnement, avec score et explication.', icon: Heart },
-  { num: '05', titre: 'Chat Encadré', desc: 'Conversation supervisée, étape par étape, selon les préceptes islamiques. Pas de dérive.', icon: MessageCircle },
-  { num: '06', titre: 'Mouquabala & Wali', desc: 'Rencontre en visio avec un imam, facilitant ensuite le contact avec le tuteur.', icon: Star },
-]
-
-const PLANS = [
-  {
-    nom: 'Gratuit',
-    prix: '0',
-    periode: '',
-    profils: '1 profil / semaine',
-    features: ['1 profil compatible par semaine', 'Chat introduction', 'Profil vérifié', 'Support email'],
-    cta: 'Commencer gratuitement',
-    highlight: false,
-  },
-  {
-    nom: 'Standard',
-    prix: '14,90',
-    periode: '/ mois',
-    profils: '2 profils / semaine',
-    features: ['2 profils compatibles par semaine', 'Chat complet (toutes étapes)', 'Messages vocaux', 'Mode Wali', 'Support prioritaire'],
-    cta: 'Choisir Standard',
-    highlight: true,
-  },
-  {
-    nom: 'Premium',
-    prix: '29,90',
-    periode: '/ mois',
-    profils: '3 profils / semaine',
-    features: ['3 profils compatibles par semaine', 'Toutes fonctionnalités Standard', 'Badge Premium vérifié', 'Visio illimitée', 'Accès prioritaire imams'],
-    cta: 'Choisir Premium',
-    highlight: false,
-  },
-]
-
-const TEMOIGNAGES = [
-  {
-    texte: 'Je n\'aurais jamais osé m\'inscrire sur un site classique. Ici tout était encadré. Nous nous sommes mariés 6 mois après.',
-    nom: 'Fatima & Yassine',
-    ville: 'Lyon',
-    score: 94,
-  },
-  {
-    texte: 'L\'imam qui a supervisé notre mouquabala était attentionné. Il a tout facilité avec ma famille. Un processus vraiment digne.',
-    nom: 'Khadija & Omar',
-    ville: 'Paris',
-    score: 88,
-  },
-  {
-    texte: 'Le questionnaire est profond. Quand j\'ai vu le profil proposé, j\'ai compris pourquoi. Notre vision du foyer était identique.',
-    nom: 'Amina & Ibrahim',
-    ville: 'Marseille',
-    score: 91,
-  },
-]
-
-// ─── Ornament ─────────────────────────────────────────────────────
-function GoldOrnament() {
+function StepCard({ num, title, desc, color }: { num: string; title: string; desc: string; color: string }) {
   return (
-    <div className="flex items-center justify-center gap-4 my-2" aria-hidden>
-      <div className="h-px flex-1" style={{ background: 'linear-gradient(to right, transparent, #D4A853)' }} />
-      <span style={{ color: '#D4A853', fontSize: '18px' }}>✦</span>
-      <div className="h-px flex-1" style={{ background: 'linear-gradient(to left, transparent, #D4A853)' }} />
+    <motion.div variants={fadeUp}
+      className="relative rounded-2xl p-6 border group hover:border-opacity-50 transition-all duration-300"
+      style={{ background: C.card, borderColor: C.border }}>
+      <div className="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold mb-4"
+        style={{ background: color + '20', color }}>
+        {num}
+      </div>
+      <h3 className="font-semibold text-base mb-2" style={{ color: C.text }}>{title}</h3>
+      <p className="text-sm leading-relaxed" style={{ color: C.muted }}>{desc}</p>
+      <div className="absolute bottom-0 left-0 right-0 h-0.5 rounded-b-2xl opacity-0 group-hover:opacity-100 transition-opacity"
+        style={{ background: `linear-gradient(90deg, transparent, ${color}, transparent)` }} />
+    </motion.div>
+  )
+}
+
+function TestimonialCard({ name, age, city, text }: { name: string; age: number; city: string; text: string }) {
+  return (
+    <motion.div variants={fadeUp}
+      className="rounded-2xl p-6 border flex flex-col gap-4"
+      style={{ background: C.card, borderColor: C.border }}>
+      <div className="flex gap-0.5">
+        {[1,2,3,4,5].map((i) => <Star key={i} size={14} fill={C.amber} stroke="none" />)}
+      </div>
+      <p className="text-sm leading-relaxed flex-1 italic" style={{ color: C.muted }}>&ldquo;{text}&rdquo;</p>
+      <div className="flex items-center gap-3 pt-2 border-t" style={{ borderColor: C.border }}>
+        <div className="w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold"
+          style={{ background: C.amber + '20', color: C.amber }}>{name[0]}</div>
+        <div>
+          <div className="text-sm font-semibold" style={{ color: C.text }}>{name}, {age} ans</div>
+          <div className="text-xs" style={{ color: C.dimmed }}>{city}</div>
+        </div>
+      </div>
+    </motion.div>
+  )
+}
+
+function PricingCard({ plan, price, features, cta, highlight, color }: {
+  plan: string; price: string; features: string[]; cta: string; highlight?: boolean; color: string
+}) {
+  return (
+    <motion.div variants={fadeUp}
+      className="rounded-2xl border flex flex-col overflow-hidden"
+      style={{
+        background: highlight ? C.card2 : C.card,
+        borderColor: highlight ? color + '50' : C.border,
+        boxShadow: highlight ? `0 0 40px ${color}18` : 'none',
+      }}>
+      {highlight && (
+        <div className="text-center text-xs font-bold py-2 uppercase tracking-widest"
+          style={{ background: color + '20', color }}>✦ Recommandé</div>
+      )}
+      <div className="p-7 flex flex-col gap-6 flex-1">
+        <div>
+          <div className="text-sm font-semibold mb-3" style={{ color }}>{plan}</div>
+          <div className="text-4xl font-bold" style={{ color: C.text }}>{price}</div>
+          {price !== 'Gratuit' && <div className="text-xs mt-1" style={{ color: C.dimmed }}>/ mois · engagement mensuel</div>}
+        </div>
+        <ul className="space-y-3 flex-1">
+          {features.map((f, i) => (
+            <li key={i} className="flex items-start gap-2.5 text-sm" style={{ color: C.muted }}>
+              <CheckCircle size={15} className="mt-0.5 shrink-0" style={{ color }} />{f}
+            </li>
+          ))}
+        </ul>
+        <Link href="/inscription"
+          className="w-full py-3 px-6 rounded-xl text-center text-sm font-semibold transition-all duration-200 hover:opacity-90"
+          style={{
+            background: highlight ? color : 'transparent',
+            color: highlight ? '#000' : color,
+            border: `1.5px solid ${color}`,
+          }}>{cta} →</Link>
+      </div>
+    </motion.div>
+  )
+}
+
+function DimBar({ label, pct, color }: { label: string; pct: number; color: string }) {
+  const ref = useRef(null)
+  const inView = useInView(ref, { once: true })
+  return (
+    <div ref={ref} className="space-y-1.5">
+      <div className="flex justify-between text-xs" style={{ color: C.muted }}>
+        <span>{label}</span><span style={{ color }}>{pct}%</span>
+      </div>
+      <div className="h-1.5 rounded-full overflow-hidden" style={{ background: C.border }}>
+        <motion.div className="h-full rounded-full" style={{ background: color }}
+          initial={{ width: 0 }}
+          animate={inView ? { width: `${pct}%` } : {}}
+          transition={{ duration: 0.8, ease: 'easeOut', delay: 0.1 }} />
+      </div>
     </div>
   )
 }
 
-// ─── Composant principal ────────────────────────────────────────────
 export default function HomePage() {
+  const [menuOpen, setMenuOpen] = useState(false)
+  const [scrolled, setScrolled] = useState(false)
+
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 20)
+    window.addEventListener('scroll', onScroll)
+    return () => window.removeEventListener('scroll', onScroll)
+  }, [])
+
   return (
-    <main className="min-h-screen overflow-x-hidden" style={{ background: '#0a0a0a', color: '#f0ece4' }}>
+    <div style={{ background: C.bg, color: C.text, minHeight: '100vh' }} className="font-sans antialiased">
 
-      {/* ══ NAVBAR ════════════════════════════════════════════════════ */}
-      <nav
-        className="fixed top-0 left-0 right-0 z-50 backdrop-blur-md"
-        style={{ background: 'rgba(10,10,10,0.88)', borderBottom: '1px solid rgba(212,168,83,0.12)' }}
-      >
-        <div className="max-w-7xl mx-auto px-5 flex items-center justify-between h-16">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-full flex items-center justify-center"
-              style={{ border: '1.5px solid #D4A853' }}>
-              <span className="font-serif font-bold text-xs" style={{ color: '#D4A853' }}>M</span>
-            </div>
-            <span className="font-serif font-semibold text-sm tracking-widest text-white hidden sm:block">
-              MARIÉS AU SECOND REGARD
-            </span>
-          </div>
-
-          <div className="hidden md:flex items-center gap-8 text-sm" style={{ color: '#888' }}>
-            <a href="#comment-ca-marche" className="hover:text-white transition-colors">Comment ça marche</a>
-            <a href="#tarifs" className="hover:text-white transition-colors">Tarifs</a>
-            <a href="#temoignages" className="hover:text-white transition-colors">Témoignages</a>
-          </div>
-
-          <div className="flex items-center gap-3">
-            <Link href="/connexion" className="text-sm transition-colors hidden sm:block" style={{ color: '#888' }}
-              onMouseEnter={e => (e.currentTarget.style.color = '#f0ece4')}
-              onMouseLeave={e => (e.currentTarget.style.color = '#888')}>
-              Se connecter
-            </Link>
-            <Link
-              href="/inscription"
-              className="text-sm font-semibold px-5 py-2 rounded-lg transition-all"
-              style={{ background: '#D4A853', color: '#000' }}
-            >
-              S&apos;inscrire
-            </Link>
-          </div>
-        </div>
-      </nav>
-
-      {/* ══ HERO ══════════════════════════════════════════════════════ */}
-      <section className="relative min-h-screen flex items-center pt-16" style={{ background: '#0a0a0a' }}>
-        <GeometricBg />
-
-        {/* Gradient radial glow */}
-        <div className="absolute inset-0 pointer-events-none" style={{
-          background: 'radial-gradient(ellipse 70% 60% at 30% 50%, rgba(212,168,83,0.06) 0%, transparent 70%)',
-        }} />
-
-        <div className="relative z-10 max-w-7xl mx-auto px-5 w-full py-20">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
-
-            {/* Texte gauche */}
-            <motion.div initial="hidden" animate="visible" variants={stagger}>
-              <motion.div variants={fadeUp} className="mb-6">
-                <span className="inline-flex items-center gap-2 text-xs tracking-widest uppercase px-4 py-1.5 rounded-full"
-                  style={{ background: 'rgba(212,168,83,0.1)', border: '1px solid rgba(212,168,83,0.3)', color: '#D4A853' }}>
-                  ✦ Selon les préceptes de l&apos;Islam ✦
-                </span>
-              </motion.div>
-
-              <motion.h1
-                variants={fadeUp}
-                className="font-serif font-bold leading-[1.1] mb-6"
-                style={{ fontSize: 'clamp(2.8rem, 6vw, 4.5rem)', color: '#fff' }}
-              >
-                La rencontre qui<br />
-                <span style={{
-                  background: 'linear-gradient(90deg, #B8960C 0%, #D4A853 40%, #e6b820 70%, #B8960C 100%)',
-                  backgroundSize: '200% auto',
-                  WebkitBackgroundClip: 'text',
-                  WebkitTextFillColor: 'transparent',
-                  animation: 'shimmer 3s linear infinite',
-                }}>
-                  commence par le fond
-                </span>
-              </motion.h1>
-
-              <motion.p
-                variants={fadeUp}
-                className="text-lg leading-relaxed mb-8"
-                style={{ color: '#9a9a8e', maxWidth: '480px' }}
-              >
-                Notre intelligence artificielle analyse votre profil en 7 dimensions et vous propose
-                des compatibilités réelles. <span style={{ color: '#D4A853' }}>Encadrée. Sérieuse. Halal.</span>
-              </motion.p>
-
-              <motion.div variants={fadeUp} className="flex flex-col sm:flex-row gap-3 mb-10">
-                <Link
-                  href="/inscription"
-                  className="inline-flex items-center justify-center gap-2 font-semibold px-7 py-3.5 rounded-xl transition-all"
-                  style={{ background: '#D4A853', color: '#000', fontSize: '15px' }}
-                >
-                  Commencer mon parcours
-                  <ArrowRight size={16} />
-                </Link>
-                <a
-                  href="#comment-ca-marche"
-                  className="inline-flex items-center justify-center gap-2 font-medium px-7 py-3.5 rounded-xl transition-all"
-                  style={{
-                    border: '1px solid rgba(212,168,83,0.4)',
-                    color: '#D4A853',
-                    fontSize: '15px',
-                    background: 'rgba(212,168,83,0.05)',
-                  }}
-                >
-                  Découvrir le concept
-                  <ChevronDown size={16} />
-                </a>
-              </motion.div>
-
-              {/* Trust signals */}
-              <motion.div variants={fadeUp} className="flex flex-wrap gap-5 text-sm" style={{ color: '#666' }}>
-                {[
-                  { icon: Shield, label: 'Identités vérifiées' },
-                  { icon: Lock, label: 'Chat supervisé' },
-                  { icon: Users, label: 'Imams partenaires' },
-                ].map(({ icon: Icon, label }) => (
-                  <div key={label} className="flex items-center gap-2">
-                    <Icon size={14} style={{ color: '#D4A853' }} />
-                    <span>{label}</span>
-                  </div>
-                ))}
-              </motion.div>
-            </motion.div>
-
-            {/* Carte droite */}
-            <div className="hidden lg:flex items-center justify-center">
-              <MockCompatCard />
-            </div>
-          </div>
-        </div>
-
-        {/* Stats bar flottante */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 1.2, duration: 0.6 }}
-          className="absolute bottom-8 left-0 right-0 flex justify-center px-5"
-        >
-          <div
-            className="flex items-center gap-8 sm:gap-12 px-8 py-4 rounded-2xl"
-            style={{
-              background: 'rgba(20,18,14,0.9)',
-              border: '1px solid rgba(212,168,83,0.2)',
-              backdropFilter: 'blur(12px)',
-            }}
-          >
-            {[
-              { val: 94, suffix: '%', label: 'Satisfaction' },
-              { val: 7, suffix: '', label: 'Dimensions IA' },
-              { val: 48, suffix: 'h', label: 'Premier match' },
-            ].map((s) => (
-              <div key={s.label} className="text-center">
-                <div className="text-2xl font-bold font-serif" style={{ color: '#D4A853' }}>
-                  <Counter to={s.val} suffix={s.suffix} />
-                </div>
-                <div className="text-xs mt-0.5" style={{ color: '#666' }}>{s.label}</div>
-              </div>
+      {/* ── NAVBAR ── */}
+      <nav className="fixed top-0 left-0 right-0 z-50 transition-all duration-300"
+        style={{
+          background: scrolled ? C.bg + 'f0' : 'transparent',
+          backdropFilter: scrolled ? 'blur(16px)' : 'none',
+          borderBottom: scrolled ? `1px solid ${C.border}` : 'none',
+        }}>
+        <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
+          <Link href="/" className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-lg flex items-center justify-center font-bold text-sm"
+              style={{ background: C.amber, color: '#000' }}>M</div>
+            <span className="font-bold text-sm tracking-wide" style={{ color: C.text }}>Mariés au Second Regard</span>
+          </Link>
+          <div className="hidden md:flex items-center gap-8">
+            {[['Comment ça marche', '#comment-ca-marche'], ['Tarifs', '#tarifs'], ['Témoignages', '#temoignages']].map(([label, href]) => (
+              <a key={label} href={href}
+                className="text-sm transition-colors opacity-60 hover:opacity-100"
+                style={{ color: C.text }}>{label}</a>
             ))}
           </div>
-        </motion.div>
-      </section>
-
-      {/* ══ CONCEPT ══════════════════════════════════════════════════ */}
-      <section className="py-24 relative" style={{ background: '#0d0d0d' }}>
-        <div className="max-w-4xl mx-auto px-5 text-center">
-          <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={stagger}>
-            <motion.p variants={fadeUp} className="text-xs tracking-widest uppercase mb-5" style={{ color: '#D4A853' }}>
-              Notre différence
-            </motion.p>
-            <GoldOrnament />
-            <motion.h2
-              variants={fadeUp}
-              className="font-serif font-bold mt-8 mb-6 leading-tight"
-              style={{ fontSize: 'clamp(1.8rem, 4vw, 3rem)', color: '#fff' }}
-            >
-              Vous ne choisissez pas un profil.<br />
-              <span style={{ color: '#D4A853' }}>Nous vous révélons une compatibilité.</span>
-            </motion.h2>
-            <motion.p variants={fadeUp} className="text-lg leading-relaxed mx-auto" style={{ color: '#888', maxWidth: '680px' }}>
-              Contrairement aux applications classiques où vous scrollez des centaines de photos,
-              Mariés au Second Regard vous propose uniquement des profils sélectionnés par notre IA
-              après analyse approfondie de vos valeurs, personnalité et aspirations.
-              Comme <em style={{ color: '#D4A853', fontStyle: 'italic' }}>Mariés au Premier Regard</em>, mais selon les préceptes de l&apos;Islam.
-            </motion.p>
-            <motion.div variants={fadeUp} className="mt-10">
-              <GoldOrnament />
-            </motion.div>
-          </motion.div>
-        </div>
-      </section>
-
-      {/* ══ COMMENT ÇA MARCHE ════════════════════════════════════════ */}
-      <section id="comment-ca-marche" className="py-24" style={{ background: '#0a0a0a' }}>
-        <div className="max-w-6xl mx-auto px-5">
-          <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={stagger} className="text-center mb-16">
-            <motion.p variants={fadeUp} className="text-xs tracking-widest uppercase mb-3" style={{ color: '#D4A853' }}>
-              Le parcours
-            </motion.p>
-            <motion.h2 variants={fadeUp} className="font-serif font-bold" style={{ fontSize: 'clamp(1.8rem, 4vw, 2.8rem)', color: '#fff' }}>
-              De l&apos;inscription au mariage
-            </motion.h2>
-            <motion.div variants={fadeUp}>
-              <div className="w-12 h-0.5 mx-auto mt-5" style={{ background: '#D4A853' }} />
-            </motion.div>
-          </motion.div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-            {ETAPES.map((etape, i) => {
-              const Icon = etape.icon
-              return (
-                <motion.div
-                  key={etape.num}
-                  initial={{ opacity: 0, y: 30 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: i * 0.08, duration: 0.5 }}
-                  className="relative rounded-2xl p-6 group transition-all duration-300"
-                  style={{
-                    background: '#111',
-                    border: '1px solid #222',
-                  }}
-                  onMouseEnter={e => (e.currentTarget.style.borderColor = 'rgba(212,168,83,0.35)')}
-                  onMouseLeave={e => (e.currentTarget.style.borderColor = '#222')}
-                >
-                  {/* Numéro */}
-                  <div
-                    className="absolute -top-3 -left-3 w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold"
-                    style={{ background: '#D4A853', color: '#000' }}
-                  >
-                    {etape.num}
-                  </div>
-
-                  <div className="mb-4 w-10 h-10 rounded-xl flex items-center justify-center"
-                    style={{ background: 'rgba(212,168,83,0.08)', border: '1px solid rgba(212,168,83,0.2)' }}>
-                    <Icon size={18} style={{ color: '#D4A853' }} />
-                  </div>
-                  <h3 className="font-semibold text-white mb-2 text-sm">{etape.titre}</h3>
-                  <p className="text-xs leading-relaxed" style={{ color: '#666' }}>{etape.desc}</p>
-                </motion.div>
-              )
-            })}
+          <div className="hidden md:flex items-center gap-3">
+            <Link href="/connexion" className="text-sm px-4 py-2 rounded-lg" style={{ color: C.muted }}>Se connecter</Link>
+            <Link href="/inscription"
+              className="text-sm px-5 py-2 rounded-lg font-semibold hover:opacity-90 transition-all"
+              style={{ background: C.amber, color: '#000' }}>S&apos;inscrire gratuitement</Link>
           </div>
+          <button className="md:hidden p-2" onClick={() => setMenuOpen(!menuOpen)} style={{ color: C.muted }}>
+            {menuOpen ? <X size={20} /> : <Menu size={20} />}
+          </button>
         </div>
-      </section>
-
-      {/* ══ IA SECTION ═══════════════════════════════════════════════ */}
-      <section className="py-24 relative overflow-hidden" style={{ background: '#0d0d0d' }}>
-        <div className="absolute inset-0 pointer-events-none opacity-30">
-          <GeometricBg />
-        </div>
-        <div className="max-w-6xl mx-auto px-5 relative z-10">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
-
-            {/* Texte */}
-            <motion.div initial={{ opacity: 0, x: -30 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ duration: 0.7 }}>
-              <p className="text-xs tracking-widest uppercase mb-4" style={{ color: '#D4A853' }}>Intelligence artificielle</p>
-              <h2 className="font-serif font-bold mb-5 leading-tight" style={{ fontSize: 'clamp(1.8rem, 4vw, 2.8rem)', color: '#fff' }}>
-                Une IA pensée pour<br />les valeurs islamiques
-              </h2>
-              <div className="w-10 h-0.5 mb-6" style={{ background: '#D4A853' }} />
-              <p className="leading-relaxed mb-8 text-sm" style={{ color: '#888' }}>
-                Notre algorithme analyse 7 dimensions clés pour calculer votre Score de Compatibilité Globale.
-                Les réponses libres sont analysées par traitement du langage naturel pour saisir la profondeur
-                de vos valeurs — pas seulement vos préférences de surface.
-              </p>
-
-              <div className="space-y-3">
-                {[
-                  { dim: 'Valeurs islamiques & Foi', pct: 25 },
-                  { dim: 'Personnalité & Communication', pct: 35 },
-                  { dim: 'Projet de vie & Famille', pct: 20 },
-                  { dim: 'Style de vie & Carrière', pct: 15 },
-                  { dim: 'Compatibilité physique', pct: 5 },
-                ].map((d) => (
-                  <div key={d.dim}>
-                    <div className="flex justify-between text-xs mb-1.5">
-                      <span style={{ color: '#888' }}>{d.dim}</span>
-                      <span style={{ color: '#D4A853' }} className="font-medium">{d.pct}%</span>
-                    </div>
-                    <div className="h-1 rounded-full overflow-hidden" style={{ background: '#1e1e1e' }}>
-                      <motion.div
-                        initial={{ width: 0 }}
-                        whileInView={{ width: `${d.pct * 2}%` }}
-                        viewport={{ once: true }}
-                        transition={{ duration: 0.9, delay: 0.2 }}
-                        className="h-full rounded-full"
-                        style={{ background: 'linear-gradient(90deg, #B8960C, #D4A853)' }}
-                      />
-                    </div>
-                  </div>
-                ))}
-              </div>
+        <AnimatePresence>
+          {menuOpen && (
+            <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              className="md:hidden border-t px-6 py-4 flex flex-col gap-4"
+              style={{ background: C.card, borderColor: C.border }}>
+              {['Comment ça marche', 'Tarifs', 'Témoignages'].map((item) => (
+                <a key={item} href="#" className="text-sm opacity-60" style={{ color: C.text }} onClick={() => setMenuOpen(false)}>{item}</a>
+              ))}
+              <Link href="/connexion" className="text-sm" style={{ color: C.muted }}>Se connecter</Link>
+              <Link href="/inscription" className="text-sm px-4 py-2.5 rounded-lg font-semibold text-center"
+                style={{ background: C.amber, color: '#000' }}>S&apos;inscrire gratuitement</Link>
             </motion.div>
+          )}
+        </AnimatePresence>
+      </nav>
 
-            {/* Card score */}
-            <motion.div
-              initial={{ opacity: 0, x: 30 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.7, delay: 0.2 }}
-              className="rounded-2xl p-7"
-              style={{
-                background: '#111',
-                border: '1px solid rgba(212,168,83,0.25)',
-                boxShadow: '0 0 40px rgba(212,168,83,0.08)',
-              }}
-            >
-              <div className="text-center mb-6">
-                <div className="relative w-28 h-28 mx-auto mb-3">
-                  <svg width="112" height="112" style={{ transform: 'rotate(-90deg)' }}>
-                    <circle cx="56" cy="56" r="48" fill="none" stroke="#1e1e1e" strokeWidth="8" />
-                    <motion.circle
-                      cx="56" cy="56" r="48" fill="none" stroke="#D4A853" strokeWidth="8"
-                      strokeLinecap="round"
-                      strokeDasharray={`${2 * Math.PI * 48}`}
-                      initial={{ strokeDashoffset: 2 * Math.PI * 48 }}
-                      whileInView={{ strokeDashoffset: 2 * Math.PI * 48 * 0.08 }}
-                      viewport={{ once: true }}
-                      transition={{ duration: 1.4, ease: 'easeOut' }}
-                    />
-                  </svg>
-                  <div className="absolute inset-0 flex flex-col items-center justify-center">
-                    <span className="text-3xl font-bold font-serif" style={{ color: '#D4A853' }}>92</span>
-                    <span className="text-xs" style={{ color: '#666' }}>/ 100</span>
-                  </div>
-                </div>
-                <p className="text-white font-semibold text-sm">Score de Compatibilité Globale</p>
-                <p className="text-xs mt-1" style={{ color: '#555' }}>Exemple de matching réel</p>
-              </div>
+      {/* ── HERO ── */}
+      <section className="relative min-h-screen flex items-center overflow-hidden">
+        <div className="absolute inset-0 opacity-[0.03]"
+          style={{ backgroundImage: `linear-gradient(${C.border} 1px, transparent 1px), linear-gradient(90deg, ${C.border} 1px, transparent 1px)`, backgroundSize: '60px 60px' }} />
+        <div className="absolute top-1/4 left-1/4 w-96 h-96 rounded-full opacity-10 blur-3xl pointer-events-none" style={{ background: C.amber }} />
+        <div className="absolute bottom-1/4 right-1/4 w-64 h-64 rounded-full opacity-10 blur-3xl pointer-events-none" style={{ background: C.blue }} />
 
-              <div className="space-y-3">
+        <div className="max-w-6xl mx-auto px-6 pt-24 pb-16 w-full">
+          <div className="grid lg:grid-cols-2 gap-12 items-center">
+            <motion.div initial="hidden" animate="show" variants={stagger} className="space-y-7">
+              <motion.div variants={fadeUp}><Tag color={C.green}>✦ Selon les préceptes de l&apos;Islam</Tag></motion.div>
+              <motion.h1 variants={fadeUp} className="text-5xl lg:text-6xl font-bold leading-[1.1] tracking-tight">
+                La rencontre qui
+                <span className="block" style={{ color: C.amber }}> commence par</span>
+                <span className="block">le fond.</span>
+              </motion.h1>
+              <motion.p variants={fadeUp} className="text-base leading-relaxed max-w-lg" style={{ color: C.muted }}>
+                Notre IA analyse <strong style={{ color: C.text }}>7 dimensions</strong> de compatibilité
+                pour vous proposer des rencontres sérieuses, encadrées et halal.
+                <span style={{ color: C.dimmed }}> Encadrée. Sérieuse. Selon l&apos;Islam.</span>
+              </motion.p>
+              <motion.div variants={fadeUp} className="flex flex-wrap gap-3">
+                <Link href="/inscription"
+                  className="flex items-center gap-2 px-6 py-3.5 rounded-xl font-semibold text-sm hover:opacity-90 transition-all"
+                  style={{ background: C.amber, color: '#000' }}>
+                  Commencer gratuitement <ArrowRight size={16} />
+                </Link>
+                <Link href="#comment-ca-marche"
+                  className="flex items-center gap-2 px-6 py-3.5 rounded-xl text-sm border hover:opacity-80 transition-all"
+                  style={{ color: C.text, borderColor: C.border, background: C.card }}>
+                  Comment ça marche
+                </Link>
+              </motion.div>
+              <motion.div variants={fadeUp} className="flex items-center gap-8 pt-2">
                 {[
-                  { label: 'Valeurs islamiques', score: 96 },
-                  { label: 'Projet de vie', score: 94 },
-                  { label: 'Personnalité', score: 89 },
-                  { label: 'Communication', score: 91 },
-                  { label: 'Style de vie', score: 87 },
+                  { label: 'Membres actifs', value: '2 400+', color: C.amber },
+                  { label: 'Matchs réalisés', value: '380+', color: C.green },
+                  { label: 'Mouqabalas', value: '140+', color: C.blue },
                 ].map((s) => (
-                  <div key={s.label} className="flex items-center gap-3">
-                    <span className="text-xs w-32 flex-shrink-0" style={{ color: '#777' }}>{s.label}</span>
-                    <div className="flex-1 h-1.5 rounded-full overflow-hidden" style={{ background: '#1e1e1e' }}>
-                      <div className="h-full rounded-full" style={{ width: `${s.score}%`, background: 'linear-gradient(90deg, #B8960C, #D4A853)' }} />
-                    </div>
-                    <span className="text-xs font-medium w-8 text-right" style={{ color: '#D4A853' }}>{s.score}</span>
+                  <div key={s.label} className="text-center">
+                    <div className="text-xl font-bold" style={{ color: s.color }}>{s.value}</div>
+                    <div className="text-xs" style={{ color: C.dimmed }}>{s.label}</div>
                   </div>
                 ))}
-              </div>
+              </motion.div>
+            </motion.div>
 
-              <div className="mt-5 p-3 rounded-xl text-center text-xs font-medium"
-                style={{ background: 'rgba(212,168,83,0.08)', border: '1px solid rgba(212,168,83,0.2)', color: '#D4A853' }}>
-                ✦ Forte compatibilité détectée
+            {/* Carte compatibilité */}
+            <motion.div initial={{ opacity: 0, x: 40 }} animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.7, delay: 0.2 }} className="relative">
+              <div className="rounded-2xl border p-6 space-y-5"
+                style={{ background: C.card, borderColor: C.amber + '30', boxShadow: `0 0 60px ${C.amber}10` }}>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 rounded-full animate-pulse" style={{ background: C.green }} />
+                    <span className="text-xs font-medium" style={{ color: C.green }}>Compatibilité détectée</span>
+                  </div>
+                  <Tag color={C.amber}>Score IA</Tag>
+                </div>
+                <div className="flex items-center gap-4">
+                  <div className="w-14 h-14 rounded-2xl flex items-center justify-center text-2xl"
+                    style={{ background: C.amber + '20' }}>🌙</div>
+                  <div className="flex-1">
+                    <div className="font-bold text-base" style={{ color: C.text }}>Yasmine, 27 ans</div>
+                    <div className="text-xs" style={{ color: C.dimmed }}>Paris · Pratiquante · Après nikah</div>
+                  </div>
+                  <div className="w-14 h-14 rounded-2xl flex items-center justify-center flex-col"
+                    style={{ background: C.amber + '20', border: `2px solid ${C.amber}` }}>
+                    <span className="text-2xl font-bold leading-none" style={{ color: C.amber }}>94</span>
+                    <span className="text-xs" style={{ color: C.amber + 'aa' }}>%</span>
+                  </div>
+                </div>
+                <div className="space-y-3">
+                  <DimBar label="Foi & pratique" pct={96} color={C.amber} />
+                  <DimBar label="Projet de vie" pct={100} color={C.green} />
+                  <DimBar label="Communication" pct={80} color={C.blue} />
+                  <DimBar label="Personnalité" pct={95} color={C.purple} />
+                </div>
+                <button className="w-full py-3 rounded-xl text-sm font-semibold hover:opacity-90 transition-all"
+                  style={{ background: C.amber, color: '#000' }}>
+                  Ouvrir la conversation →
+                </button>
+              </div>
+              <motion.div animate={{ y: [-4, 4, -4] }} transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
+                className="absolute -top-4 -right-4 px-3 py-2 rounded-xl border text-xs font-semibold"
+                style={{ background: C.card2, borderColor: C.green + '40', color: C.green }}>
+                ⚡ IA · Analyse en cours
+              </motion.div>
+            </motion.div>
+          </div>
+
+          <motion.div animate={{ y: [0, 6, 0] }} transition={{ duration: 2, repeat: Infinity }}
+            className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1">
+            <span className="text-xs" style={{ color: C.dimmed }}>Découvrir</span>
+            <ChevronDown size={16} style={{ color: C.dimmed }} />
+          </motion.div>
+        </div>
+      </section>
+
+      {/* ── STATS BAR ── */}
+      <section className="border-y py-12" style={{ borderColor: C.border }}>
+        <div className="max-w-6xl mx-auto px-6">
+          <motion.div initial="hidden" whileInView="show" viewport={{ once: true, amount: 0.3 }} variants={stagger}
+            className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <StatCard value={2400} suffix="+" label="Membres actifs" color={C.amber} icon={Users} />
+            <StatCard value={380} suffix="+" label="Matchs réalisés" color={C.green} icon={Heart} />
+            <StatCard value={140} suffix="+" label="Mouqabalas" color={C.blue} icon={MessageCircle} />
+            <StatCard value={12} suffix=" mariages" label="Confirmés" color={C.purple} icon={CheckCircle} />
+          </motion.div>
+        </div>
+      </section>
+
+      {/* ── CONCEPT ── */}
+      <section className="py-20">
+        <div className="max-w-6xl mx-auto px-6">
+          <motion.div initial="hidden" whileInView="show" viewport={{ once: true, amount: 0.3 }} variants={stagger}
+            className="text-center max-w-2xl mx-auto mb-14 space-y-4">
+            <motion.div variants={fadeUp}><Tag color={C.blue}>Notre philosophie</Tag></motion.div>
+            <motion.h2 variants={fadeUp} className="text-3xl md:text-4xl font-bold" style={{ color: C.text }}>
+              Pas un simple swipe.<br />Une démarche de vie.
+            </motion.h2>
+            <motion.p variants={fadeUp} className="text-base leading-relaxed" style={{ color: C.muted }}>
+              MASR n&apos;est pas une app de rencontres classique. C&apos;est un système encadré, supervisé,
+              conçu pour des personnes qui cherchent un partenaire de vie dans le respect des valeurs islamiques.
+            </motion.p>
+          </motion.div>
+          <motion.div initial="hidden" whileInView="show" viewport={{ once: true, amount: 0.2 }} variants={stagger}
+            className="grid md:grid-cols-3 gap-5">
+            {[
+              { icon: Shield, title: 'Encadré & Supervisé', desc: 'Chaque échange est supervisé. Tout échange de coordonnées personnelles est détecté et sanctionné immédiatement.', color: C.amber },
+              { icon: Zap, title: 'IA de compatibilité', desc: '7 dimensions analysées par notre algorithme : foi, personnalité, projet de vie, communication et bien plus.', color: C.green },
+              { icon: Lock, title: 'Sérieux & Halal', desc: 'Réservé aux personnes majeures avec une démarche sincère de mariage. La polygamie est interdite sur la plateforme.', color: C.blue },
+            ].map((item) => (
+              <motion.div key={item.title} variants={fadeUp}
+                className="rounded-2xl p-7 border space-y-4" style={{ background: C.card, borderColor: C.border }}>
+                <div className="w-12 h-12 rounded-2xl flex items-center justify-center" style={{ background: item.color + '20' }}>
+                  <item.icon size={22} style={{ color: item.color }} />
+                </div>
+                <h3 className="font-bold text-base" style={{ color: C.text }}>{item.title}</h3>
+                <p className="text-sm leading-relaxed" style={{ color: C.muted }}>{item.desc}</p>
+              </motion.div>
+            ))}
+          </motion.div>
+        </div>
+      </section>
+
+      {/* ── ÉTAPES ── */}
+      <section id="comment-ca-marche" className="py-20 border-t" style={{ borderColor: C.border }}>
+        <div className="max-w-6xl mx-auto px-6">
+          <motion.div initial="hidden" whileInView="show" viewport={{ once: true, amount: 0.3 }} variants={stagger}
+            className="text-center max-w-xl mx-auto mb-14 space-y-4">
+            <motion.div variants={fadeUp}><Tag color={C.green}>Processus</Tag></motion.div>
+            <motion.h2 variants={fadeUp} className="text-3xl md:text-4xl font-bold" style={{ color: C.text }}>
+              6 étapes vers votre moitié
+            </motion.h2>
+          </motion.div>
+          <motion.div initial="hidden" whileInView="show" viewport={{ once: true, amount: 0.15 }} variants={stagger}
+            className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {[
+              { num: '01', title: 'Créer votre profil', desc: 'Inscription rapide, informations essentielles et préférences de recherche.', color: C.amber },
+              { num: '02', title: 'Questionnaire IA', desc: '40 questions couvrant 7 dimensions : foi, personnalité, projet de vie, communication…', color: C.green },
+              { num: '03', title: 'Score de compatibilité', desc: 'Notre algorithme calcule votre Score de Compatibilité Globale avec chaque profil.', color: C.blue },
+              { num: '04', title: 'Découvrir vos matchs', desc: 'Accédez aux profils compatibles avec votre score et vos critères essentiels.', color: C.purple },
+              { num: '05', title: 'Messagerie encadrée', desc: 'Échangez en toute sécurité via notre messagerie supervisée, étape par étape.', color: C.amber },
+              { num: '06', title: 'La Mouqabala', desc: 'Si les deux parties le souhaitent, une rencontre encadrée est organisée par notre équipe.', color: C.green },
+            ].map((step) => <StepCard key={step.num} {...step} />)}
+          </motion.div>
+        </div>
+      </section>
+
+      {/* ── IA ── */}
+      <section className="py-20 border-t" style={{ borderColor: C.border }}>
+        <div className="max-w-6xl mx-auto px-6">
+          <div className="grid lg:grid-cols-2 gap-14 items-center">
+            <motion.div initial="hidden" whileInView="show" viewport={{ once: true, amount: 0.3 }} variants={stagger} className="space-y-6">
+              <motion.div variants={fadeUp}><Tag color={C.purple}>Intelligence artificielle</Tag></motion.div>
+              <motion.h2 variants={fadeUp} className="text-3xl md:text-4xl font-bold" style={{ color: C.text }}>
+                7 dimensions analysées.<br /><span style={{ color: C.amber }}>Une compatibilité réelle.</span>
+              </motion.h2>
+              <motion.p variants={fadeUp} className="text-base leading-relaxed" style={{ color: C.muted }}>
+                Notre algorithme analyse vos réponses en langage naturel pour saisir la profondeur de vos valeurs — pas seulement vos préférences de surface.
+              </motion.p>
+              <motion.div variants={fadeUp} className="space-y-4">
+                {[
+                  { label: 'Valeurs islamiques & Foi', pct: 25, color: C.amber },
+                  { label: 'Personnalité & Communication', pct: 35, color: C.green },
+                  { label: 'Projet de vie & Famille', pct: 20, color: C.blue },
+                  { label: 'Style de vie & Carrière', pct: 15, color: C.purple },
+                  { label: 'Compatibilité physique', pct: 5, color: C.muted },
+                ].map((d) => <DimBar key={d.label} {...d} />)}
+              </motion.div>
+            </motion.div>
+            <motion.div initial={{ opacity: 0, scale: 0.95 }} whileInView={{ opacity: 1, scale: 1 }}
+              viewport={{ once: true, amount: 0.4 }} transition={{ duration: 0.6 }}
+              className="rounded-2xl border p-8 space-y-6" style={{ background: C.card, borderColor: C.border }}>
+              <div className="text-center space-y-2">
+                <div className="text-5xl font-bold" style={{ color: C.amber }}>94%</div>
+                <div className="text-sm" style={{ color: C.muted }}>Score de Compatibilité Globale</div>
+              </div>
+              <div className="space-y-3">
+                {[
+                  { dim: 'Foi & pratique', val: 96, color: C.amber },
+                  { dim: 'Projet de vie', val: 100, color: C.green },
+                  { dim: 'Communication', val: 80, color: C.blue },
+                  { dim: 'Personnalité', val: 95, color: C.purple },
+                  { dim: 'Style de vie', val: 88, color: C.muted },
+                  { dim: 'Valeurs familiales', val: 92, color: C.amber },
+                  { dim: 'Vision spirituelle', val: 97, color: C.green },
+                ].map((d) => (
+                  <div key={d.dim} className="flex items-center gap-3 text-xs" style={{ color: C.muted }}>
+                    <div className="w-32 shrink-0">{d.dim}</div>
+                    <div className="flex-1 h-1.5 rounded-full overflow-hidden" style={{ background: C.border }}>
+                      <motion.div className="h-full rounded-full" style={{ background: d.color }}
+                        initial={{ width: 0 }} whileInView={{ width: `${d.val}%` }}
+                        viewport={{ once: true }} transition={{ duration: 0.8, ease: 'easeOut' }} />
+                    </div>
+                    <span style={{ color: d.color }}>{d.val}</span>
+                  </div>
+                ))}
               </div>
             </motion.div>
           </div>
         </div>
       </section>
 
-      {/* ══ TARIFS ════════════════════════════════════════════════════ */}
-      <section id="tarifs" className="py-24" style={{ background: '#0a0a0a' }}>
-        <div className="max-w-5xl mx-auto px-5">
-          <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={stagger} className="text-center mb-16">
-            <motion.p variants={fadeUp} className="text-xs tracking-widest uppercase mb-3" style={{ color: '#D4A853' }}>Nos formules</motion.p>
-            <motion.h2 variants={fadeUp} className="font-serif font-bold" style={{ fontSize: 'clamp(1.8rem, 4vw, 2.8rem)', color: '#fff' }}>
-              Choisissez votre rythme
+      {/* ── TARIFS ── */}
+      <section id="tarifs" className="py-20 border-t" style={{ borderColor: C.border }}>
+        <div className="max-w-6xl mx-auto px-6">
+          <motion.div initial="hidden" whileInView="show" viewport={{ once: true, amount: 0.3 }} variants={stagger}
+            className="text-center max-w-xl mx-auto mb-14 space-y-4">
+            <motion.div variants={fadeUp}><Tag color={C.amber}>Tarifs</Tag></motion.div>
+            <motion.h2 variants={fadeUp} className="text-3xl md:text-4xl font-bold" style={{ color: C.text }}>
+              Des plans pour chaque étape
             </motion.h2>
-            <motion.div variants={fadeUp}>
-              <div className="w-12 h-0.5 mx-auto mt-5" style={{ background: '#D4A853' }} />
-            </motion.div>
+            <motion.p variants={fadeUp} className="text-base" style={{ color: C.muted }}>
+              Commencez gratuitement. Passez en premium quand vous êtes prêt(e).
+            </motion.p>
           </motion.div>
+          <motion.div initial="hidden" whileInView="show" viewport={{ once: true, amount: 0.2 }} variants={stagger}
+            className="grid md:grid-cols-3 gap-5 max-w-4xl mx-auto">
+            <PricingCard plan="Gratuit" price="Gratuit" color={C.muted} cta="Commencer"
+              features={['Questionnaire de compatibilité complet', '1 profil compatible / semaine', 'Score de compatibilité détaillé', 'Accès en lecture aux profils']} />
+            <PricingCard plan="Standard" price="19 €" color={C.amber} cta="Choisir Standard" highlight
+              features={['2 profils compatibles / semaine', 'Messagerie interne encadrée', 'Matching IA illimité', 'Profil complet avec photos', 'Notifications prioritaires']} />
+            <PricingCard plan="Premium" price="39 €" color={C.green} cta="Choisir Premium"
+              features={['3 profils compatibles / semaine', 'Tout le plan Standard', 'Accès prioritaire aux nouveaux profils', 'Organisation mouqabala encadrée', 'Accompagnement personnalisé']} />
+          </motion.div>
+          <motion.p initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }}
+            className="text-center text-xs mt-8" style={{ color: C.dimmed }}>
+            Paiement sécurisé par Stripe · Résiliation à tout moment · Aucun remboursement après souscription
+          </motion.p>
+        </div>
+      </section>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {PLANS.map((plan, i) => (
-              <motion.div
-                key={plan.nom}
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: i * 0.1 }}
-                className="relative rounded-2xl p-7 flex flex-col"
-                style={{
-                  background: plan.highlight ? '#131008' : '#111',
-                  border: plan.highlight ? '1px solid #D4A853' : '1px solid #222',
-                  boxShadow: plan.highlight ? '0 0 40px rgba(212,168,83,0.12)' : 'none',
-                }}
-              >
-                {plan.highlight && (
-                  <div className="absolute -top-4 left-1/2 -translate-x-1/2">
-                    <span className="text-xs font-bold px-4 py-1.5 rounded-full"
-                      style={{ background: '#D4A853', color: '#000' }}>
-                      LE PLUS CHOISI
-                    </span>
-                  </div>
-                )}
+      {/* ── TÉMOIGNAGES ── */}
+      <section id="temoignages" className="py-20 border-t" style={{ borderColor: C.border }}>
+        <div className="max-w-6xl mx-auto px-6">
+          <motion.div initial="hidden" whileInView="show" viewport={{ once: true, amount: 0.3 }} variants={stagger}
+            className="text-center max-w-xl mx-auto mb-14 space-y-4">
+            <motion.div variants={fadeUp}><Tag color={C.green}>Témoignages</Tag></motion.div>
+            <motion.h2 variants={fadeUp} className="text-3xl md:text-4xl font-bold" style={{ color: C.text }}>
+              Ils ont trouvé leur moitié
+            </motion.h2>
+          </motion.div>
+          <motion.div initial="hidden" whileInView="show" viewport={{ once: true, amount: 0.2 }} variants={stagger}
+            className="grid md:grid-cols-3 gap-5">
+            <TestimonialCard name="Yasmine" age={27} city="Paris"
+              text="Le questionnaire est vraiment approfondi. J'ai rencontré mon mari 3 semaines après mon inscription. Le score de compatibilité était de 91% — et c'est exactement ce qu'on vit au quotidien." />
+            <TestimonialCard name="Adam" age={31} city="Lyon"
+              text="J'avais essayé d'autres plateformes sans succès. Ici, le cadre islamique et la supervision donnent confiance. La mouqabala organisée par l'équipe s'est parfaitement passée." />
+            <TestimonialCard name="Fatima" age={26} city="Marseille"
+              text="Ce qui m'a convaincue c'est le sérieux de la plateforme. Zéro échange de contacts, tout est encadré. Je recommande à toutes les sœurs qui cherchent quelque chose de sérieux." />
+          </motion.div>
+        </div>
+      </section>
 
-                <div className="mb-5">
-                  <h3 className="text-base font-bold text-white mb-3">{plan.nom}</h3>
-                  <div className="flex items-end gap-1 mb-1">
-                    <span className="text-4xl font-bold font-serif" style={{ color: '#D4A853' }}>{plan.prix}€</span>
-                    <span className="text-sm mb-1.5" style={{ color: '#555' }}>{plan.periode}</span>
-                  </div>
-                  <p className="text-xs font-medium" style={{ color: '#D4A853' }}>{plan.profils}</p>
-                </div>
+      {/* ── CTA FINAL ── */}
+      <section className="py-24 border-t" style={{ borderColor: C.border }}>
+        <div className="max-w-3xl mx-auto px-6 text-center">
+          <motion.div initial="hidden" whileInView="show" viewport={{ once: true, amount: 0.4 }} variants={stagger} className="space-y-7">
+            <motion.div variants={fadeUp}>
+              <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4 text-2xl"
+                style={{ background: C.amber + '20', border: `1px solid ${C.amber}30` }}>🤲</div>
+            </motion.div>
+            <motion.h2 variants={fadeUp} className="text-4xl md:text-5xl font-bold" style={{ color: C.text }}>
+              Votre moitié<br /><span style={{ color: C.amber }}>vous attend.</span>
+            </motion.h2>
+            <motion.p variants={fadeUp} className="text-base" style={{ color: C.muted }}>
+              Inscription gratuite · Questionnaire en 10 minutes · Premiers résultats immédiats.
+            </motion.p>
+            <motion.div variants={fadeUp} className="flex flex-col sm:flex-row gap-3 justify-center">
+              <Link href="/inscription"
+                className="flex items-center justify-center gap-2 px-8 py-4 rounded-xl font-bold text-sm hover:opacity-90 transition-all"
+                style={{ background: C.amber, color: '#000' }}>
+                Créer mon profil gratuitement <ArrowRight size={16} />
+              </Link>
+              <Link href="/connexion"
+                className="flex items-center justify-center gap-2 px-8 py-4 rounded-xl text-sm border transition-all"
+                style={{ color: C.muted, borderColor: C.border }}>
+                J&apos;ai déjà un compte
+              </Link>
+            </motion.div>
+            <motion.p variants={fadeUp} className="text-xs" style={{ color: C.dimmed }}>
+              Que Allah facilite votre chemin vers le mariage. 🤲
+            </motion.p>
+          </motion.div>
+        </div>
+      </section>
 
-                <ul className="space-y-2.5 mb-7 flex-1">
-                  {plan.features.map((f) => (
-                    <li key={f} className="flex items-start gap-2 text-xs" style={{ color: '#777' }}>
-                      <CheckCircle2 size={13} style={{ color: '#D4A853', flexShrink: 0, marginTop: 1 }} />
-                      {f}
+      {/* ── FOOTER ── */}
+      <footer className="border-t py-14" style={{ borderColor: C.border }}>
+        <div className="max-w-6xl mx-auto px-6">
+          <div className="grid md:grid-cols-4 gap-10 mb-12">
+            <div className="space-y-3">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-lg flex items-center justify-center font-bold text-sm"
+                  style={{ background: C.amber, color: '#000' }}>M</div>
+                <span className="font-bold text-sm" style={{ color: C.text }}>MASR</span>
+              </div>
+              <p className="text-sm leading-relaxed" style={{ color: C.muted }}>
+                La première plateforme de mariage islamique intelligente. Encadrée. Sérieuse. Selon l&apos;Islam.
+              </p>
+              <div className="flex items-center gap-1.5">
+                <Globe size={12} style={{ color: C.dimmed }} />
+                <span className="text-xs" style={{ color: C.dimmed }}>France · Belgique · Suisse</span>
+              </div>
+            </div>
+            {[
+              { title: 'PLATEFORME', links: [{ label: "S'inscrire", href: '/inscription' }, { label: 'Se connecter', href: '/connexion' }, { label: 'Tarifs', href: '#tarifs' }] },
+              { title: 'LÉGAL', links: [{ label: 'Mentions légales', href: '/mentions-legales' }, { label: 'Confidentialité', href: '/confidentialite' }, { label: 'CGU', href: '/cgu' }, { label: 'CGV', href: '/cgv' }, { label: 'Règles', href: '/regles' }] },
+              { title: 'CONTACT', links: [{ label: 'mariesausecondregard@gmail.com', href: 'mailto:mariesausecondregard@gmail.com' }, { label: 'Instagram', href: '#' }, { label: 'Facebook', href: '#' }] },
+            ].map((col) => (
+              <div key={col.title} className="space-y-3">
+                <div className="text-xs font-bold tracking-widest" style={{ color: C.dimmed }}>{col.title}</div>
+                <ul className="space-y-2.5">
+                  {col.links.map((l) => (
+                    <li key={l.label}>
+                      <Link href={l.href} className="text-sm opacity-60 hover:opacity-100 transition-all" style={{ color: C.muted }}>{l.label}</Link>
                     </li>
                   ))}
                 </ul>
-
-                <Link
-                  href="/inscription"
-                  className="w-full flex items-center justify-center py-3 rounded-xl text-sm font-semibold transition-all"
-                  style={plan.highlight
-                    ? { background: '#D4A853', color: '#000' }
-                    : { border: '1px solid rgba(212,168,83,0.4)', color: '#D4A853', background: 'transparent' }
-                  }
-                >
-                  {plan.cta}
-                </Link>
-              </motion.div>
-            ))}
-          </div>
-
-          <p className="text-center text-xs mt-6" style={{ color: '#555' }}>
-            Sans engagement · Résiliation à tout moment · Paiement sécurisé par Stripe
-          </p>
-        </div>
-      </section>
-
-      {/* ══ TÉMOIGNAGES ══════════════════════════════════════════════ */}
-      <section id="temoignages" className="py-24" style={{ background: '#0d0d0d' }}>
-        <div className="max-w-6xl mx-auto px-5">
-          <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={stagger} className="text-center mb-16">
-            <motion.p variants={fadeUp} className="text-xs tracking-widest uppercase mb-3" style={{ color: '#D4A853' }}>Ils se sont mariés</motion.p>
-            <motion.h2 variants={fadeUp} className="font-serif font-bold" style={{ fontSize: 'clamp(1.8rem, 4vw, 2.8rem)', color: '#fff' }}>
-              Des histoires vraies
-            </motion.h2>
-            <motion.div variants={fadeUp}>
-              <div className="w-12 h-0.5 mx-auto mt-5" style={{ background: '#D4A853' }} />
-            </motion.div>
-          </motion.div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {TEMOIGNAGES.map((t, i) => (
-              <motion.div
-                key={t.nom}
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: i * 0.1 }}
-                className="rounded-2xl p-6"
-                style={{ background: '#111', border: '1px solid #1e1e1e' }}
-              >
-                <div className="flex gap-0.5 mb-4">
-                  {[...Array(5)].map((_, j) => (
-                    <Star key={j} size={12} style={{ color: '#D4A853', fill: '#D4A853' }} />
-                  ))}
-                </div>
-                <p className="text-sm leading-relaxed mb-5 italic" style={{ color: '#888' }}>
-                  &ldquo;{t.texte}&rdquo;
-                </p>
-                <div className="flex items-center justify-between pt-4" style={{ borderTop: '1px solid #1e1e1e' }}>
-                  <div>
-                    <p className="text-white font-semibold text-xs">{t.nom}</p>
-                    <p className="text-xs" style={{ color: '#555' }}>{t.ville}</p>
-                  </div>
-                  <div className="text-right">
-                    <p className="font-bold text-sm font-serif" style={{ color: '#D4A853' }}>{t.score}%</p>
-                    <p className="text-xs" style={{ color: '#555' }}>compatibilité</p>
-                  </div>
-                </div>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ══ CTA FINAL ════════════════════════════════════════════════ */}
-      <section className="py-32 relative overflow-hidden" style={{ background: '#0a0a0a' }}>
-        <GeometricBg />
-        <div className="absolute inset-0 pointer-events-none"
-          style={{ background: 'radial-gradient(ellipse 60% 60% at 50% 50%, rgba(212,168,83,0.05) 0%, transparent 70%)' }} />
-        <div className="max-w-3xl mx-auto px-5 text-center relative z-10">
-          <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={stagger}>
-            <motion.div variants={fadeUp} className="mb-5">
-              <GoldOrnament />
-            </motion.div>
-            <motion.h2 variants={fadeUp} className="font-serif font-bold mb-5 leading-tight"
-              style={{ fontSize: 'clamp(2rem, 5vw, 3.2rem)', color: '#fff' }}>
-              Votre moitié vous attend.<br />
-              <span style={{
-                background: 'linear-gradient(90deg, #B8960C 0%, #D4A853 40%, #e6b820 70%, #B8960C 100%)',
-                backgroundSize: '200% auto',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
-                animation: 'shimmer 3s linear infinite',
-              }}>
-                Commencez maintenant.
-              </span>
-            </motion.h2>
-            <motion.p variants={fadeUp} className="text-base mb-10" style={{ color: '#666' }}>
-              Inscription gratuite · Questionnaire 15 min · Premier profil compatible sous 48h
-            </motion.p>
-            <motion.div variants={fadeUp}>
-              <Link
-                href="/inscription"
-                className="inline-flex items-center gap-3 font-semibold px-10 py-4 rounded-xl transition-all text-base"
-                style={{ background: '#D4A853', color: '#000', boxShadow: '0 0 40px rgba(212,168,83,0.25)' }}
-              >
-                Créer mon profil gratuitement
-                <ArrowRight size={18} />
-              </Link>
-            </motion.div>
-            <motion.div variants={fadeUp} className="mt-8">
-              <GoldOrnament />
-            </motion.div>
-          </motion.div>
-        </div>
-      </section>
-
-      {/* ══ FOOTER ═══════════════════════════════════════════════════ */}
-      <footer style={{ background: '#080808', borderTop: '1px solid rgba(212,168,83,0.1)' }} className="py-14">
-        <div className="max-w-6xl mx-auto px-5">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-10">
-            <div className="col-span-2 md:col-span-1">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-7 h-7 rounded-full flex items-center justify-center"
-                  style={{ border: '1.5px solid #D4A853' }}>
-                  <span className="font-serif text-xs font-bold" style={{ color: '#D4A853' }}>M</span>
-                </div>
-                <span className="font-serif font-semibold text-sm text-white tracking-wide">MASR</span>
               </div>
-              <p className="text-xs leading-relaxed" style={{ color: '#555', maxWidth: '200px' }}>
-                La première plateforme de mariage islamique intelligente. Encadrée. Sérieuse. Selon l&apos;Islam.
-              </p>
-            </div>
-            <div>
-              <h4 className="text-xs font-semibold text-white mb-4 uppercase tracking-wide">Plateforme</h4>
-              <ul className="space-y-2.5 text-xs" style={{ color: '#555' }}>
-                <li><Link href="/inscription" className="hover:text-white transition-colors">S&apos;inscrire</Link></li>
-                <li><Link href="/connexion" className="hover:text-white transition-colors">Se connecter</Link></li>
-                <li><a href="#tarifs" className="hover:text-white transition-colors">Tarifs</a></li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="text-xs font-semibold text-white mb-4 uppercase tracking-wide">Légal</h4>
-              <ul className="space-y-2.5 text-xs" style={{ color: '#555' }}>
-                <li><Link href="/mentions-legales" className="hover:text-white transition-colors">Mentions légales</Link></li>
-                <li><Link href="/confidentialite" className="hover:text-white transition-colors">Confidentialité</Link></li>
-                <li><Link href="/cgu" className="hover:text-white transition-colors">CGU</Link></li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="text-xs font-semibold text-white mb-4 uppercase tracking-wide">Contact</h4>
-              <ul className="space-y-2.5 text-xs" style={{ color: '#555' }}>
-                <li>contact@mariesausecondregard.fr</li>
-                <li className="hover:text-white transition-colors cursor-pointer">Instagram</li>
-                <li className="hover:text-white transition-colors cursor-pointer">Facebook</li>
-              </ul>
-            </div>
+            ))}
           </div>
-          <div className="flex flex-col md:flex-row items-center justify-between gap-4 pt-6"
-            style={{ borderTop: '1px solid rgba(212,168,83,0.08)' }}>
-            <p className="text-xs" style={{ color: '#444' }}>
-              © 2026 Mariés au Second Regard · Tous droits réservés · Marque déposée à l&apos;INPI
-            </p>
-            <p className="text-xs" style={{ color: '#444' }}>
-              Paiements sécurisés par <span className="text-white">Stripe</span>
-            </p>
+          <div className="pt-8 border-t flex flex-col md:flex-row items-center justify-between gap-3" style={{ borderColor: C.border }}>
+            <p className="text-xs" style={{ color: C.dimmed }}>© 2026 Mariés au Second Regard · Tous droits réservés · Marque déposée à l&apos;INPI</p>
+            <p className="text-xs" style={{ color: C.dimmed }}>Paiements sécurisés par <span style={{ color: C.muted }}>Stripe</span></p>
           </div>
         </div>
       </footer>
-    </main>
+    </div>
   )
 }
