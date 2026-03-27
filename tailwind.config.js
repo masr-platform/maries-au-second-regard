@@ -1,6 +1,5 @@
-import type { Config } from 'tailwindcss'
-
-const config: Config = {
+/** @type {import('tailwindcss').Config} */
+module.exports = {
   content: [
     './src/pages/**/*.{js,ts,jsx,tsx,mdx}',
     './src/components/**/*.{js,ts,jsx,tsx,mdx}',
@@ -9,14 +8,13 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        // Brand colors MASR
         gold: {
           50:  '#fdf9e7',
           100: '#faf0c0',
           200: '#f5e07a',
           300: '#eecb3d',
           400: '#e6b820',
-          500: '#B8960C', // Gold principal
+          500: '#B8960C',
           600: '#9a7a09',
           700: '#7a5f07',
           800: '#5c4705',
@@ -63,5 +61,3 @@ const config: Config = {
   },
   plugins: [],
 }
-
-export default config
