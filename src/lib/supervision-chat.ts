@@ -124,14 +124,12 @@ export async function superviserMessage(
     return
   }
 
-  // Si le message est plus long et potentiellement ambigu, analyse IA asynchrone
+  // Si le message est plus long et potentiellement ambigu, analyse IA approfondie
   if (contenu.length > 20) {
-    setImmediate(async () => {
-      const analyseIAResult = await analyseIA(contenu)
-      if (analyseIAResult.isFlagged && analyseIAResult.flagScore > 0.7) {
-        await signalerMessage(messageId, conversationId, analyseIAResult)
-      }
-    })
+    const analyseIAResult = await analyseIA(contenu)
+    if (analyseIAResult.isFlagged && analyseIAResult.flagScore > 0.7) {
+      await signalerMessage(messageId, conversationId, analyseIAResult)
+    }
   }
 }
 

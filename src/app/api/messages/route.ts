@@ -1,5 +1,6 @@
 // API Messages — Chat supervisé
 import { NextRequest, NextResponse } from 'next/server'
+import { waitUntil } from '@vercel/functions'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
@@ -147,28 +148,30 @@ export async function POST(req: NextRequest) {
       },
     })
 
-    // Supervision IA asynchrone (ne bloque pas la réponse)
-    setImmediate(() => {
-      superviserMessage(message.id, conversationId, contenu)
-      verifierProgressionEtape(conversationId)
-    })
-
-    // Notifier l'autre utilisateur
+    // Supervision IA + notification — asynchrone via waitUntil (Vercel-safe)
     const autreUserId = conversation.user1Id === userId
       ? conversation.user2Id
       : conversation.user1Id
 
-    setImmediate(async () => {
-      await prisma.notification.create({
-        data: {
-          userId: autreUserId,
-          type: 'NOUVEAU_MESSAGE',
-          titre: `Nouveau message`,
-          contenu: `Vous avez reçu un nouveau message.`,
-          data: JSON.stringify({ conversationId }),
-        },
-      })
-    })
+    waitUntil(
+      (async () => {
+        try {
+          await superviserMessage(message.id, conversationId, contenu)
+          await verifierProgressionEtape(conversationId)
+          await prisma.notification.create({
+            data: {
+              userId: autreUserId,
+              type: 'NOUVEAU_MESSAGE',
+              titre: 'Nouveau message',
+              contenu: 'Vous avez reçu un nouveau message.',
+              data: JSON.stringify({ conversationId }),
+            },
+          })
+        } catch (err) {
+          console.error('Erreur post-message async:', err)
+        }
+      })()
+    )
 
     return NextResponse.json({ message }, { status: 201 })
 
