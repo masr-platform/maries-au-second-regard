@@ -39,6 +39,7 @@ export default withAuth(
           path.startsWith('/inscription') ||
           path.startsWith('/connexion') ||
           path.startsWith('/api/auth') ||
+          path.startsWith('/api/users') ||
           path.startsWith('/mentions-legales') ||
           path.startsWith('/confidentialite') ||
           path.startsWith('/cgu')
