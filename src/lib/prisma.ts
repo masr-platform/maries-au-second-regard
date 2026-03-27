@@ -21,3 +21,4 @@ if (process.env.NODE_ENV !== 'production') {
 }
 
 export default prisma
+// db connection ok - Fri Mar 27 17:21:05 CET 2026
