@@ -1,0 +1,105 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+:root {
+  --gold: #B8960C;
+  --gold-light: #e6b820;
+  --dark: #0a0a0a;
+  --dark-card: #111111;
+  --dark-border: #2c2c2c;
+}
+
+* { box-sizing: border-box; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  background-color: #0a0a0a;
+  color: #f0f0f0;
+  font-family: 'Inter', Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Scrollbar personnalisée */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: #111; }
+::-webkit-scrollbar-thumb { background: #B8960C; border-radius: 3px; }
+
+/* Sélection de texte */
+::selection { background: rgba(184, 150, 12, 0.3); color: #fff; }
+
+/* ─── Composants réutilisables ─── */
+@layer components {
+  .btn-gold {
+    @apply bg-gold-500 hover:bg-gold-400 text-black font-semibold px-6 py-3 rounded-lg
+           transition-all duration-200 shadow-gold hover:shadow-gold-lg
+           focus:outline-none focus:ring-2 focus:ring-gold-400 focus:ring-offset-2 focus:ring-offset-dark-900
+           disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+
+  .btn-outline-gold {
+    @apply border border-gold-500 text-gold-500 hover:bg-gold-500 hover:text-black font-semibold px-6 py-3 rounded-lg
+           transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-gold-400;
+  }
+
+  .card-dark {
+    @apply bg-dark-700 border border-dark-500 rounded-xl p-6 shadow-lg;
+  }
+
+  .card-dark-hover {
+    @apply card-dark hover:border-gold-500/50 hover:shadow-gold transition-all duration-300 cursor-pointer;
+  }
+
+  .input-dark {
+    @apply w-full bg-dark-700 border border-dark-500 text-white rounded-lg px-4 py-3
+           focus:outline-none focus:border-gold-500 focus:ring-1 focus:ring-gold-500
+           placeholder-dark-300 transition-colors duration-200
+           disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+
+  .label-gold {
+    @apply text-sm font-medium text-gold-400 mb-1 block;
+  }
+
+  .badge-gold {
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+           bg-gold-500/20 text-gold-400 border border-gold-500/30;
+  }
+
+  .section-title {
+    @apply text-3xl md:text-4xl font-serif font-bold text-white;
+  }
+
+  .section-subtitle {
+    @apply text-lg text-dark-300 mt-3 leading-relaxed;
+  }
+
+  .gold-divider {
+    @apply w-16 h-0.5 bg-gold-500 mx-auto my-6;
+  }
+}
+
+/* ─── Animations ─── */
+@keyframes shimmer {
+  0% { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+
+.shimmer-text {
+  background: linear-gradient(90deg, #B8960C 0%, #e6b820 50%, #B8960C 100%);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: shimmer 3s linear infinite;
+}
+
+/* ─── Loading skeleton ─── */
+.skeleton {
+  background: linear-gradient(90deg, #1a1a1a 25%, #2c2c2c 50%, #1a1a1a 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: 6px;
+}

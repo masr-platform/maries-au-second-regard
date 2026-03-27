@@ -1,0 +1,532 @@
+// ══════════════════════════════════════════════════════════════════
+// MARIÉS AU SECOND REGARD — Schéma Base de Données
+// Architecture scalable pour 500-1000 utilisateurs simultanés
+// ══════════════════════════════════════════════════════════════════
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// ─── UTILISATEURS ──────────────────────────────────────────────────
+model User {
+  id                    String    @id @default(cuid())
+  email                 String    @unique
+  passwordHash          String
+  phone                 String?
+  phoneVerified         Boolean   @default(false)
+  emailVerified         DateTime?
+
+  // Identité
+  prenom                String
+  genre                 Genre
+  dateNaissance         DateTime
+  ville                 String?
+  pays                  String    @default("France")
+  origine               String?
+
+  // Photo
+  photoUrl              String?
+  photoApproved         Boolean   @default(false)
+  photoPublique         Boolean   @default(true)
+
+  // Abonnement
+  plan                  Plan      @default(GRATUIT)
+  profilesParSemaine    Int       @default(1)
+  stripeCustomerId      String?   @unique
+  stripeSubscriptionId  String?
+
+  // Statut
+  questionnaireCompleted Boolean  @default(false)
+  profileCompleted       Boolean  @default(false)
+  isVerified             Boolean  @default(false)
+  isSuspended            Boolean  @default(false)
+  isBanned               Boolean  @default(false)
+  banReason              String?
+  role                   UserRole @default(USER)
+
+  // Mode Wali
+  waliEnabled            Boolean  @default(false)
+  waliEmail              String?
+  waliPhone              String?
+  waliNom                String?
+
+  // Matching state
+  dernierePropositionAt  DateTime?
+  propositionsEnCours    Int       @default(0)
+
+  // Timestamps
+  createdAt              DateTime  @default(now())
+  updatedAt              DateTime  @updatedAt
+  lastActiveAt           DateTime  @default(now())
+
+  // Relations
+  questionnaireReponse   QuestionnaireReponse?
+  matchesAsUser1         Match[]   @relation("User1Matches")
+  matchesAsUser2         Match[]   @relation("User2Matches")
+  conversationsAsUser1   Conversation[] @relation("ConvUser1")
+  conversationsAsUser2   Conversation[] @relation("ConvUser2")
+  conversationsAsWali    Conversation[] @relation("ConvWali")
+  messagesSent           Message[] @relation("SentMessages")
+  notifications          Notification[]
+  praticienProfil        Praticien?
+  imamSessionsAsImam     ImamSession[] @relation("ImamSessions")
+  imamSessionsAsUser1    ImamSession[] @relation("ImamUser1")
+  imamSessionsAsUser2    ImamSession[] @relation("ImamUser2")
+  subscriptions          Subscription[]
+  adminLogs              AdminLog[] @relation("AdminLogs")
+  adminLogsTarget        AdminLog[] @relation("AdminLogsTarget")
+
+  @@index([email])
+  @@index([genre])
+  @@index([plan])
+  @@index([questionnaireCompleted])
+  @@index([isVerified, isBanned, isSuspended])
+}
+
+// ─── QUESTIONNAIRE ─────────────────────────────────────────────────
+model QuestionnaireReponse {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // ── Section 1: Identité & Foi ──────────────────────────────────
+  niveauPratique         String?  // debutant, pratiquant, tres_pratiquant, savant
+  ecoleJurisprudentielle String?  // maliki, hanafi, chafii, hanbali, autre
+  foiCentraleDecisions   Boolean?
+  acceptePratiqueDiff    Boolean?
+  descriptionFoi         String?  @db.Text
+
+  // ── Section 2: Projet Conjugal ─────────────────────────────────
+  objectifMariage        String?  // mariage_uniquement, mariage_apres, engagement_progressif
+  souhaitEnfants         Boolean?
+  nombreEnfantsSouhaite  Int?
+  delaiEnfants           String?
+  modeVieSouhaite        String?  // homme_foyer, double_carriere, flexible
+  villeSouhaitee         String?
+  mobilitePossible       Boolean?
+  proximiteFamily        Int?     // 1-5
+  visionPolygamie        String?
+  visionComplementarite  String?  @db.Text
+
+  // ── Section 3: Personnalité & Communication ────────────────────
+  gestionConflits        String?  // evitement, discussion, mediation, autre
+  niveauExtraversion     Int?     // 1-10
+  langageAmour           String?  // paroles, service, cadeaux, temps, contact_physique
+  independanceCouple     Int?     // 1-5
+  rapportAutorite        String?  @db.Text
+  intolerances           String?  @db.Text // JSON array
+  forcesPersonnelles     String?  @db.Text
+
+  // ── Section 4: Style de Vie ────────────────────────────────────
+  fumeur                 Boolean?
+  consommeAlcool         Boolean?
+  activitePhysique       String?  // reguliere, occasionnelle, aucune
+  regimeAlimentaire      String?  // halal_strict, halal_convenable, vegetarien
+  loisirs                String?  @db.Text
+  cercleSocial           String?  // mixte, non_mixte, les_deux
+  rapportReseaux         String?  // actif, discret, aucun
+  importanceVoyage       Int?     // 1-5
+
+  // ── Section 5: Formation & Carrière ───────────────────────────
+  niveauEtudes           String?
+  profession             String?
+  situationFinanciere    String?  // precaire, stable, confortable, aisee
+  ambitionsPro           String?  // stabilite, croissance, entrepreneuriat
+  visionFinancesCouple   String?  @db.Text
+
+  // ── Section 6: Apparence ────────────────────────────────────────
+  taille                 Int?
+  silhouette             String?
+  couleurYeux            String?
+  couleurCheveux         String?
+  portVoile              Boolean?  // femmes
+  portBarbe              Boolean?  // hommes
+  criteresPhysiques      String?  @db.Text
+  accepteEnfantsPrevious Boolean?
+  accepteDivorce         Boolean?
+  accepteConverti        Boolean?
+
+  // ── Section 7: Questions Profondes ─────────────────────────────
+  partenaireIdeal5Mots   String?  @db.Text
+  peurMariage            String?  @db.Text
+  sourceBonheur          String?  @db.Text
+  valeurIslamiqueVoulue  String?  @db.Text
+  descriptionEntourage   String?  @db.Text
+  visionFoyer            String?  @db.Text
+  messageConjoint        String?  @db.Text
+
+  // ── Vecteur IA ────────────────────────────────────────────────
+  embeddingVector        String?  @db.Text  // JSON array float (OpenAI)
+  embeddingUpdatedAt     DateTime?
+  scoreVector            String?  @db.Text  // vecteur de scoring normalisé
+
+  completedAt            DateTime?
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
+
+  @@index([userId])
+}
+
+// ─── MATCHES ────────────────────────────────────────────────────────
+model Match {
+  id                   String      @id @default(cuid())
+  user1Id              String
+  user2Id              String
+  user1                User        @relation("User1Matches", fields: [user1Id], references: [id])
+  user2                User        @relation("User2Matches", fields: [user2Id], references: [id])
+
+  // Scores
+  scoreGlobal          Float       // 0-100
+  scoresFoi            Float       @default(0)
+  scoresPersonalite    Float       @default(0)
+  scoresProjetVie      Float       @default(0)
+  scoresCommunication  Float       @default(0)
+  scoresStyleVie       Float       @default(0)
+  scoresCarriere       Float       @default(0)
+  scoresPhysique       Float       @default(0)
+  dimensionDetails     String?     @db.Text // JSON
+
+  // Statut
+  status               MatchStatus @default(PROPOSE)
+  user1Reponse         Reponse     @default(EN_ATTENTE)
+  user2Reponse         Reponse     @default(EN_ATTENTE)
+
+  proposedAt           DateTime    @default(now())
+  user1ReponduAt       DateTime?
+  user2ReponduAt       DateTime?
+  chatOuvertAt         DateTime?
+  closedAt             DateTime?
+  closeReason          String?
+
+  conversation         Conversation?
+  imamSession          ImamSession?
+
+  createdAt            DateTime    @default(now())
+  updatedAt            DateTime    @updatedAt
+
+  @@unique([user1Id, user2Id])
+  @@index([user1Id])
+  @@index([user2Id])
+  @@index([status])
+  @@index([scoreGlobal])
+}
+
+// ─── CONVERSATIONS & MESSAGES ───────────────────────────────────────
+model Conversation {
+  id          String   @id @default(cuid())
+  matchId     String   @unique
+  match       Match    @relation(fields: [matchId], references: [id])
+  user1Id     String
+  user2Id     String
+  user1       User     @relation("ConvUser1", fields: [user1Id], references: [id])
+  user2       User     @relation("ConvUser2", fields: [user2Id], references: [id])
+
+  // Mode wali
+  waliId      String?
+  wali        User?    @relation("ConvWali", fields: [waliId], references: [id])
+  waliActif   Boolean  @default(false)
+
+  // Progression par étapes islamiques
+  etape       EtapeConversation @default(PRESENTATION)
+  messageCount Int      @default(0)
+  etapeChangedAt DateTime?
+
+  // Supervision
+  isFlagged   Boolean  @default(false)
+  flagReason  String?
+  flaggedAt   DateTime?
+  isBlocked   Boolean  @default(false)
+  blockedBy   String?
+  blockedAt   DateTime?
+
+  lastMessageAt DateTime?
+  messages    Message[]
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([user1Id])
+  @@index([user2Id])
+  @@index([isFlagged])
+}
+
+model Message {
+  id              String      @id @default(cuid())
+  conversationId  String
+  conversation    Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  senderId        String
+  sender          User        @relation("SentMessages", fields: [senderId], references: [id])
+
+  content         String      @db.Text
+  type            MessageType @default(TEXTE)
+
+  // IA de supervision
+  isFlagged       Boolean     @default(false)
+  flagType        FlagType?
+  flagScore       Float?      // 0-1 score de risque IA
+  flagDetails     String?
+
+  isRead          Boolean     @default(false)
+  readAt          DateTime?
+
+  // Modération admin
+  isDeleted       Boolean     @default(false)
+  deletedBy       String?
+  deletedAt       DateTime?
+
+  createdAt       DateTime    @default(now())
+
+  @@index([conversationId, createdAt])
+  @@index([isFlagged])
+  @@index([senderId])
+}
+
+// ─── PRATICIENS (IMAMS / PSYCHOLOGUES) ──────────────────────────────
+model Praticien {
+  id                  String    @id @default(cuid())
+  userId              String    @unique
+  user                User      @relation(fields: [userId], references: [id])
+
+  type                TypePraticien
+  nom                 String
+  prenom              String
+  bio                 String    @db.Text
+  photo               String?
+  specialites         String[]
+  diplomes            String[]
+  languesParlees      String[]  @default(["Français"])
+
+  tarifIndividuel     Float?
+  tarifCouple         Float?
+  tarifImam           Float?    // pour les imams
+
+  disponibilites      String?   @db.Text // JSON: { lundi: ["09:00", "10:00", ...], ... }
+  fuseau              String    @default("Europe/Paris")
+
+  noteAverage         Float     @default(0)
+  nombreSessions      Int       @default(0)
+  nombreAvis          Int       @default(0)
+
+  stripeAccountId     String?   // Stripe Connect pour recevoir les paiements
+  isVerified          Boolean   @default(false)
+  isActive            Boolean   @default(true)
+
+  sessions            ImamSession[]
+
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+
+  @@index([type])
+  @@index([isVerified, isActive])
+}
+
+// ─── SESSIONS IMAM / THÉRAPIE ────────────────────────────────────────
+model ImamSession {
+  id              String    @id @default(cuid())
+  matchId         String?   @unique
+  match           Match?    @relation(fields: [matchId], references: [id])
+
+  imamId          String
+  imam            Praticien @relation(fields: [imamId], references: [id])
+  user1Id         String
+  user1           User      @relation("ImamUser1", fields: [user1Id], references: [id])
+  user2Id         String?
+  user2           User?     @relation("ImamUser2", fields: [user2Id], references: [id])
+
+  type            TypeSession // MOUQUABALA, THERAPIE_COUPLE, INDIVIDUEL, SPIRITUEL
+
+  scheduledAt     DateTime
+  dureeMinutes    Int       @default(60)
+  status          SessionStatus @default(PLANIFIE)
+
+  // Lien visio Daily.co
+  dailyRoomUrl    String?
+  dailyRoomName   String?
+
+  // Paiement
+  stripePaymentId String?
+  montant         Float
+  paye            Boolean   @default(false)
+
+  // Post-session
+  waliContactPartage Boolean @default(false)
+  notes              String? @db.Text
+  rating             Int?    // 1-5
+
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@index([imamId])
+  @@index([scheduledAt])
+  @@index([status])
+}
+
+// ─── ABONNEMENTS ────────────────────────────────────────────────────
+model Subscription {
+  id                    String    @id @default(cuid())
+  userId                String
+  user                  User      @relation(fields: [userId], references: [id])
+
+  plan                  Plan
+  profilesParSemaine    Int
+  stripeSubscriptionId  String    @unique
+  stripePriceId         String
+
+  status                SubStatus @default(ACTIVE)
+  currentPeriodStart    DateTime
+  currentPeriodEnd      DateTime
+
+  cancelAtPeriodEnd     Boolean   @default(false)
+  cancelledAt           DateTime?
+
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  @@index([userId])
+  @@index([status])
+}
+
+// ─── NOTIFICATIONS ───────────────────────────────────────────────────
+model Notification {
+  id        String           @id @default(cuid())
+  userId    String
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  type      NotificationType
+  titre     String
+  contenu   String           @db.Text
+  data      String?          @db.Text // JSON
+  isRead    Boolean          @default(false)
+  readAt    DateTime?
+
+  createdAt DateTime         @default(now())
+
+  @@index([userId, isRead])
+  @@index([createdAt])
+}
+
+// ─── LOGS ADMIN ──────────────────────────────────────────────────────
+model AdminLog {
+  id              String   @id @default(cuid())
+  adminId         String
+  admin           User     @relation("AdminLogs", fields: [adminId], references: [id])
+  action          String
+  targetUserId    String?
+  targetUser      User?    @relation("AdminLogsTarget", fields: [targetUserId], references: [id])
+  targetEntityId  String?
+  reason          String?  @db.Text
+  metadata        String?  @db.Text // JSON
+
+  createdAt       DateTime @default(now())
+
+  @@index([adminId])
+  @@index([targetUserId])
+  @@index([createdAt])
+}
+
+// ─── ENUM ────────────────────────────────────────────────────────────
+enum Genre {
+  HOMME
+  FEMME
+}
+
+enum Plan {
+  GRATUIT
+  STANDARD
+  PREMIUM
+}
+
+enum UserRole {
+  USER
+  IMAM
+  PRATICIEN
+  MODERATEUR
+  ADMIN
+  SUPER_ADMIN
+}
+
+enum MatchStatus {
+  PROPOSE
+  ACCEPTE_MUTUEL
+  REJETE
+  CHAT_OUVERT
+  VISIO_PLANIFIEE
+  IMAM_SESSION
+  TERMINE
+  FERME
+}
+
+enum Reponse {
+  EN_ATTENTE
+  ACCEPTE
+  REJETE
+}
+
+enum EtapeConversation {
+  PRESENTATION    // 10 premiers messages, questions de base
+  CONNAISSANCE    // après 3 jours, questions approfondies
+  FAMILLE         // invitation wali possible
+  VISIO           // appel video autorisé
+}
+
+enum MessageType {
+  TEXTE
+  VOCAL
+  SYSTEME
+  IMAGE
+}
+
+enum FlagType {
+  SNAP
+  TELEPHONE
+  RESEAU_SOCIAL
+  INAPPROPRIE
+  HARCELEMENT
+  AUTRE
+}
+
+enum TypePraticien {
+  IMAM
+  PSYCHOLOGUE
+  THERAPEUTE_COUPLE
+}
+
+enum TypeSession {
+  MOUQUABALA
+  THERAPIE_COUPLE
+  INDIVIDUEL
+  SPIRITUEL
+}
+
+enum SessionStatus {
+  PLANIFIE
+  EN_COURS
+  TERMINE
+  ANNULE
+  NO_SHOW
+}
+
+enum SubStatus {
+  ACTIVE
+  PAST_DUE
+  CANCELLED
+  UNPAID
+}
+
+enum NotificationType {
+  NOUVEAU_MATCH
+  MATCH_ACCEPTE
+  MATCH_REJETE
+  NOUVEAU_MESSAGE
+  SESSION_RAPPEL
+  ETAPE_DEBLOQUEE
+  WALI_INVITE
+  ABONNEMENT
+  SYSTEME
+}
