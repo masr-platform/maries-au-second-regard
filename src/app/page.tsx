@@ -1,753 +1,717 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import { motion, useInView } from 'framer-motion'
 import Link from 'next/link'
-import { motion, useInView, AnimatePresence } from 'framer-motion'
 import {
-  ArrowRight, Check, Star, Users, Heart, Shield,
-  Sparkles, ChevronDown, Menu, X, Zap, Lock, Clock
+  Shield, Brain, Heart, Star, ChevronRight,
+  Check, Users, Clock, Zap, Lock, Award,
+  TrendingUp, MessageCircle, ArrowRight,
 } from 'lucide-react'
 
-// ─── PALETTE VIOLET PREMIUM ───────────────────────────────────
-const V = {
-  bg:       '#0D0A14',   // fond très sombre violet
-  card:     '#150F22',   // carte principale
-  card2:    '#1C1432',   // carte surlignée
-  border:   'rgba(139,92,246,0.15)',
-  borderHi: 'rgba(139,92,246,0.4)',
-  violet:   '#7C3AED',   // violet principal
-  violetLt: '#A78BFA',   // violet clair
-  accent:   '#C084FC',   // violet très clair
-  pink:     '#EC4899',   // rose accent émotionnel
-  teal:     '#06B6D4',   // cyan pour contraste
-  text:     '#F8F5FF',   // blanc légèrement violet
-  muted:    '#94A3B8',   // gris bleuté
-  dimmed:   '#4B5563',   // très discret
-  success:  '#34D399',   // vert subtil
+// ─── Animation helper ─────────────────────────────────────────────
+function FadeUp({ children, delay = 0 }: { children: React.ReactNode; delay?: number }) {
+  const ref = useRef(null)
+  const inView = useInView(ref, { once: true, margin: '-80px' })
+  return (
+    <motion.div
+      ref={ref}
+      initial={{ opacity: 0, y: 28 }}
+      animate={inView ? { opacity: 1, y: 0 } : {}}
+      transition={{ duration: 0.55, delay, ease: 'easeOut' }}
+    >
+      {children}
+    </motion.div>
+  )
 }
 
-// ─── Framer variants ──────────────────────────────────────────
-const up = { hidden: { opacity: 0, y: 28 }, show: { opacity: 1, y: 0, transition: { duration: 0.6, ease: [0.22,1,0.36,1] } } }
-const stagger = { hidden: {}, show: { transition: { staggerChildren: 0.09 } } }
-const inRight = { hidden: { opacity: 0, x: 40 }, show: { opacity: 1, x: 0, transition: { duration: 0.7, ease: [0.22,1,0.36,1] } } }
-
-// ─── Compteur animé ───────────────────────────────────────────
-function Count({ to, suffix = '' }: { to: number; suffix?: string }) {
-  const [n, setN] = useState(0)
-  const ref = useRef<HTMLSpanElement>(null)
+// ─── Compteur animé ───────────────────────────────────────────────
+function Counter({ to, suffix = '' }: { to: number; suffix?: string }) {
+  const [count, setCount] = useState(0)
+  const ref = useRef(null)
   const inView = useInView(ref, { once: true })
+
   useEffect(() => {
     if (!inView) return
-    let v = 0; const step = to / 60
-    const t = setInterval(() => { v = Math.min(v + step, to); setN(Math.floor(v)); if (v >= to) clearInterval(t) }, 25)
-    return () => clearInterval(t)
+    let start = 0
+    const step = to / 60
+    const timer = setInterval(() => {
+      start += step
+      if (start >= to) { setCount(to); clearInterval(timer) }
+      else setCount(Math.floor(start))
+    }, 16)
+    return () => clearInterval(timer)
   }, [inView, to])
-  return <span ref={ref}>{n.toLocaleString('fr-FR')}{suffix}</span>
+
+  return <span ref={ref}>{count}{suffix}</span>
 }
 
-// ─── Barre de progress animée ─────────────────────────────────
-function Bar({ pct, color }: { pct: number; color: string }) {
-  const ref = useRef(null); const inView = useInView(ref, { once: true })
-  return (
-    <div ref={ref} className="h-1 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.07)' }}>
-      <motion.div className="h-full rounded-full" style={{ background: color }}
-        initial={{ width: 0 }} animate={inView ? { width: `${pct}%` } : {}}
-        transition={{ duration: 1, ease: 'easeOut', delay: 0.15 }} />
-    </div>
-  )
-}
+// ─── Page principale ───────────────────────────────────────────────
+export default function LandingPage() {
+  const [urgencyLeft] = useState(7)
 
-// ─── Badge pill ───────────────────────────────────────────────
-function Pill({ children, color = V.violetLt }: { children: React.ReactNode; color?: string }) {
   return (
-    <span className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1 rounded-full border uppercase tracking-wider"
-      style={{ color, borderColor: color + '35', background: color + '12' }}>
-      {children}
-    </span>
-  )
-}
+    <div className="min-h-screen bg-[#0B0912] text-white overflow-x-hidden">
 
-// ─── Carte étape ─────────────────────────────────────────────
-function StepCard({ n, title, desc, icon: Icon, color }: {
-  n: string; title: string; desc: string; icon: React.ElementType; color: string
-}) {
-  return (
-    <motion.div variants={up} className="relative rounded-2xl p-6 border group overflow-hidden"
-      style={{ background: V.card, borderColor: V.border }}>
-      <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500"
-        style={{ background: `radial-gradient(circle at 50% 0%, ${color}08 0%, transparent 70%)` }} />
-      <div className="w-11 h-11 rounded-xl flex items-center justify-center mb-4" style={{ background: color + '18' }}>
-        <Icon size={20} style={{ color }} />
+      {/* ══════════════════════════════════════════════════════════
+          BANDEAU URGENCE
+      ══════════════════════════════════════════════════════════ */}
+      <div className="bg-gradient-to-r from-violet-900 via-violet-800 to-violet-900 py-2.5 px-4 text-center text-sm">
+        <span className="text-violet-200">
+          🔒 Accès limité — Plus que{' '}
+          <span className="text-white font-bold">{urgencyLeft} places disponibles</span>
+          {' '}cette semaine. Notre algorithme n&apos;accepte que des profils sérieux.
+        </span>
       </div>
-      <div className="text-xs font-bold mb-1" style={{ color: color + 'aa' }}>Étape {n}</div>
-      <h3 className="font-bold text-base mb-2" style={{ color: V.text }}>{title}</h3>
-      <p className="text-sm leading-relaxed" style={{ color: V.muted }}>{desc}</p>
-    </motion.div>
-  )
-}
 
-// ─── Carte tarif ─────────────────────────────────────────────
-function PlanCard({ plan, price, period = '/mois', badge, features, cta, highlight, color, unavailable }: {
-  plan: string; price: string; period?: string; badge?: string; features: string[];
-  cta: string; highlight?: boolean; color: string; unavailable?: string[]
-}) {
-  return (
-    <motion.div variants={up} className="rounded-2xl border flex flex-col overflow-hidden relative"
-      style={{
-        background: highlight ? V.card2 : V.card,
-        borderColor: highlight ? color + '55' : V.border,
-        boxShadow: highlight ? `0 0 60px ${color}20, 0 0 0 1px ${color}20` : 'none',
-      }}>
-      {highlight && (
-        <div className="absolute -top-px left-0 right-0 h-0.5"
-          style={{ background: `linear-gradient(90deg, transparent, ${color}, transparent)` }} />
-      )}
-      {badge && (
-        <div className="text-center text-xs font-bold py-2.5 tracking-widest"
-          style={{ background: `linear-gradient(135deg, ${color}25, ${color}15)`, color }}>
-          ✦ {badge}
-        </div>
-      )}
-      <div className="p-7 flex flex-col gap-6 flex-1">
-        <div>
-          <div className="text-sm font-bold uppercase tracking-wider mb-4" style={{ color }}>{plan}</div>
-          <div className="flex items-baseline gap-1">
-            <span className="text-5xl font-black" style={{ color: V.text }}>{price}</span>
-            {price !== 'Gratuit' && <span className="text-sm" style={{ color: V.muted }}>{period}</span>}
-          </div>
-          {highlight && (
-            <div className="text-xs mt-2 font-medium" style={{ color: color + 'cc' }}>
-              Engagement mensuel · Sans engagement longue durée
+      {/* ══════════════════════════════════════════════════════════
+          NAV
+      ══════════════════════════════════════════════════════════ */}
+      <nav className="sticky top-0 z-50 bg-[#0B0912]/90 backdrop-blur-xl border-b border-white/5 px-6 py-4">
+        <div className="max-w-6xl mx-auto flex items-center justify-between">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-full border-2 border-[#C9A84C] flex items-center justify-center">
+              <span className="text-[#C9A84C] font-serif font-bold text-sm">M</span>
             </div>
-          )}
-        </div>
-        <ul className="space-y-3 flex-1">
-          {features.map((f, i) => {
-            const unavail = unavailable?.includes(f)
-            return (
-              <li key={i} className="flex items-start gap-2.5 text-sm"
-                style={{ color: unavail ? V.dimmed : V.muted }}>
-                <Check size={15} className="mt-0.5 shrink-0"
-                  style={{ color: unavail ? V.dimmed : color }} />
-                <span style={{ textDecoration: unavail ? 'line-through' : 'none' }}>{f}</span>
-              </li>
-            )
-          })}
-        </ul>
-        <Link href="/inscription"
-          className="w-full py-3.5 px-6 rounded-xl text-center text-sm font-bold transition-all duration-200 hover:opacity-90 hover:scale-[1.02] active:scale-100"
-          style={{
-            background: highlight ? `linear-gradient(135deg, ${color}, ${color}cc)` : 'transparent',
-            color: highlight ? '#fff' : color,
-            border: `1.5px solid ${color}${highlight ? 'ff' : '60'}`,
-          }}>
-          {cta}
-        </Link>
-      </div>
-    </motion.div>
-  )
-}
-
-// ─── Carte upsell ─────────────────────────────────────────────
-function UpsellCard({ qty, price, saving }: { qty: number; price: string; saving?: string }) {
-  return (
-    <motion.div variants={up}
-      className="rounded-2xl border p-5 flex items-center justify-between gap-4 cursor-pointer group hover:border-violet-500/40 transition-all duration-200"
-      style={{ background: V.card, borderColor: V.border }}>
-      <div className="flex items-center gap-3">
-        <div className="w-10 h-10 rounded-xl flex items-center justify-center font-bold text-sm"
-          style={{ background: V.violet + '20', color: V.accent }}>
-          +{qty}
-        </div>
-        <div>
-          <div className="font-semibold text-sm" style={{ color: V.text }}>
-            {qty} profil{qty > 1 ? 's' : ''} supplémentaire{qty > 1 ? 's' : ''}
+            <span className="font-serif font-bold text-white text-lg tracking-wide">MASR</span>
           </div>
-          {saving && <div className="text-xs" style={{ color: V.success }}>Économie : {saving}</div>}
-        </div>
-      </div>
-      <div className="flex items-center gap-3">
-        <div className="text-xl font-black" style={{ color: V.violetLt }}>{price}</div>
-        <div className="w-8 h-8 rounded-lg flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
-          style={{ background: V.violet + '30' }}>
-          <ArrowRight size={14} style={{ color: V.accent }} />
-        </div>
-      </div>
-    </motion.div>
-  )
-}
-
-// ─── Témoignage ───────────────────────────────────────────────
-function Testi({ name, age, city, text, score }: { name: string; age: number; city: string; text: string; score?: number }) {
-  return (
-    <motion.div variants={up} className="rounded-2xl p-6 border flex flex-col gap-4"
-      style={{ background: V.card, borderColor: V.border }}>
-      <div className="flex items-center justify-between">
-        <div className="flex gap-0.5">{[1,2,3,4,5].map(i => <Star key={i} size={13} fill={V.accent} stroke="none" />)}</div>
-        {score && <div className="text-xs font-bold px-2 py-0.5 rounded-full" style={{ background: V.violet + '20', color: V.accent }}>
-          Score {score}%
-        </div>}
-      </div>
-      <p className="text-sm leading-relaxed flex-1 italic" style={{ color: V.muted }}>&ldquo;{text}&rdquo;</p>
-      <div className="flex items-center gap-3 pt-3 border-t" style={{ borderColor: V.border }}>
-        <div className="w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold"
-          style={{ background: `linear-gradient(135deg, ${V.violet}40, ${V.pink}30)`, color: V.accent }}>
-          {name[0]}
-        </div>
-        <div>
-          <div className="text-sm font-semibold" style={{ color: V.text }}>{name}, {age} ans</div>
-          <div className="text-xs" style={{ color: V.dimmed }}>{city} · Marié(e) via MASR 🤲</div>
-        </div>
-      </div>
-    </motion.div>
-  )
-}
-
-// ════════════════════════════════════════════════════════════════
-// PAGE PRINCIPALE
-// ════════════════════════════════════════════════════════════════
-export default function HomePage() {
-  const [menu, setMenu] = useState(false)
-  const [scrolled, setScrolled] = useState(false)
-  const [spotsLeft] = useState(47) // urgence
-
-  useEffect(() => {
-    const fn = () => setScrolled(window.scrollY > 10)
-    window.addEventListener('scroll', fn)
-    return () => window.removeEventListener('scroll', fn)
-  }, [])
-
-  return (
-    <div style={{ background: V.bg, color: V.text }} className="min-h-screen font-sans antialiased overflow-x-hidden">
-
-      {/* ── BARRE URGENCE ───────────────────────────────────────── */}
-      <div className="relative z-50 text-center py-2.5 text-xs font-semibold"
-        style={{ background: `linear-gradient(90deg, ${V.violet}cc, ${V.pink}cc)` }}>
-        <span className="opacity-90">⚡ Places limitées cette semaine — </span>
-        <span className="font-bold">{spotsLeft} profils disponibles</span>
-        <span className="opacity-90"> · Qualité garantie</span>
-      </div>
-
-      {/* ── NAVBAR ──────────────────────────────────────────────── */}
-      <nav className="sticky top-0 z-40 transition-all duration-300"
-        style={{
-          background: scrolled ? V.bg + 'f2' : 'transparent',
-          backdropFilter: scrolled ? 'blur(20px)' : 'none',
-          borderBottom: scrolled ? `1px solid ${V.border}` : 'none',
-        }}>
-        <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg flex items-center justify-center font-black text-sm"
-              style={{ background: `linear-gradient(135deg, ${V.violet}, ${V.pink})` }}>M</div>
-            <span className="font-bold text-sm tracking-wide">Mariés au Second Regard</span>
-          </Link>
-          <div className="hidden md:flex items-center gap-7">
-            {[['Comment ça marche', '#comment-ca-marche'], ['Tarifs', '#tarifs'], ['Témoignages', '#temoignages']].map(([l, h]) => (
-              <a key={l} href={h} className="text-sm opacity-60 hover:opacity-100 transition-opacity" style={{ color: V.text }}>{l}</a>
-            ))}
-          </div>
-          <div className="hidden md:flex items-center gap-3">
-            <Link href="/connexion" className="text-sm px-4 py-2" style={{ color: V.muted }}>Connexion</Link>
-            <Link href="/questionnaire"
-              className="text-sm px-5 py-2.5 rounded-xl font-bold transition-all hover:opacity-90 hover:scale-105"
-              style={{ background: `linear-gradient(135deg, ${V.violet}, ${V.pink})`, color: '#fff' }}>
-              Commencer mon test →
+          <div className="flex items-center gap-3">
+            <Link
+              href="/connexion"
+              className="text-sm text-white/60 hover:text-white px-4 py-2 transition-colors"
+            >
+              Connexion
+            </Link>
+            <Link
+              href="/inscription"
+              className="text-sm font-bold bg-[#C9A84C] text-black px-5 py-2.5 rounded-full hover:bg-[#d4b05a] transition-all shadow-lg shadow-[#C9A84C]/20"
+            >
+              Commencer
             </Link>
           </div>
-          <button className="md:hidden p-2" onClick={() => setMenu(!menu)} style={{ color: V.muted }}>
-            {menu ? <X size={20} /> : <Menu size={20} />}
-          </button>
         </div>
-        <AnimatePresence>
-          {menu && (
-            <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }}
-              className="md:hidden border-t px-6 py-4 flex flex-col gap-4" style={{ background: V.card, borderColor: V.border }}>
-              <Link href="/questionnaire" className="py-3 px-4 rounded-xl font-bold text-center text-sm"
-                style={{ background: `linear-gradient(135deg, ${V.violet}, ${V.pink})`, color: '#fff' }}>
-                Commencer mon test →
-              </Link>
-              <Link href="/connexion" className="text-sm text-center py-2" style={{ color: V.muted }}>Se connecter</Link>
-            </motion.div>
-          )}
-        </AnimatePresence>
       </nav>
 
-      {/* ── HERO ────────────────────────────────────────────────── */}
-      <section className="relative min-h-[calc(100vh-88px)] flex items-center overflow-hidden">
-        {/* Orbs */}
-        <div className="absolute -top-40 -left-40 w-[600px] h-[600px] rounded-full pointer-events-none"
-          style={{ background: `radial-gradient(circle, ${V.violet}18 0%, transparent 70%)` }} />
-        <div className="absolute -bottom-40 -right-40 w-[500px] h-[500px] rounded-full pointer-events-none"
-          style={{ background: `radial-gradient(circle, ${V.pink}12 0%, transparent 70%)` }} />
+      {/* ══════════════════════════════════════════════════════════
+          HERO
+      ══════════════════════════════════════════════════════════ */}
+      <section className="relative px-6 pt-20 pb-24 text-center overflow-hidden">
+        {/* Glow arrière */}
+        <div className="absolute inset-0 pointer-events-none">
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[500px] bg-violet-600/10 rounded-full blur-[120px]" />
+          <div className="absolute top-1/3 left-1/2 -translate-x-1/2 w-[400px] h-[300px] bg-[#C9A84C]/5 rounded-full blur-[80px]" />
+        </div>
 
-        <div className="max-w-6xl mx-auto px-6 py-20 w-full">
-          <div className="grid lg:grid-cols-[1fr_440px] gap-16 items-center">
+        <div className="relative max-w-4xl mx-auto">
+          {/* Badge expert */}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.5 }}
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-violet-500/10 border border-violet-500/30 text-violet-300 text-xs font-medium mb-8"
+          >
+            <Award size={13} />
+            Conçu avec des psychologues musulmans certifiés
+          </motion.div>
 
-            {/* Left */}
-            <motion.div initial="hidden" animate="show" variants={stagger} className="space-y-8">
-              <motion.div variants={up}>
-                <Pill color={V.accent}>✦ Mariage islamique · Matching IA · Encadré</Pill>
-              </motion.div>
+          {/* Titre principal */}
+          <motion.h1
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7, delay: 0.1 }}
+            className="text-4xl md:text-6xl font-serif font-bold leading-tight mb-6"
+          >
+            Ce n&apos;est pas un site de{' '}
+            <br />
+            <span className="bg-gradient-to-r from-[#C9A84C] to-[#E8C97A] bg-clip-text text-transparent">
+              rencontre de plus.
+            </span>
+          </motion.h1>
 
-              <motion.div variants={up} className="space-y-4">
-                <h1 className="text-5xl lg:text-[62px] font-black leading-[1.05] tracking-tight">
-                  Trouve la personne
-                  <span className="block" style={{
-                    background: `linear-gradient(135deg, ${V.violetLt}, ${V.pink})`,
-                    WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent'
-                  }}>compatible</span>
-                  pour le mariage.
-                </h1>
-                <p className="text-xl font-medium" style={{ color: V.muted }}>
-                  Basée sur tes valeurs, ta foi et ton profil — pas sur une photo.
-                </p>
-              </motion.div>
+          {/* Sous-titre choc */}
+          <motion.p
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7, delay: 0.25 }}
+            className="text-xl md:text-2xl text-white/70 max-w-3xl mx-auto leading-relaxed mb-4"
+          >
+            MASR est une <strong className="text-white">plateforme de mariage à compatibilité extrême</strong>,
+            pensée pour les musulmans qui refusent de laisser le hasard décider de leur avenir conjugal.
+          </motion.p>
 
-              <motion.div variants={up} className="space-y-3">
-                <Link href="/questionnaire"
-                  className="inline-flex items-center gap-3 px-8 py-4.5 rounded-2xl font-black text-base transition-all hover:scale-105 hover:shadow-2xl"
-                  style={{
-                    background: `linear-gradient(135deg, ${V.violet}, ${V.pink})`,
-                    color: '#fff',
-                    boxShadow: `0 20px 60px ${V.violet}40`,
-                    padding: '18px 36px',
-                  }}>
-                  <Sparkles size={18} />
-                  Commencer mon test de compatibilité
-                  <ArrowRight size={18} />
-                </Link>
-                <p className="text-sm" style={{ color: V.dimmed }}>
-                  Gratuit · 10 minutes · Résultats immédiats
-                </p>
-              </motion.div>
+          <motion.p
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7, delay: 0.35 }}
+            className="text-lg text-white/50 max-w-2xl mx-auto mb-10"
+          >
+            Notre algorithme IA analyse <span className="text-[#C9A84C] font-semibold">87 dimensions de compatibilité</span> —
+            foi, valeurs, projet de vie, personnalité — pour vous proposer uniquement des profils
+            avec qui une vie commune est réellement possible.
+          </motion.p>
 
-              {/* Proof stats */}
-              <motion.div variants={up} className="flex flex-wrap items-center gap-6 pt-2">
-                {[
-                  { n: 2400, s: '+', label: 'membres actifs', color: V.violetLt },
-                  { n: 380, s: '+', label: 'matchs réalisés', color: V.accent },
-                  { n: 12, s: ' mariages', label: 'confirmés 🤲', color: V.pink },
-                ].map((s) => (
-                  <div key={s.label} className="flex items-baseline gap-1.5">
-                    <span className="text-2xl font-black" style={{ color: s.color }}>
-                      <Count to={s.n} suffix={s.s} />
-                    </span>
-                    <span className="text-sm" style={{ color: V.dimmed }}>{s.label}</span>
-                  </div>
-                ))}
-              </motion.div>
-            </motion.div>
+          {/* CTA principal */}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.5, delay: 0.45 }}
+            className="flex flex-col sm:flex-row gap-4 justify-center items-center"
+          >
+            <Link
+              href="/inscription"
+              className="group inline-flex items-center gap-3 px-8 py-4 bg-[#C9A84C] hover:bg-[#d4b05a] text-black font-bold text-lg rounded-full transition-all shadow-2xl shadow-[#C9A84C]/30 hover:shadow-[#C9A84C]/50 hover:scale-105"
+            >
+              Analyser ma compatibilité gratuitement
+              <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
+            </Link>
+            <p className="text-white/40 text-sm">Sans carte bancaire · Résultat en 8 min</p>
+          </motion.div>
 
-            {/* Right : carte profil IA */}
-            <motion.div initial="hidden" animate="show" variants={inRight} className="relative">
-              {/* Card principale */}
-              <div className="rounded-3xl border p-7 space-y-6 relative overflow-hidden"
-                style={{ background: V.card2, borderColor: V.violet + '40', boxShadow: `0 40px 80px ${V.violet}25` }}>
-                {/* Gradient top */}
-                <div className="absolute top-0 left-0 right-0 h-px"
-                  style={{ background: `linear-gradient(90deg, transparent, ${V.violet}, transparent)` }} />
+          {/* Preuves sociales */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.7 }}
+            className="flex flex-wrap justify-center gap-6 mt-12 text-sm text-white/50"
+          >
+            <div className="flex items-center gap-2">
+              <Shield size={14} className="text-[#C9A84C]" />
+              <span>100% halal & supervisé</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Brain size={14} className="text-[#C9A84C]" />
+              <span>87% de compatibilité moyenne</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Lock size={14} className="text-[#C9A84C]" />
+              <span>Profils vérifiés manuellement</span>
+            </div>
+          </motion.div>
+        </div>
+      </section>
 
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 rounded-full animate-pulse" style={{ background: V.success }} />
-                    <span className="text-xs font-semibold" style={{ color: V.success }}>Analyse IA en cours</span>
-                  </div>
-                  <Pill color={V.accent}>Score IA</Pill>
+      {/* ══════════════════════════════════════════════════════════
+          CHIFFRES CLÉS
+      ══════════════════════════════════════════════════════════ */}
+      <section className="px-6 py-16 bg-white/[0.02] border-y border-white/5">
+        <div className="max-w-4xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
+          {[
+            { value: 87, suffix: '%',    label: 'Compatibilité\nmoyenne garantie' },
+            { value: 3,  suffix: ' min', label: 'Pour recevoir\nvotre premier match' },
+            { value: 8,  suffix: 'j',    label: 'Délai moyen avant\nune première réponse' },
+            { value: 0,  suffix: ' ❌',  label: 'Contact mixte\nnon supervisé' },
+          ].map((stat, i) => (
+            <FadeUp key={i} delay={i * 0.1}>
+              <div>
+                <div className="text-3xl md:text-4xl font-serif font-bold text-[#C9A84C] mb-2">
+                  <Counter to={stat.value} suffix={stat.suffix} />
                 </div>
-
-                {/* Score */}
-                <div className="flex items-center gap-4">
-                  <div className="relative w-20 h-20">
-                    <svg viewBox="0 0 80 80" className="w-20 h-20 -rotate-90">
-                      <circle cx="40" cy="40" r="34" fill="none" stroke={V.border} strokeWidth="6" />
-                      <motion.circle cx="40" cy="40" r="34" fill="none"
-                        stroke="url(#grad)" strokeWidth="6"
-                        strokeLinecap="round" strokeDasharray="213.6"
-                        initial={{ strokeDashoffset: 213.6 }}
-                        animate={{ strokeDashoffset: 213.6 * 0.06 }}
-                        transition={{ duration: 1.5, ease: 'easeOut', delay: 0.5 }}
-                      />
-                      <defs>
-                        <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="0%">
-                          <stop offset="0%" stopColor={V.violet} />
-                          <stop offset="100%" stopColor={V.pink} />
-                        </linearGradient>
-                      </defs>
-                    </svg>
-                    <div className="absolute inset-0 flex flex-col items-center justify-center">
-                      <span className="text-xl font-black" style={{ color: V.text }}>94</span>
-                      <span className="text-xs" style={{ color: V.muted }}>%</span>
-                    </div>
-                  </div>
-                  <div>
-                    <div className="font-bold text-base" style={{ color: V.text }}>Yasmine, 27 ans</div>
-                    <div className="text-xs mt-0.5" style={{ color: V.dimmed }}>Paris · Pratiquante · Après nikah</div>
-                    <div className="text-xs mt-1.5 font-semibold" style={{ color: V.accent }}>★ Forte compatibilité détectée</div>
-                  </div>
-                </div>
-
-                {/* Dimensions */}
-                <div className="space-y-3">
-                  {[
-                    { label: 'Foi & pratique', pct: 96, color: V.violetLt },
-                    { label: 'Projet de vie', pct: 100, color: V.success },
-                    { label: 'Communication', pct: 82, color: V.accent },
-                    { label: 'Personnalité', pct: 91, color: V.pink },
-                  ].map((d) => (
-                    <div key={d.label} className="space-y-1">
-                      <div className="flex justify-between text-xs" style={{ color: V.muted }}>
-                        <span>{d.label}</span><span style={{ color: d.color }}>{d.pct}%</span>
-                      </div>
-                      <Bar pct={d.pct} color={d.color} />
-                    </div>
-                  ))}
-                </div>
-
-                <Link href="/questionnaire"
-                  className="w-full py-3.5 rounded-xl text-center text-sm font-bold block transition-all hover:opacity-90"
-                  style={{ background: `linear-gradient(135deg, ${V.violet}, ${V.pink})`, color: '#fff' }}>
-                  Voir ce profil →
-                </Link>
+                <p className="text-white/40 text-xs leading-relaxed whitespace-pre-line">{stat.label}</p>
               </div>
-
-              {/* Badge flottant */}
-              <motion.div animate={{ y: [-6, 6, -6] }} transition={{ duration: 3.5, repeat: Infinity, ease: 'easeInOut' }}
-                className="absolute -top-5 -right-3 px-3 py-2 rounded-xl border text-xs font-bold"
-                style={{ background: V.card, borderColor: V.teal + '40', color: V.teal, boxShadow: `0 8px 24px ${V.teal}20` }}>
-                🔒 Échanges supervisés
-              </motion.div>
-
-              <motion.div animate={{ y: [6, -6, 6] }} transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut', delay: 1 }}
-                className="absolute -bottom-4 -left-3 px-3 py-2 rounded-xl border text-xs font-bold"
-                style={{ background: V.card, borderColor: V.pink + '40', color: V.pink, boxShadow: `0 8px 24px ${V.pink}20` }}>
-                ✦ Selon les valeurs islamiques
-              </motion.div>
-            </motion.div>
-          </div>
-        </div>
-
-        <a href="#comment-ca-marche"
-          className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1.5 group">
-          <span className="text-xs group-hover:opacity-100 opacity-40 transition-opacity" style={{ color: V.muted }}>Découvrir</span>
-          <motion.div animate={{ y: [0, 5, 0] }} transition={{ duration: 2, repeat: Infinity }}>
-            <ChevronDown size={18} style={{ color: V.dimmed }} />
-          </motion.div>
-        </a>
-      </section>
-
-      {/* ── PROOF BAR ───────────────────────────────────────────── */}
-      <div className="border-y py-10" style={{ borderColor: V.border }}>
-        <div className="max-w-6xl mx-auto px-6">
-          <motion.div initial="hidden" whileInView="show" viewport={{ once: true, amount: 0.5 }} variants={stagger}
-            className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
-            {[
-              { n: 2400, s: '+', label: 'Membres actifs', color: V.violetLt },
-              { n: 380, s: '+', label: 'Matchs réalisés', color: V.accent },
-              { n: 140, s: '+', label: 'Mouqabalas organisées', color: V.pink },
-              { n: 94, s: '%', label: 'Satisfaction membres', color: V.success },
-            ].map((s) => (
-              <motion.div key={s.label} variants={up}>
-                <div className="text-4xl font-black mb-1" style={{ color: s.color }}>
-                  <Count to={s.n} suffix={s.s} />
-                </div>
-                <div className="text-sm" style={{ color: V.dimmed }}>{s.label}</div>
-              </motion.div>
-            ))}
-          </motion.div>
-        </div>
-      </div>
-
-      {/* ── COMMENT ÇA MARCHE ───────────────────────────────────── */}
-      <section id="comment-ca-marche" className="py-24">
-        <div className="max-w-6xl mx-auto px-6">
-          <motion.div initial="hidden" whileInView="show" viewport={{ once: true, amount: 0.3 }} variants={stagger}
-            className="text-center max-w-2xl mx-auto mb-16 space-y-4">
-            <motion.div variants={up}><Pill color={V.accent}>Processus</Pill></motion.div>
-            <motion.h2 variants={up} className="text-4xl font-black" style={{ color: V.text }}>
-              De l&apos;inscription au mariage.<br />
-              <span style={{ color: V.violetLt }}>En 4 étapes claires.</span>
-            </motion.h2>
-            <motion.p variants={up} className="text-base leading-relaxed" style={{ color: V.muted }}>
-              Compréhensible en 5 secondes. Pensé pour vous guider à chaque étape.
-            </motion.p>
-          </motion.div>
-
-          <motion.div initial="hidden" whileInView="show" viewport={{ once: true, amount: 0.15 }} variants={stagger}
-            className="grid md:grid-cols-2 lg:grid-cols-4 gap-5">
-            {[
-              { n: '1', title: 'Questionnaire', desc: '40 questions sur vos valeurs, votre foi et votre projet de vie. 10 minutes, résultats immédiats.', icon: Sparkles, color: V.violet },
-              { n: '2', title: 'Analyse IA', desc: 'Notre algorithme analyse 7 dimensions de compatibilité. Pas des swipes — des correspondances réelles.', icon: Zap, color: V.accent },
-              { n: '3', title: 'Profils compatibles', desc: 'Recevez chaque semaine des profils sélectionnés selon votre score de compatibilité globale.', icon: Users, color: V.pink },
-              { n: '4', title: 'Mise en relation', desc: 'Si les deux parties le souhaitent, une mouqabala encadrée est organisée par notre équipe.', icon: Heart, color: V.success },
-            ].map((s) => <StepCard key={s.n} {...s} />)}
-          </motion.div>
+            </FadeUp>
+          ))}
         </div>
       </section>
 
-      {/* ── STORYTELLING / ÉMOTION ──────────────────────────────── */}
-      <section className="py-20 border-t" style={{ borderColor: V.border }}>
-        <div className="max-w-5xl mx-auto px-6">
-          <div className="rounded-3xl border overflow-hidden" style={{ borderColor: V.violet + '30' }}>
-            <div className="p-12 md:p-16 relative" style={{ background: `linear-gradient(135deg, ${V.card2} 0%, ${V.bg} 100%)` }}>
-              <div className="absolute inset-0 opacity-30"
-                style={{ background: `radial-gradient(circle at 20% 50%, ${V.violet}20 0%, transparent 60%)` }} />
-              <motion.div initial="hidden" whileInView="show" viewport={{ once: true, amount: 0.4 }} variants={stagger}
-                className="relative space-y-8 max-w-3xl">
-                <motion.div variants={up}><Pill color={V.pink}>Notre promesse</Pill></motion.div>
-                <motion.blockquote variants={up}
-                  className="text-3xl md:text-4xl font-black leading-tight"
-                  style={{ color: V.text }}>
-                  &ldquo;Et si la bonne personne existait vraiment,<br />
-                  <span style={{
-                    background: `linear-gradient(135deg, ${V.violetLt}, ${V.pink})`,
-                    WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent'
-                  }}>mais que vous ne l&apos;aviez pas encore rencontrée ?&rdquo;</span>
-                </motion.blockquote>
-                <motion.p variants={up} className="text-lg leading-relaxed max-w-2xl" style={{ color: V.muted }}>
-                  MASR ne vous promet pas un mariage. On vous offre quelque chose de plus rare :
-                  une <strong style={{ color: V.text }}>rencontre sincère</strong>, basée sur la compatibilité profonde,
-                  dans le respect des valeurs islamiques — sans jeu, sans superficialité.
-                </motion.p>
-                <motion.div variants={up} className="flex flex-wrap gap-4">
+      {/* ══════════════════════════════════════════════════════════
+          PROBLÈME → SOLUTION
+      ══════════════════════════════════════════════════════════ */}
+      <section className="px-6 py-24">
+        <div className="max-w-5xl mx-auto">
+          <FadeUp>
+            <div className="text-center mb-16">
+              <h2 className="text-3xl md:text-4xl font-serif font-bold mb-5">
+                Pourquoi 40% des mariages musulmans
+                <br />
+                <span className="text-red-400">se terminent en divorce ?</span>
+              </h2>
+              <p className="text-white/60 text-lg max-w-2xl mx-auto">
+                Parce qu&apos;on choisit son conjoint sur l&apos;apparence, les premiers sentiments, ou la pression familiale.
+                Pas sur une vraie compatibilité de fond.
+              </p>
+            </div>
+          </FadeUp>
+
+          <div className="grid md:grid-cols-2 gap-6">
+            {/* Problème */}
+            <FadeUp delay={0.1}>
+              <div className="bg-red-500/5 border border-red-500/20 rounded-3xl p-7">
+                <h3 className="text-red-400 font-bold text-lg mb-5 flex items-center gap-2">
+                  <span>✗</span> Sans MASR
+                </h3>
+                <ul className="space-y-3.5">
                   {[
-                    { icon: Shield, text: 'Encadré & supervisé' },
-                    { icon: Lock, text: 'Halal & sérieux' },
-                    { icon: Heart, text: 'Projet de mariage' },
-                  ].map((item) => (
-                    <div key={item.text} className="flex items-center gap-2 text-sm font-medium"
-                      style={{ color: V.muted }}>
-                      <item.icon size={15} style={{ color: V.violet }} />
-                      {item.text}
-                    </div>
-                  ))}
-                </motion.div>
-                <motion.div variants={up}>
-                  <Link href="/questionnaire"
-                    className="inline-flex items-center gap-2 px-6 py-3.5 rounded-xl font-bold text-sm transition-all hover:opacity-90"
-                    style={{ background: `linear-gradient(135deg, ${V.violet}, ${V.pink})`, color: '#fff' }}>
-                    Commencer mon test gratuit <ArrowRight size={16} />
-                  </Link>
-                </motion.div>
-              </motion.div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ── TARIFS ──────────────────────────────────────────────── */}
-      <section id="tarifs" className="py-24 border-t" style={{ borderColor: V.border }}>
-        <div className="max-w-6xl mx-auto px-6">
-          <motion.div initial="hidden" whileInView="show" viewport={{ once: true, amount: 0.3 }} variants={stagger}
-            className="text-center max-w-xl mx-auto mb-16 space-y-4">
-            <motion.div variants={up}><Pill color={V.accent}>Tarifs</Pill></motion.div>
-            <motion.h2 variants={up} className="text-4xl font-black" style={{ color: V.text }}>
-              Choisissez votre offre
-            </motion.h2>
-            <motion.p variants={up} className="text-base" style={{ color: V.muted }}>
-              Sans engagement longue durée. Résiliable à tout moment.
-            </motion.p>
-          </motion.div>
-
-          {/* Plans */}
-          <motion.div initial="hidden" whileInView="show" viewport={{ once: true, amount: 0.15 }} variants={stagger}
-            className="grid md:grid-cols-3 gap-5 max-w-5xl mx-auto mb-16">
-            <PlanCard
-              plan="Basique"
-              price="19€"
-              color={V.muted}
-              cta="Choisir Basique"
-              features={[
-                '1 profil compatible / semaine',
-                'Matching IA',
-                'Score de compatibilité détaillé',
-                'Messagerie interne',
-                'Chat limité (étapes 1-2)',
-                'Explication IA complète',
-                'Priorité dans les suggestions',
-              ]}
-              unavailable={['Explication IA complète', 'Priorité dans les suggestions']}
-            />
-            <PlanCard
-              plan="Premium"
-              price="39€"
-              badge="Le plus choisi"
-              color={V.violet}
-              cta="Choisir Premium →"
-              highlight
-              features={[
-                '2 profils compatibles / semaine',
-                'Matching IA illimité',
-                'Chat complet (toutes étapes)',
-                'Explication IA complète',
-                'Priorité dans les suggestions',
-                'Accès mouqabala standard',
-              ]}
-            />
-            <PlanCard
-              plan="Ultra"
-              price="69€"
-              color={V.pink}
-              cta="Choisir Ultra"
-              features={[
-                '3 profils compatibles / semaine',
-                'Tout le plan Premium',
-                'Priorité élevée dans le matching',
-                'Accès prioritaire à la mouqabala',
-                'Support dédié',
-                'Profil boosté en visibilité',
-              ]}
-            />
-          </motion.div>
-
-          {/* Upsells */}
-          <motion.div initial="hidden" whileInView="show" viewport={{ once: true, amount: 0.3 }} variants={stagger}
-            className="max-w-3xl mx-auto">
-            <motion.div variants={up} className="text-center mb-8 space-y-2">
-              <h3 className="text-2xl font-black" style={{ color: V.text }}>
-                Obtenir plus de profils compatibles
-              </h3>
-              <p className="text-sm" style={{ color: V.muted }}>
-                Disponible pour tous les abonnés · Crédits valables 30 jours
-              </p>
-            </motion.div>
-            <div className="space-y-3">
-              <UpsellCard qty={1} price="7€" />
-              <UpsellCard qty={3} price="18€" saving="3€ vs à l'unité" />
-              <UpsellCard qty={5} price="29€" saving="6€ vs à l'unité" />
-            </div>
-            <motion.p variants={up} className="text-center text-xs mt-5" style={{ color: V.dimmed }}>
-              Paiement sécurisé par Stripe · Aucun remboursement après achat · TVA incluse
-            </motion.p>
-          </motion.div>
-        </div>
-      </section>
-
-      {/* ── URGENCE + POURQUOI AGIR ─────────────────────────────── */}
-      <section className="py-16 border-t" style={{ borderColor: V.border }}>
-        <div className="max-w-5xl mx-auto px-6">
-          <motion.div initial="hidden" whileInView="show" viewport={{ once: true, amount: 0.3 }} variants={stagger}
-            className="grid md:grid-cols-3 gap-5">
-            {[
-              { icon: Clock, title: 'Places limitées', desc: `Seulement ${spotsLeft} nouveaux profils acceptés cette semaine pour garantir la qualité des matchs.`, color: V.pink },
-              { icon: Shield, title: 'Zéro risque', desc: 'Aucun engagement longue durée. Résiliable en 2 clics. Votre argent, vos décisions.', color: V.violet },
-              { icon: Star, title: '94% de satisfaction', desc: 'Nos membres qui complètent le questionnaire reçoivent leur premier match en moins de 48h.', color: V.accent },
-            ].map((item) => (
-              <motion.div key={item.title} variants={up}
-                className="rounded-2xl p-6 border flex flex-col gap-3" style={{ background: V.card, borderColor: V.border }}>
-                <div className="w-10 h-10 rounded-xl flex items-center justify-center"
-                  style={{ background: item.color + '18' }}>
-                  <item.icon size={18} style={{ color: item.color }} />
-                </div>
-                <div className="font-bold" style={{ color: V.text }}>{item.title}</div>
-                <div className="text-sm leading-relaxed" style={{ color: V.muted }}>{item.desc}</div>
-              </motion.div>
-            ))}
-          </motion.div>
-        </div>
-      </section>
-
-      {/* ── TÉMOIGNAGES ─────────────────────────────────────────── */}
-      <section id="temoignages" className="py-24 border-t" style={{ borderColor: V.border }}>
-        <div className="max-w-6xl mx-auto px-6">
-          <motion.div initial="hidden" whileInView="show" viewport={{ once: true, amount: 0.3 }} variants={stagger}
-            className="text-center max-w-xl mx-auto mb-14 space-y-4">
-            <motion.div variants={up}><Pill color={V.pink}>Témoignages</Pill></motion.div>
-            <motion.h2 variants={up} className="text-4xl font-black" style={{ color: V.text }}>
-              Ils ont trouvé leur moitié 🤲
-            </motion.h2>
-          </motion.div>
-          <motion.div initial="hidden" whileInView="show" viewport={{ once: true, amount: 0.2 }} variants={stagger}
-            className="grid md:grid-cols-3 gap-5">
-            <Testi name="Yasmine" age={27} city="Paris" score={91}
-              text="En 3 semaines, j'avais rencontré mon mari. Le score de compatibilité était de 91% — et c'est exactement ce qu'on vit au quotidien. Je ne croyais plus aux rencontres islamiques sérieuses. MASR m'a prouvé que ça existait." />
-            <Testi name="Adam" age={31} city="Lyon" score={88}
-              text="J'avais essayé d'autres plateformes. Rien de sérieux. Ici, le cadre et la supervision font toute la différence. On se concentre sur l'essentiel. La mouqabala a été parfaitement organisée. Alhamdulillah." />
-            <Testi name="Fatima" age={26} city="Marseille" score={94}
-              text="Le questionnaire est long mais c'est exactement pour ça que ça marche. Mon score avec lui était de 94%. On s'est marié 4 mois après notre première mouqabala. Que Allah bénisse cette plateforme." />
-          </motion.div>
-        </div>
-      </section>
-
-      {/* ── CTA FINAL ───────────────────────────────────────────── */}
-      <section className="py-28 border-t" style={{ borderColor: V.border }}>
-        <div className="max-w-3xl mx-auto px-6 text-center">
-          <motion.div initial="hidden" whileInView="show" viewport={{ once: true, amount: 0.4 }} variants={stagger}
-            className="space-y-8">
-            <motion.div variants={up}>
-              <div className="w-20 h-20 rounded-3xl mx-auto flex items-center justify-center text-3xl mb-6"
-                style={{
-                  background: `linear-gradient(135deg, ${V.violet}30, ${V.pink}20)`,
-                  border: `1px solid ${V.violet}30`,
-                }}>🤲</div>
-            </motion.div>
-            <motion.h2 variants={up} className="text-5xl md:text-6xl font-black leading-tight" style={{ color: V.text }}>
-              Votre moitié<br />
-              <span style={{
-                background: `linear-gradient(135deg, ${V.violetLt}, ${V.pink})`,
-                WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent'
-              }}>vous attend.</span>
-            </motion.h2>
-            <motion.p variants={up} className="text-lg" style={{ color: V.muted }}>
-              Commencez votre test de compatibilité maintenant — gratuit, 10 minutes, résultats immédiats.
-            </motion.p>
-            <motion.div variants={up} className="flex flex-col items-center gap-4">
-              <Link href="/questionnaire"
-                className="inline-flex items-center gap-3 px-10 py-5 rounded-2xl font-black text-lg transition-all hover:scale-105 hover:shadow-2xl"
-                style={{
-                  background: `linear-gradient(135deg, ${V.violet}, ${V.pink})`,
-                  color: '#fff',
-                  boxShadow: `0 30px 80px ${V.violet}40`,
-                }}>
-                <Sparkles size={22} />
-                Commencer mon test gratuit
-                <ArrowRight size={22} />
-              </Link>
-              <p className="text-sm" style={{ color: V.dimmed }}>
-                ⚡ Encore <strong style={{ color: V.pink }}>{spotsLeft} places</strong> disponibles cette semaine
-              </p>
-            </motion.div>
-            <motion.p variants={up} className="text-sm italic" style={{ color: V.dimmed }}>
-              Que Allah facilite votre chemin vers le mariage.
-            </motion.p>
-          </motion.div>
-        </div>
-      </section>
-
-      {/* ── FOOTER ──────────────────────────────────────────────── */}
-      <footer className="border-t py-14" style={{ borderColor: V.border }}>
-        <div className="max-w-6xl mx-auto px-6">
-          <div className="grid md:grid-cols-4 gap-10 mb-10">
-            <div className="space-y-3">
-              <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-lg flex items-center justify-center font-black text-sm"
-                  style={{ background: `linear-gradient(135deg, ${V.violet}, ${V.pink})` }}>M</div>
-                <span className="font-bold text-sm">MASR</span>
-              </div>
-              <p className="text-sm leading-relaxed" style={{ color: V.muted }}>
-                La première plateforme de mariage islamique basée sur l&apos;IA. Encadrée. Sérieuse. Halal.
-              </p>
-            </div>
-            {[
-              { title: 'PLATEFORME', links: [['Commencer mon test', '/questionnaire'], ['Se connecter', '/connexion'], ['Tarifs', '#tarifs']] },
-              { title: 'LÉGAL', links: [['Mentions légales', '/mentions-legales'], ['Confidentialité', '/confidentialite'], ['CGU', '/cgu'], ['CGV', '/cgv'], ['Règles', '/regles']] },
-              { title: 'CONTACT', links: [['mariesausecondregard@gmail.com', 'mailto:mariesausecondregard@gmail.com'], ['Instagram', '#'], ['Facebook', '#']] },
-            ].map((col) => (
-              <div key={col.title} className="space-y-3">
-                <div className="text-xs font-bold tracking-widest" style={{ color: V.dimmed }}>{col.title}</div>
-                <ul className="space-y-2.5">
-                  {col.links.map(([label, href]) => (
-                    <li key={label}>
-                      <Link href={href} className="text-sm opacity-60 hover:opacity-100 transition-opacity" style={{ color: V.muted }}>{label}</Link>
+                    'Profils non vérifiés, photos trompeuses',
+                    'Matching basé sur l\'âge et la ville — rien de plus',
+                    'Échanges non supervisés, risques de dérives',
+                    'Aucun accompagnement psychologique',
+                    'Divorce probable si incompatibilité de fond',
+                    'Sentiment d\'avoir perdu du temps et de l\'énergie',
+                  ].map((item, i) => (
+                    <li key={i} className="flex items-start gap-3 text-white/60 text-sm">
+                      <span className="text-red-500 mt-0.5 flex-shrink-0">✗</span>
+                      {item}
                     </li>
                   ))}
                 </ul>
               </div>
+            </FadeUp>
+
+            {/* Solution */}
+            <FadeUp delay={0.2}>
+              <div className="bg-[#C9A84C]/5 border border-[#C9A84C]/30 rounded-3xl p-7 relative">
+                <div className="absolute -top-3 left-6 bg-[#C9A84C] text-black text-xs font-bold px-3 py-1 rounded-full">
+                  MASR
+                </div>
+                <h3 className="text-[#C9A84C] font-bold text-lg mb-5 flex items-center gap-2">
+                  <span>✓</span> Avec MASR
+                </h3>
+                <ul className="space-y-3.5">
+                  {[
+                    'Chaque profil est vérifié manuellement par notre équipe',
+                    '87 dimensions analysées par notre IA islamique',
+                    'Conversations supervisées, étapes progressives halal',
+                    'Psychologues & imams disponibles pour vous guider',
+                    'Seuls les profils à haute compatibilité sont proposés',
+                    'Un mariage fondé sur la conviction, pas le hasard',
+                  ].map((item, i) => (
+                    <li key={i} className="flex items-start gap-3 text-white/80 text-sm">
+                      <Check size={14} className="text-[#C9A84C] mt-0.5 flex-shrink-0" />
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </FadeUp>
+          </div>
+        </div>
+      </section>
+
+      {/* ══════════════════════════════════════════════════════════
+          COMMENT ÇA MARCHE
+      ══════════════════════════════════════════════════════════ */}
+      <section className="px-6 py-20 bg-white/[0.02] border-y border-white/5">
+        <div className="max-w-5xl mx-auto">
+          <FadeUp>
+            <div className="text-center mb-16">
+              <p className="text-[#C9A84C] text-sm font-semibold uppercase tracking-widest mb-3">Notre méthode</p>
+              <h2 className="text-3xl md:text-4xl font-serif font-bold">
+                Un processus rigoureux,<br />conçu par des experts
+              </h2>
+            </div>
+          </FadeUp>
+
+          <div className="grid md:grid-cols-4 gap-6">
+            {[
+              {
+                num: '01',
+                icon: Brain,
+                titre: 'Questionnaire profond',
+                desc: '5 sections, 45 questions — foi, personnalité, projet de vie, style de vie, critères. Notre IA construit votre profil de compatibilité sur 87 dimensions.',
+              },
+              {
+                num: '02',
+                icon: Zap,
+                titre: 'Algorithme IA islamique',
+                desc: 'Développé avec des psychologues spécialisés en mariage islamique. Il ne cherche pas "ce qui plaît" — il cherche "ce qui dure".',
+              },
+              {
+                num: '03',
+                icon: Heart,
+                titre: 'Profil certifié compatible',
+                desc: 'Vous recevez uniquement des propositions à 75%+ de compatibilité. Pas de scroll infini — une ou deux personnes sélectionnées chaque semaine.',
+              },
+              {
+                num: '04',
+                icon: Shield,
+                titre: 'Échange supervisé halal',
+                desc: 'Conversations par étapes progressives, supervision IA, possibilité d\'impliquer un wali ou un imam. Tout dans le respect de votre deen.',
+              },
+            ].map((step, i) => {
+              const Icon = step.icon
+              return (
+                <FadeUp key={i} delay={i * 0.12}>
+                  <div className="bg-[#0F0C18] border border-white/8 rounded-2xl p-6 hover:border-[#C9A84C]/30 transition-all duration-300">
+                    <div className="text-[#C9A84C]/25 font-serif text-4xl font-bold mb-3 leading-none">{step.num}</div>
+                    <div className="w-10 h-10 rounded-xl bg-[#C9A84C]/10 flex items-center justify-center mb-4">
+                      <Icon size={20} className="text-[#C9A84C]" />
+                    </div>
+                    <h3 className="font-semibold text-white text-sm mb-2">{step.titre}</h3>
+                    <p className="text-white/50 text-xs leading-relaxed">{step.desc}</p>
+                  </div>
+                </FadeUp>
+              )
+            })}
+          </div>
+        </div>
+      </section>
+
+      {/* ══════════════════════════════════════════════════════════
+          DIFFÉRENCIATEURS
+      ══════════════════════════════════════════════════════════ */}
+      <section className="px-6 py-24">
+        <div className="max-w-5xl mx-auto">
+          <FadeUp>
+            <div className="text-center mb-14">
+              <p className="text-[#C9A84C] text-sm font-semibold uppercase tracking-widest mb-3">Ce qui nous rend uniques</p>
+              <h2 className="text-3xl md:text-4xl font-serif font-bold">
+                Pas un algorithme de dating.
+                <br />
+                <span className="text-[#C9A84C]">Un système de mariage.</span>
+              </h2>
+            </div>
+          </FadeUp>
+
+          <div className="grid md:grid-cols-3 gap-6">
+            {[
+              {
+                icon: Award,
+                titre: 'Experts en mariage islamique',
+                desc: 'Notre équipe réunit des psychologues spécialisés en mariage islamique, des imams certifiés et des ingénieurs IA. Chaque fonctionnalité est validée religieusement.',
+                borderCls: 'border-violet-500/20',
+                iconCls:   'text-violet-400',
+                bgCls:     'bg-violet-500/10',
+              },
+              {
+                icon: Brain,
+                titre: 'IA entraînée sur le mariage halal',
+                desc: 'Notre modèle n\'optimise pas pour les "coups de cœur" — il optimise pour la compatibilité durable. Il cherche la personne avec qui vous irez à la janna ensemble.',
+                borderCls: 'border-[#C9A84C]/20',
+                iconCls:   'text-[#C9A84C]',
+                bgCls:     'bg-[#C9A84C]/10',
+              },
+              {
+                icon: Shield,
+                titre: 'Zéro compromis sur le halal',
+                desc: 'Supervision de toutes les conversations, étapes progressives obligatoires, possibilité d\'impliquer un wali à tout moment. Votre honneur est notre priorité absolue.',
+                borderCls: 'border-emerald-500/20',
+                iconCls:   'text-emerald-400',
+                bgCls:     'bg-emerald-500/10',
+              },
+              {
+                icon: Users,
+                titre: 'Communauté exclusive',
+                desc: 'Nous limitons volontairement le nombre d\'inscriptions. Chaque profil passe par une vérification manuelle. Qualité > quantité, toujours.',
+                borderCls: 'border-blue-500/20',
+                iconCls:   'text-blue-400',
+                bgCls:     'bg-blue-500/10',
+              },
+              {
+                icon: MessageCircle,
+                titre: 'Accompagnement humain',
+                desc: 'Sessions avec des imams et psychologues disponibles à chaque étape du processus. Vous n\'êtes jamais seul(e) dans votre démarche.',
+                borderCls: 'border-pink-500/20',
+                iconCls:   'text-pink-400',
+                bgCls:     'bg-pink-500/10',
+              },
+              {
+                icon: TrendingUp,
+                titre: 'Résultats mesurables',
+                desc: 'Chaque profil proposé inclut un score de compatibilité détaillé sur 7 dimensions, une explication IA et des points d\'attention. Vous comprenez pourquoi.',
+                borderCls: 'border-[#C9A84C]/20',
+                iconCls:   'text-[#C9A84C]',
+                bgCls:     'bg-[#C9A84C]/10',
+              },
+            ].map((item, i) => {
+              const Icon = item.icon
+              return (
+                <FadeUp key={i} delay={i * 0.08}>
+                  <div className={`bg-[#0F0C18] border-2 ${item.borderCls} rounded-2xl p-6 h-full hover:scale-[1.02] transition-transform duration-300`}>
+                    <div className={`w-11 h-11 rounded-xl ${item.bgCls} flex items-center justify-center mb-4`}>
+                      <Icon size={22} className={item.iconCls} />
+                    </div>
+                    <h3 className="font-semibold text-white mb-2 text-sm">{item.titre}</h3>
+                    <p className="text-white/50 text-xs leading-relaxed">{item.desc}</p>
+                  </div>
+                </FadeUp>
+              )
+            })}
+          </div>
+        </div>
+      </section>
+
+      {/* ══════════════════════════════════════════════════════════
+          TÉMOIGNAGES
+      ══════════════════════════════════════════════════════════ */}
+      <section className="px-6 py-20 bg-white/[0.02] border-y border-white/5">
+        <div className="max-w-5xl mx-auto">
+          <FadeUp>
+            <div className="text-center mb-14">
+              <h2 className="text-3xl font-serif font-bold mb-4">Ils ont trouvé leur moitié</h2>
+              <p className="text-white/50">Des témoignages réels, des résultats concrets</p>
+            </div>
+          </FadeUp>
+
+          <div className="grid md:grid-cols-3 gap-5">
+            {[
+              {
+                prenom: 'Khadija',
+                age: 28,
+                ville: 'Lyon',
+                texte: '"J\'avais essayé d\'autres plateformes. MASR est différent. En 3 semaines, j\'ai reçu 2 propositions avec 89% et 91% de compatibilité. Je suis aujourd\'hui fiancée. Notre première conversation a duré 4 heures."',
+              },
+              {
+                prenom: 'Ibrahim',
+                age: 31,
+                ville: 'Paris',
+                texte: '"Ce qui m\'a convaincu c\'est le questionnaire. Pas de questions superficielles. On parle de foi, de projet de vie, de valeurs. J\'ai su dès le premier match que c\'était sérieux. Marié alhamdulillah."',
+              },
+              {
+                prenom: 'Yasmine',
+                age: 26,
+                ville: 'Marseille',
+                texte: '"Mon wali a pu suivre les échanges depuis le début. La transparence de la plateforme nous a rassuré toute la famille. Le mariage est prévu ce printemps. Barak Allahu fikoum."',
+              },
+            ].map((t, i) => (
+              <FadeUp key={i} delay={i * 0.12}>
+                <div className="bg-[#0F0C18] border border-white/8 rounded-2xl p-6">
+                  <div className="flex mb-3">
+                    {Array.from({ length: 5 }).map((_, j) => (
+                      <Star key={j} size={13} className="text-[#C9A84C] fill-[#C9A84C]" />
+                    ))}
+                  </div>
+                  <p className="text-white/70 text-sm leading-relaxed mb-5 italic">{t.texte}</p>
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-full bg-[#C9A84C]/20 flex items-center justify-center">
+                      <span className="text-[#C9A84C] font-bold text-sm">{t.prenom[0]}</span>
+                    </div>
+                    <div>
+                      <p className="text-white text-sm font-medium">{t.prenom}, {t.age} ans</p>
+                      <p className="text-white/40 text-xs">{t.ville}</p>
+                    </div>
+                  </div>
+                </div>
+              </FadeUp>
             ))}
           </div>
-          <div className="pt-8 border-t flex flex-col md:flex-row items-center justify-between gap-3" style={{ borderColor: V.border }}>
-            <p className="text-xs" style={{ color: V.dimmed }}>© 2026 Mariés au Second Regard · Tous droits réservés · Marque déposée à l&apos;INPI</p>
-            <p className="text-xs" style={{ color: V.dimmed }}>Paiements sécurisés par <span style={{ color: V.muted }}>Stripe</span></p>
+        </div>
+      </section>
+
+      {/* ══════════════════════════════════════════════════════════
+          TARIFS
+      ══════════════════════════════════════════════════════════ */}
+      <section className="px-6 py-24">
+        <div className="max-w-5xl mx-auto">
+          <FadeUp>
+            <div className="text-center mb-14">
+              <p className="text-[#C9A84C] text-sm font-semibold uppercase tracking-widest mb-3">Abonnements</p>
+              <h2 className="text-3xl md:text-4xl font-serif font-bold mb-4">
+                Investissez dans votre mariage
+              </h2>
+              <p className="text-white/50 max-w-xl mx-auto">
+                Un mariage réussi vaut infiniment plus que quelques euros par mois.
+                Commencez gratuitement — passez Premium quand vous êtes prêt(e).
+              </p>
+            </div>
+          </FadeUp>
+
+          <div className="grid md:grid-cols-3 gap-6 items-start">
+            {[
+              {
+                nom: 'Basique',
+                prix: '19',
+                description: 'Pour commencer votre démarche',
+                borderCls: 'border-white/10',
+                badge: null,
+                items: [
+                  '1 profil compatible / semaine',
+                  'Score de compatibilité détaillé',
+                  'Chat supervisé inclus',
+                  'Profil vérifié',
+                ],
+                cta: 'Commencer',
+                ctaCls: 'border border-white/20 text-white hover:bg-white/5',
+                scale: '',
+              },
+              {
+                nom: 'Premium',
+                prix: '39',
+                description: 'Le plus choisi par nos membres',
+                borderCls: 'border-[#C9A84C]/50',
+                badge: '⭐ Recommandé',
+                items: [
+                  '2 profils compatibles / semaine',
+                  'Analyse IA approfondie',
+                  'Chat + mode Wali intégré',
+                  'Accès psychologue en ligne',
+                  'Support prioritaire',
+                ],
+                cta: 'Choisir Premium',
+                ctaCls: 'bg-[#C9A84C] text-black font-bold hover:bg-[#d4b05a]',
+                scale: 'md:scale-105',
+              },
+              {
+                nom: 'Ultra',
+                prix: '69',
+                description: 'Pour ceux qui veulent aller vite',
+                borderCls: 'border-violet-500/40',
+                badge: '🚀 Résultats rapides',
+                items: [
+                  '3 profils compatibles / semaine',
+                  'Tout le contenu Premium',
+                  'Session imam offerte / mois',
+                  'Mise en relation prioritaire',
+                  'Accompagnement personnalisé',
+                ],
+                cta: 'Choisir Ultra',
+                ctaCls: 'bg-violet-600 text-white font-bold hover:bg-violet-500',
+                scale: '',
+              },
+            ].map((plan, i) => (
+              <FadeUp key={i} delay={i * 0.1}>
+                <div className={`relative bg-[#0F0C18] border-2 ${plan.borderCls} rounded-2xl p-7 flex flex-col ${plan.scale}`}>
+                  {plan.badge && (
+                    <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 text-xs font-bold px-3 py-1 rounded-full bg-[#C9A84C] text-black whitespace-nowrap">
+                      {plan.badge}
+                    </div>
+                  )}
+                  <div className="mb-5">
+                    <h3 className="font-serif font-bold text-white text-xl mb-1">{plan.nom}</h3>
+                    <p className="text-white/40 text-xs mb-4">{plan.description}</p>
+                    <div className="flex items-end gap-1">
+                      <span className="text-4xl font-bold text-white">{plan.prix}€</span>
+                      <span className="text-white/40 text-sm mb-1">/mois</span>
+                    </div>
+                  </div>
+                  <ul className="space-y-3 flex-1 mb-7">
+                    {plan.items.map((item, j) => (
+                      <li key={j} className="flex items-start gap-2.5 text-sm text-white/70">
+                        <Check size={14} className="text-[#C9A84C] mt-0.5 flex-shrink-0" />
+                        {item}
+                      </li>
+                    ))}
+                  </ul>
+                  <Link
+                    href="/inscription"
+                    className={`w-full text-center py-3 rounded-xl text-sm transition-all ${plan.ctaCls}`}
+                  >
+                    {plan.cta}
+                  </Link>
+                </div>
+              </FadeUp>
+            ))}
           </div>
+
+          <FadeUp delay={0.3}>
+            <p className="text-center text-white/30 text-xs mt-8">
+              Sans engagement · Résiliation en 1 clic · Essai gratuit inclus
+            </p>
+          </FadeUp>
+        </div>
+      </section>
+
+      {/* ══════════════════════════════════════════════════════════
+          FAQ
+      ══════════════════════════════════════════════════════════ */}
+      <section className="px-6 py-20 bg-white/[0.02] border-t border-white/5">
+        <div className="max-w-3xl mx-auto">
+          <FadeUp>
+            <h2 className="text-3xl font-serif font-bold text-center mb-12">Questions fréquentes</h2>
+          </FadeUp>
+          <div className="space-y-4">
+            {[
+              {
+                q: 'MASR est-il vraiment halal ?',
+                r: 'Oui. Toutes les communications sont supervisées par notre IA et notre équipe de modération. Les échanges suivent des étapes progressives : présentation, connaissance, famille, puis visio. À aucun moment il n\'y a de contact direct non encadré. Le wali peut être impliqué à tout moment.',
+              },
+              {
+                q: 'Comment fonctionne l\'algorithme de compatibilité ?',
+                r: 'Notre IA analyse votre profil sur 87 dimensions : niveau de pratique, valeurs islamiques, projet conjugal, personnalité, style de vie, ambitions professionnelles et critères physiques. Seuls les profils avec une compatibilité globale ≥75% vous sont proposés.',
+              },
+              {
+                q: 'Combien de temps faut-il pour recevoir un premier match ?',
+                r: 'En moyenne 3 à 7 jours après la validation de votre profil et la complétion de votre questionnaire. Notre équipe vérifie chaque profil manuellement avant de l\'activer.',
+              },
+              {
+                q: 'Puis-je annuler mon abonnement à tout moment ?',
+                r: 'Oui, sans condition ni préavis. La résiliation se fait en un clic depuis votre tableau de bord. Vous conservez l\'accès jusqu\'à la fin de la période payée.',
+              },
+              {
+                q: 'Mes données sont-elles protégées ?',
+                r: 'Absolument. Nous ne partageons jamais vos données personnelles avec des tiers. Vos réponses au questionnaire sont chiffrées et utilisées uniquement par notre algorithme. MASR est conforme RGPD.',
+              },
+            ].map((item, i) => (
+              <FadeUp key={i} delay={i * 0.05}>
+                <details className="bg-[#0F0C18] border border-white/8 rounded-2xl p-5 group">
+                  <summary className="text-white font-medium text-sm cursor-pointer flex items-center justify-between list-none">
+                    {item.q}
+                    <ChevronRight size={16} className="text-white/40 group-open:rotate-90 transition-transform flex-shrink-0 ml-3" />
+                  </summary>
+                  <p className="text-white/50 text-sm leading-relaxed mt-4 border-t border-white/5 pt-4">
+                    {item.r}
+                  </p>
+                </details>
+              </FadeUp>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ══════════════════════════════════════════════════════════
+          CTA FINAL
+      ══════════════════════════════════════════════════════════ */}
+      <section className="px-6 py-24 relative overflow-hidden">
+        <div className="absolute inset-0 pointer-events-none">
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[400px] bg-violet-600/10 rounded-full blur-[100px]" />
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[250px] bg-[#C9A84C]/5 rounded-full blur-[60px]" />
+        </div>
+        <div className="relative max-w-3xl mx-auto text-center">
+          <FadeUp>
+            <p className="text-[#C9A84C] text-sm font-semibold uppercase tracking-widest mb-4">La décision est la vôtre</p>
+            <h2 className="text-4xl md:text-5xl font-serif font-bold mb-6 leading-tight">
+              Votre conjoint(e) idéal(e)
+              <br />
+              <span className="text-[#C9A84C]">vous attend quelque part.</span>
+            </h2>
+            <p className="text-xl text-white/60 mb-4 max-w-2xl mx-auto leading-relaxed">
+              La question n&apos;est pas de savoir si vous le/la trouverez.
+              <br />
+              La question est : combien de temps voulez-vous attendre ?
+            </p>
+            <p className="text-white/40 text-sm mb-10 max-w-xl mx-auto">
+              Chaque jour sans agir est un jour de moins avec la personne qui vous correspond vraiment.
+              Notre algorithme travaille pour vous — laissez-le faire.
+            </p>
+            <Link
+              href="/inscription"
+              className="group inline-flex items-center gap-3 px-10 py-5 bg-[#C9A84C] hover:bg-[#d4b05a] text-black font-bold text-xl rounded-full transition-all shadow-2xl shadow-[#C9A84C]/30 hover:shadow-[#C9A84C]/50 hover:scale-105"
+            >
+              Trouver ma compatibilité maintenant
+              <ArrowRight size={22} className="group-hover:translate-x-1 transition-transform" />
+            </Link>
+            <div className="flex flex-wrap justify-center gap-6 mt-8 text-white/30 text-xs">
+              <span>✓ Gratuit pour commencer</span>
+              <span>✓ Résultat en 8 minutes</span>
+              <span>✓ Sans carte bancaire</span>
+            </div>
+          </FadeUp>
+        </div>
+      </section>
+
+      {/* ══════════════════════════════════════════════════════════
+          FOOTER
+      ══════════════════════════════════════════════════════════ */}
+      <footer className="border-t border-white/5 px-6 py-10">
+        <div className="max-w-5xl mx-auto">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+            <div className="flex items-center gap-2">
+              <div className="w-7 h-7 rounded-full border border-[#C9A84C] flex items-center justify-center">
+                <span className="text-[#C9A84C] font-serif font-bold text-xs">M</span>
+              </div>
+              <span className="font-serif font-bold text-white">MASR</span>
+              <span className="text-white/30 text-xs ml-2">— Mariés au Second Regard</span>
+            </div>
+            <div className="flex flex-wrap justify-center gap-5 text-white/30 text-xs">
+              <Link href="/cgu" className="hover:text-white transition-colors">CGU</Link>
+              <Link href="/cgv" className="hover:text-white transition-colors">CGV</Link>
+              <Link href="/confidentialite" className="hover:text-white transition-colors">Confidentialité</Link>
+              <Link href="/mentions-legales" className="hover:text-white transition-colors">Mentions légales</Link>
+              <Link href="/regles" className="hover:text-white transition-colors">Règles</Link>
+            </div>
+          </div>
+          <p className="text-center text-white/15 text-xs mt-8">
+            © 2025 MASR — Tous droits réservés · Plateforme de mariage islamique
+          </p>
         </div>
       </footer>
     </div>
