@@ -7,8 +7,7 @@
 import { Resend } from 'resend'
 import * as T from './templates'
 
-const resend = new Resend(process.env.RESEND_API_KEY)
-
+// Initialisation lazy — évite le throw au niveau module si RESEND_API_KEY absent
 const FROM = 'Mariés au Second Regard <noreply@mariesausecondregard.fr>'
 const REPLY_TO = 'mariesausecondregard@gmail.com'
 
@@ -19,6 +18,7 @@ async function send(to: string, subject: string, html: string): Promise<void> {
     return
   }
   try {
+    const resend = new Resend(process.env.RESEND_API_KEY)
     const { error } = await resend.emails.send({
       from: FROM,
       to,
