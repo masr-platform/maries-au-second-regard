@@ -33,7 +33,8 @@ export async function GET(req: NextRequest) {
       take: 50,
     })
 
-    const formatted = signalements.map((conv) => ({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const formatted = signalements.map((conv: any) => ({
       id:             conv.id,
       conversationId: conv.id,
       flagType:       conv.messages[0]?.flagType || 'AUTRE',

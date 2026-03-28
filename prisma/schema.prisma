@@ -437,8 +437,9 @@ enum Genre {
 
 enum Plan {
   GRATUIT
-  STANDARD
+  BASIQUE
   PREMIUM
+  ULTRA
 }
 
 enum UserRole {

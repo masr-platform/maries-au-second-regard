@@ -7,7 +7,11 @@
 import OpenAI from 'openai'
 import { prisma } from './prisma'
 import { cacheGet, cacheSet, cacheDel, CACHE_TTL } from './redis'
-import type { QuestionnaireReponse, User } from '@prisma/client'
+// Types générés par `prisma generate` au moment du build
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type QuestionnaireReponse = any
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type User = any
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
 

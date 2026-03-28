@@ -52,7 +52,8 @@ export async function GET() {
       orderBy: { lastMessageAt: 'desc' },
     })
 
-    const result = conversations.map((conv) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const result = conversations.map((conv: any) => {
       const interlocuteur = conv.user1Id === userId ? conv.user2 : conv.user1
       const dernierMessage = conv.messages[0] || null
 

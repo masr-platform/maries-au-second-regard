@@ -3,24 +3,35 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { emailService } from '@/lib/email'
+import { addProfilCredits } from '@/app/api/stripe/credits/route'
 import Stripe from 'stripe'
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: '2024-06-20',
 })
 
+// ─── Définition des plans ────────────────────────────────────────────
 const PLANS = {
-  STANDARD: {
-    priceId:           process.env.STRIPE_PRICE_STANDARD!,
-    profilesParSemaine: 2,
+  BASIQUE: {
+    priceId:            process.env.STRIPE_PRICE_BASIQUE!,
+    profilesParSemaine: 1,
+    montant:            '19,00 €',
   },
   PREMIUM: {
-    priceId:           process.env.STRIPE_PRICE_PREMIUM!,
-    profilesParSemaine: 3,
+    priceId:            process.env.STRIPE_PRICE_PREMIUM!,
+    profilesParSemaine: 2,
+    montant:            '39,00 €',
   },
-}
+  ULTRA: {
+    priceId:            process.env.STRIPE_PRICE_ULTRA!,
+    profilesParSemaine: 3,
+    montant:            '69,00 €',
+  },
+} as const
 
-// POST — Créer une session de paiement Stripe
+type PlanKey = keyof typeof PLANS
+
+// ─── POST — Créer une session Checkout abonnement ────────────────────
 export async function POST(req: NextRequest) {
   const session = await getServerSession(authOptions)
   if (!session?.user?.id) {
@@ -28,14 +39,14 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const { plan } = await req.json() as { plan: 'STANDARD' | 'PREMIUM' }
+    const { plan } = await req.json() as { plan: PlanKey }
 
     if (!PLANS[plan]) {
       return NextResponse.json({ error: 'Plan invalide' }, { status: 400 })
     }
 
     const user = await prisma.user.findUnique({
-      where: { id: session.user.id },
+      where:  { id: session.user.id },
       select: { stripeCustomerId: true, email: true, prenom: true },
     })
 
@@ -56,13 +67,13 @@ export async function POST(req: NextRequest) {
       })
     }
 
-    // Créer la session Checkout
+    // Créer la session Checkout abonnement
     const checkoutSession = await stripe.checkout.sessions.create({
-      customer:     customerId,
-      mode:         'subscription',
+      customer:  customerId,
+      mode:      'subscription',
       line_items: [{ price: PLANS[plan].priceId, quantity: 1 }],
-      success_url:  `${process.env.NEXTAUTH_URL}/tableau-de-bord?paiement=succes`,
-      cancel_url:   `${process.env.NEXTAUTH_URL}/abonnement?paiement=annule`,
+      success_url: `${process.env.NEXTAUTH_URL}/tableau-de-bord?paiement=succes`,
+      cancel_url:  `${process.env.NEXTAUTH_URL}/abonnement?paiement=annule`,
       metadata: {
         userId: session.user.id,
         plan,
@@ -77,12 +88,12 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ url: checkoutSession.url })
 
   } catch (error) {
-    console.error('Erreur Stripe:', error)
+    console.error('Erreur Stripe checkout:', error)
     return NextResponse.json({ error: 'Erreur Stripe' }, { status: 500 })
   }
 }
 
-// POST /api/stripe/webhook — Webhook Stripe
+// ─── PUT — Webhook Stripe ────────────────────────────────────────────
 export async function PUT(req: NextRequest) {
   const body      = await req.text()
   const signature = req.headers.get('stripe-signature')!
@@ -100,18 +111,33 @@ export async function PUT(req: NextRequest) {
   }
 
   switch (event.type) {
+
+    // ── Paiement complété (abonnement ou one-time) ──────────────────
     case 'checkout.session.completed': {
       const session = event.data.object as Stripe.Checkout.Session
-      const { userId, plan } = session.metadata as { userId: string; plan: 'STANDARD' | 'PREMIUM' }
+
+      // One-time (upsell crédits)
+      if (session.mode === 'payment') {
+        const { userId, pack } = session.metadata as { userId: string; pack: string }
+        if (userId && pack) {
+          await addProfilCredits(userId, pack as Parameters<typeof addProfilCredits>[1])
+        }
+        break
+      }
+
+      if (session.mode !== 'subscription') break
+
+      const { userId, plan } = session.metadata as { userId: string; plan: PlanKey }
 
       if (userId && plan && PLANS[plan]) {
+        const planData    = PLANS[plan]
         const nextBilling = new Date(Date.now() + 30 * 24 * 3600 * 1000)
 
         await prisma.user.update({
           where: { id: userId },
           data: {
-            plan:               plan,
-            profilesParSemaine: PLANS[plan].profilesParSemaine,
+            plan,
+            profilesParSemaine:   planData.profilesParSemaine,
             stripeSubscriptionId: session.subscription as string,
           },
         })
@@ -120,12 +146,12 @@ export async function PUT(req: NextRequest) {
           data: {
             userId,
             plan,
-            profilesParSemaine:  PLANS[plan].profilesParSemaine,
+            profilesParSemaine:   planData.profilesParSemaine,
             stripeSubscriptionId: session.subscription as string,
-            stripePriceId:       PLANS[plan].priceId,
-            status:              'ACTIVE',
-            currentPeriodStart:  new Date(),
-            currentPeriodEnd:    nextBilling,
+            stripePriceId:        planData.priceId,
+            status:               'ACTIVE',
+            currentPeriodStart:   new Date(),
+            currentPeriodEnd:     nextBilling,
           },
         })
 
@@ -134,28 +160,27 @@ export async function PUT(req: NextRequest) {
             userId,
             type:    'ABONNEMENT',
             titre:   `Abonnement ${plan} activé !`,
-            contenu: `Votre abonnement ${plan} est actif. Vous recevez maintenant ${PLANS[plan].profilesParSemaine} profils/semaine.`,
+            contenu: `Votre abonnement ${plan} est actif. Vous recevez ${planData.profilesParSemaine} profil(s)/semaine.`,
           },
         })
 
-        // Emails : confirmation d'abonnement + reçu
         const user = await prisma.user.findUnique({
-          where: { id: userId },
+          where:  { id: userId },
           select: { email: true, prenom: true },
         })
+
         if (user) {
-          const montant = plan === 'STANDARD' ? '19,00 €' : '39,00 €'
           const dateStr = new Date().toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })
           const nextStr = nextBilling.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })
 
           await Promise.all([
             emailService.sendSubscriptionConfirm({
               email: user.email, prenom: user.prenom,
-              plan, montant, nextBilling: nextStr,
+              plan, montant: planData.montant, nextBilling: nextStr,
             }),
             emailService.sendPaymentConfirm({
               email: user.email, prenom: user.prenom,
-              montant, plan, date: dateStr,
+              montant: planData.montant, plan, date: dateStr,
             }),
           ])
         }
@@ -163,19 +188,29 @@ export async function PUT(req: NextRequest) {
       break
     }
 
+    // ── Paiement échoué ─────────────────────────────────────────────
     case 'invoice.payment_failed': {
-      const invoice = event.data.object as Stripe.Invoice
+      const invoice    = event.data.object as Stripe.Invoice
       const customerId = invoice.customer as string
+
       const userRecord = await prisma.user.findFirst({
-        where: { stripeCustomerId: customerId },
+        where:  { stripeCustomerId: customerId },
         select: { id: true, email: true, prenom: true },
       })
+
       if (userRecord) {
-        await emailService.sendPaymentFailed({ email: userRecord.email, prenom: userRecord.prenom })
+        await prisma.subscription.updateMany({
+          where: { userId: userRecord.id, status: 'ACTIVE' },
+          data:  { status: 'PAST_DUE' },
+        })
+        await emailService.sendPaymentFailed({
+          email: userRecord.email, prenom: userRecord.prenom,
+        })
       }
       break
     }
 
+    // ── Abonnement résilié ──────────────────────────────────────────
     case 'customer.subscription.deleted': {
       const sub    = event.data.object as Stripe.Subscription
       const userId = sub.metadata?.userId
@@ -187,14 +222,19 @@ export async function PUT(req: NextRequest) {
         await prisma.user.update({
           where: { id: userId },
           data: {
-            plan:               'GRATUIT',
-            profilesParSemaine: 1,
+            plan:                 'GRATUIT',
+            profilesParSemaine:   1,
             stripeSubscriptionId: null,
           },
         })
 
+        await prisma.subscription.updateMany({
+          where: { userId, status: { in: ['ACTIVE', 'PAST_DUE'] } },
+          data:  { status: 'CANCELLED', cancelledAt: new Date() },
+        })
+
         const user = await prisma.user.findUnique({
-          where: { id: userId },
+          where:  { id: userId },
           select: { email: true, prenom: true },
         })
         if (user) {
@@ -206,24 +246,33 @@ export async function PUT(req: NextRequest) {
       break
     }
 
+    // ── Renouvellement automatique ──────────────────────────────────
     case 'customer.subscription.updated': {
-      // Renouvellement automatique
-      const sub = event.data.object as Stripe.Subscription
+      const sub    = event.data.object as Stripe.Subscription
       const userId = sub.metadata?.userId
+
       if (userId && sub.status === 'active') {
-        const plan = sub.metadata?.plan as 'STANDARD' | 'PREMIUM'
+        const plan = sub.metadata?.plan as PlanKey
+
         if (plan && PLANS[plan]) {
           const nextBilling = new Date(sub.current_period_end * 1000)
             .toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })
+
+          // Remettre à ACTIVE si PAST_DUE (paiement régularisé)
+          await prisma.subscription.updateMany({
+            where: { userId, status: 'PAST_DUE' },
+            data:  { status: 'ACTIVE' },
+          })
+
           const user = await prisma.user.findUnique({
-            where: { id: userId },
+            where:  { id: userId },
             select: { email: true, prenom: true },
           })
+
           if (user) {
-            const montant = plan === 'STANDARD' ? '19,00 €' : '39,00 €'
             await emailService.sendSubscriptionRenewed({
               email: user.email, prenom: user.prenom,
-              plan, montant, nextBilling,
+              plan, montant: PLANS[plan].montant, nextBilling,
             })
           }
         }

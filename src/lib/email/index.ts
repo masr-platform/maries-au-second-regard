@@ -22,7 +22,7 @@ async function send(to: string, subject: string, html: string): Promise<void> {
     const { error } = await resend.emails.send({
       from: FROM,
       to,
-      replyTo: REPLY_TO,
+      reply_to: REPLY_TO,
       subject,
       html,
     })

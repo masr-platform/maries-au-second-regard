@@ -6,7 +6,8 @@
 
 import OpenAI from 'openai'
 import { prisma } from './prisma'
-import type { FlagType } from '@prisma/client'
+// FlagType généré par `prisma generate` — défini ici pour le type-check local
+type FlagType = 'SNAP' | 'TELEPHONE' | 'RESEAU_SOCIAL' | 'INAPPROPRIE' | 'HARCELEMENT' | 'AUTRE'
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
 

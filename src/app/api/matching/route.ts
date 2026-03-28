@@ -64,7 +64,8 @@ export async function GET(req: NextRequest) {
     })
 
     // Formater pour l'affichage
-    const propositions = matchsExistants.map((match) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const propositions = matchsExistants.map((match: any) => {
       const autreUser = match.user1Id === userId ? match.user2 : match.user1
       const maReponse = match.user1Id === userId ? match.user1Reponse : match.user2Reponse
 
