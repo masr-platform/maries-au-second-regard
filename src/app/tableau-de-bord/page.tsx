@@ -344,7 +344,7 @@ export default function TableauDeBordPage() {
   }
 
   const planLbl: Record<string, string> = {
-    GRATUIT: '1 profil / semaine', STANDARD: '2 profils / semaine', PREMIUM: '3 profils / semaine',
+    GRATUIT: '1 profil / semaine', STANDARD: '1 profil / semaine (Basique)', BASIQUE: '1 profil / semaine', PREMIUM: '2 profils / semaine', ULTRA: '3 profils / semaine',
   }
 
   const enAttente       = resultats.filter(r => r.maReponse === 'EN_ATTENTE').length

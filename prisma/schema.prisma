@@ -437,6 +437,7 @@ enum Genre {
 
 enum Plan {
   GRATUIT
+  STANDARD  // legacy — mapped to BASIQUE
   BASIQUE
   PREMIUM
   ULTRA

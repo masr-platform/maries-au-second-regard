@@ -85,8 +85,10 @@ export default function MessagesPage() {
 
   const planLabel = {
     GRATUIT: '1 profil/semaine',
-    STANDARD: '2 profils/semaine',
-    PREMIUM: '3 profils/semaine',
+    STANDARD: '1 profil/semaine',
+    BASIQUE: '1 profil/semaine',
+    PREMIUM: '2 profils/semaine',
+    ULTRA: '3 profils/semaine',
   }
 
   return (
