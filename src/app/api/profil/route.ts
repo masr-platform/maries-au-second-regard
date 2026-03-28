@@ -21,6 +21,7 @@ export async function GET() {
       pays:                   true,
       plan:                   true,
       photoUrl:               true,
+      photoPublique:          true,
       questionnaireCompleted: true,
       profileCompleted:       true,
       isVerified:             true,
@@ -36,7 +37,7 @@ export async function GET() {
   return NextResponse.json({ profil: user })
 }
 
-// PATCH — Mettre à jour son profil (prénom, ville)
+// PATCH — Mettre à jour son profil
 export async function PATCH(req: NextRequest) {
   const session = await getServerSession(authOptions)
   if (!session?.user?.id) {
@@ -45,14 +46,26 @@ export async function PATCH(req: NextRequest) {
 
   try {
     const body = await req.json()
-    const { prenom, ville } = body
+    const { prenom, ville, waliEnabled, photoPublique } = body
 
-    const data: { prenom?: string; ville?: string } = {}
+    const data: {
+      prenom?: string
+      ville?: string | null
+      waliEnabled?: boolean
+      photoPublique?: boolean
+    } = {}
+
     if (prenom && typeof prenom === 'string' && prenom.trim().length >= 2) {
       data.prenom = prenom.trim()
     }
     if (typeof ville === 'string') {
-      data.ville = ville.trim() || null as unknown as string
+      data.ville = ville.trim() || null
+    }
+    if (typeof waliEnabled === 'boolean') {
+      data.waliEnabled = waliEnabled
+    }
+    if (typeof photoPublique === 'boolean') {
+      data.photoPublique = photoPublique
     }
 
     if (Object.keys(data).length === 0) {
@@ -62,7 +75,7 @@ export async function PATCH(req: NextRequest) {
     const user = await prisma.user.update({
       where: { id: session.user.id },
       data,
-      select: { id: true, prenom: true, ville: true },
+      select: { id: true, prenom: true, ville: true, waliEnabled: true, photoPublique: true },
     })
 
     return NextResponse.json({ success: true, user })
