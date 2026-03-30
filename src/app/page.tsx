@@ -119,80 +119,84 @@ export default function HomePage() {
       </nav>
 
       {/* ═══════════════════════════════════════════════════════════
-          HERO — Filtrage intentionnel + promesse de gravité
+          HERO — Cinématique, inattendu, émotionnel
       ═══════════════════════════════════════════════════════════ */}
       <section className="relative min-h-screen flex items-center justify-center pt-28 pb-20 px-6">
-        {/* Orbs ambiants */}
+        {/* Orbs dramatiques */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute top-1/3 left-1/3 w-[500px] h-[500px] bg-purple-700/10 rounded-full blur-[120px]" />
-          <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-violet-600/8 rounded-full blur-[100px]" />
+          <div className="absolute top-1/4 left-1/4 w-[600px] h-[600px] bg-purple-700/12 rounded-full blur-[140px]" />
+          <div className="absolute bottom-1/3 right-1/4 w-[400px] h-[400px] bg-fuchsia-600/10 rounded-full blur-[100px]" />
+          <div className="absolute top-2/3 left-1/2 w-64 h-64 bg-pink-500/8 rounded-full blur-[80px]" />
         </div>
 
-        <div className="relative z-10 text-center max-w-4xl mx-auto">
+        <div className="relative z-10 text-center max-w-5xl mx-auto">
 
-          {/* Badge sélectif — signal de filtrage immédiat */}
-          <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}
-            className="inline-flex items-center gap-2 bg-purple-500/10 border border-purple-500/25 rounded-full px-5 py-2 text-purple-300 text-xs font-semibold tracking-widest uppercase mb-10">
-            <span className="w-1.5 h-1.5 rounded-full bg-purple-400 animate-pulse" />
-            Pour ceux qui cherchent le mariage. Pas autre chose.
+          {/* Indicateur live — preuve de vie et d'activité */}
+          <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}
+            className="inline-flex items-center gap-3 bg-white/5 border border-white/10 rounded-full px-5 py-2.5 mb-14">
+            <span className="relative flex h-2.5 w-2.5">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-fuchsia-400 opacity-75" />
+              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-fuchsia-400" />
+            </span>
+            <span className="text-white/55 text-sm">
+              En ce moment — <strong className="text-white">3 nouvelles compatibilités</strong> viennent d'être validées
+            </span>
           </motion.div>
 
-          {/* HEADLINE — Certitude, destin, promesse tenue */}
-          <motion.h1 initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.1 }}
-            className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-black leading-[1.0] tracking-tight mb-8">
-            <span className="text-white">Votre moitié</span>
-            <br />
-            <span className="text-white">existe déjà.</span>
+          {/* HEADLINE — Cinématique, narratif, inattendu */}
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.4 }}>
+            <motion.p initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
+              className="text-white/35 text-lg md:text-xl font-medium tracking-wide mb-4">
+              Quelque part en France,
+            </motion.p>
+          </motion.div>
+
+          <motion.h1 initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.2 }}
+            className="text-5xl sm:text-6xl md:text-7xl lg:text-[85px] font-black leading-[1.05] tracking-tight mb-5">
+            <span className="text-white">quelqu'un vous cherche.</span>
             <br />
             <span className="bg-gradient-to-r from-purple-400 via-fuchsia-300 to-pink-400 bg-clip-text text-transparent">
-              Nous l'avons trouvée.
+              Nous l'avons trouvé(e).
             </span>
           </motion.h1>
 
-          {/* Sous-titre — promesse de certitude, pas de probabilité */}
-          <motion.p initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.2 }}
-            className="text-lg md:text-xl text-white/60 max-w-2xl mx-auto mb-4 leading-relaxed">
-            La seule plateforme de mariage islamique où{' '}
+          <motion.p initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.45 }}
+            className="text-white/30 text-base md:text-lg font-medium italic mb-10">
+            Il ne manque que vous.
+          </motion.p>
+
+          {/* Sous-titre — promesse scientifique */}
+          <motion.p initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.5 }}
+            className="text-base md:text-lg text-white/50 max-w-2xl mx-auto mb-12 leading-relaxed">
             <strong className="text-white">5 psychologues cliniciens musulmans</strong> et une IA haute performance
             valident chaque compatibilité à <strong className="text-fuchsia-400">+85%</strong> avant de vous la présenter.
-            <br />
-            <span className="text-white/40 text-base">Il ne manque que vous.</span>
+            Pas des profils au hasard — <strong className="text-white">des certitudes.</strong>
           </motion.p>
 
-          {/* Phrase de filtrage — le site s'adresse à quelqu'un de précis */}
-          <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.35 }}
-            className="text-white/30 text-sm italic mb-10">
-            Pour ceux qui cherchent un mariage sérieux — pas autre chose.
-          </motion.p>
-
-          {/* CTAs */}
-          <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.3 }}
+          {/* CTA principal */}
+          <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.6 }}
             className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-14">
             <Link href="/inscription"
-              className="group bg-gradient-to-r from-purple-600 via-fuchsia-600 to-pink-600 hover:from-purple-500 hover:via-fuchsia-500 hover:to-pink-500 text-white px-10 py-5 rounded-full text-lg font-black transition-all shadow-2xl shadow-fuchsia-500/30 hover:shadow-fuchsia-500/50 hover:scale-105">
-              Je veux me marier — commencer
-              <ArrowRight size={18} className="inline ml-2 group-hover:translate-x-1 transition-transform" />
+              className="group relative overflow-hidden bg-gradient-to-r from-purple-600 via-fuchsia-600 to-pink-600 text-white px-10 py-5 rounded-full text-lg font-black transition-all shadow-2xl shadow-fuchsia-500/25 hover:shadow-fuchsia-500/45 hover:scale-105">
+              <span className="relative z-10 flex items-center gap-2">
+                Trouver ma compatibilité — gratuit
+                <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
+              </span>
+              <div className="absolute inset-0 bg-gradient-to-r from-purple-500 via-fuchsia-500 to-pink-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
             </Link>
-            <Link href="#le-processus" className="text-white/40 hover:text-white/70 text-sm transition-colors">
-              Voir comment ça fonctionne ↓
+            <Link href="#le-processus" className="text-white/30 hover:text-white/60 text-sm transition-colors">
+              Comment ça marche ↓
             </Link>
           </motion.div>
 
-          {/* Signaux de confiance immédiats */}
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.5 }}
-            className="flex flex-wrap items-center justify-center gap-6 text-xs text-white/40">
-            <span className="flex items-center gap-1.5">
-              <CheckCircle2 size={13} className="text-purple-400" /> Aucune carte bancaire
-            </span>
-            <span className="flex items-center gap-1.5">
-              <CheckCircle2 size={13} className="text-purple-400" /> Inscription en 2 minutes
-            </span>
-            <span className="flex items-center gap-1.5">
-              <CheckCircle2 size={13} className="text-purple-400" /> Supervisé par des psychologues
-            </span>
-            <span className="flex items-center gap-1.5">
-              <CheckCircle2 size={13} className="text-purple-400" /> 100% halal
-            </span>
+          {/* Signaux de confiance */}
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.8 }}
+            className="flex flex-wrap items-center justify-center gap-6 text-xs text-white/30">
+            {['Aucune carte bancaire', 'Inscription 2 min', 'Psychologues certifiés', '100% halal'].map((t, i) => (
+              <span key={i} className="flex items-center gap-1.5">
+                <CheckCircle2 size={12} className="text-fuchsia-400" /> {t}
+              </span>
+            ))}
           </motion.div>
         </div>
       </section>
