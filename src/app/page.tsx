@@ -109,18 +109,17 @@ export default function HomePage() {
       {/* ── NAVIGATION ─────────────────────────────────────────── */}
       <nav className="fixed top-0 left-0 right-0 z-50 border-b border-purple-500/10 bg-[#060412]/90 backdrop-blur-xl">
         <div className="max-w-7xl mx-auto px-6 py-3 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-3 group">
+          <Link href="/" className="flex items-center gap-2 group">
             <Image
               src="/logo.png"
               alt="Mariés au Second Regard"
-              width={54}
-              height={54}
-              className="object-contain drop-shadow-[0_0_8px_rgba(168,85,247,0.3)] group-hover:drop-shadow-[0_0_14px_rgba(232,121,249,0.5)] transition-all duration-300"
+              width={38}
+              height={38}
+              className="object-contain"
             />
-            <div className="hidden sm:flex flex-col leading-tight">
-              <span className="text-sm font-black text-white tracking-wide">Mariés au Second Regard</span>
-              <span className="text-[10px] text-purple-400/70 tracking-widest uppercase font-medium">Selon les préceptes de l'Islam</span>
-            </div>
+            <span className="text-sm font-bold text-white tracking-tight hidden sm:block">
+              Mariés <span className="text-purple-400">au Second Regard</span>
+            </span>
           </Link>
           <div className="flex items-center gap-4">
             <Link href="/connexion" className="text-white/50 hover:text-white text-sm transition-colors hidden md:block">
