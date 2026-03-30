@@ -165,13 +165,31 @@ export default function HomePage() {
             Il ne manque que vous.
           </motion.p>
 
-          {/* Sous-titre — promesse scientifique */}
-          <motion.p initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.5 }}
-            className="text-base md:text-lg text-white/50 max-w-2xl mx-auto mb-12 leading-relaxed">
-            <strong className="text-white">5 psychologues cliniciens musulmans</strong> et une IA haute performance
-            valident chaque compatibilité à <strong className="text-fuchsia-400">+85%</strong> avant de vous la présenter.
-            Pas des profils au hasard — <strong className="text-white">des certitudes.</strong>
-          </motion.p>
+          {/* PROCÉDÉ — 4 étapes simples, visuelles, juste sous l'accroche */}
+          <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.5 }}
+            className="max-w-3xl mx-auto mb-12">
+            <p className="text-white/35 text-xs uppercase tracking-widest font-semibold mb-5">Comment ça fonctionne</p>
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-0">
+              {[
+                { num: '1', label: 'Profil gratuit', sub: '2 minutes' },
+                { num: '2', label: 'Questionnaire profond', sub: '40 questions' },
+                { num: '3', label: "L'IA analyse", sub: '7 dimensions' },
+                { num: '4', label: 'Psychologue valide', sub: 'seuil +85%' },
+              ].map((step, i) => (
+                <div key={i} className="flex items-center">
+                  <div className="flex flex-col items-center text-center px-4 py-3">
+                    <div className="w-9 h-9 rounded-full bg-gradient-to-br from-purple-600 to-fuchsia-600 flex items-center justify-center text-white text-sm font-black mb-2 shadow-lg shadow-fuchsia-500/20">
+                      {step.num}
+                    </div>
+                    <p className="text-white text-sm font-semibold leading-tight">{step.label}</p>
+                    <p className="text-white/35 text-xs mt-0.5">{step.sub}</p>
+                  </div>
+                  {i < 3 && <div className="hidden sm:block text-white/15 text-xl px-1">→</div>}
+                </div>
+              ))}
+            </div>
+            <p className="text-white/25 text-xs mt-4">Vous recevez votre compatibilité validée. Pas une suggestion — une certitude.</p>
+          </motion.div>
 
           {/* CTA principal */}
           <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.6 }}
