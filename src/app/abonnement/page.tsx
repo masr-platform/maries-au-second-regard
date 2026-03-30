@@ -13,67 +13,69 @@ import {
 import toast from 'react-hot-toast'
 
 const planLabel: Record<string, string> = {
-  GRATUIT:  '1 profil/semaine',
-  STANDARD: '1 profil/semaine',
-  BASIQUE:  '1 profil/semaine',
-  PREMIUM:  '2 profils/semaine',
-  ULTRA:    '3 profils/semaine',
+  GRATUIT:  'Accès limité',
+  STANDARD: 'Accès limité',
+  BASIQUE:  '3 profils / mois',
+  PREMIUM:  '10 profils / mois',
+  ULTRA:    'Profils illimités',
 }
 
 const PLANS = [
   {
     key: 'BASIQUE',
-    nom: 'Basique',
-    prix: '19',
-    desc: 'Pour démarrer',
+    nom: 'Basic',
+    prix: '19,90',
+    desc: 'Accès limité',
     color: 'border-white/15',
     badge: null,
+    note: 'Une formule volontairement limitée, pour garder un cadre structuré.',
     items: [
-      '1 profil compatible / semaine',
-      'Score de compatibilité sur 7 dimensions',
-      'Chat supervisé',
-      'Profil vérifié par MASR',
+      'Jusqu\'à 3 profils sérieux sélectionnés pour vous chaque mois',
+      'Discussion avec 1 seule personne à la fois',
+      '1 rencontre encadrée par mois (Mouqabala avec imam)',
+      'Profils vérifiés pour garantir le sérieux',
     ],
     ctaCls: 'border border-white/25 text-white hover:bg-white/5',
   },
   {
     key: 'PREMIUM',
     nom: 'Premium',
-    prix: '39',
-    desc: 'Le plus choisi',
+    prix: '29,90',
+    desc: 'Le plus choisi — Recommandé',
     color: 'border-gold-500/50',
-    badge: '⭐ Recommandé',
+    badge: '⭐ Le plus choisi',
+    note: 'Le choix privilégié par les membres engagés dans une vraie démarche.',
     items: [
-      '2 profils compatibles / semaine',
-      'Analyse IA approfondie',
-      'Chat + mode Wali intégré',
-      'Accès psychologue en ligne',
-      'Support prioritaire',
+      'Jusqu\'à 10 profils sérieux sélectionnés pour vous chaque mois',
+      'Discussions avec plusieurs personnes en même temps (chat supervisé)',
+      '3 rencontres encadrées par mois (Mouqabala avec imam)',
+      'Accès prioritaire aux profils les plus sérieux',
+      'Filtres avancés pour une compatibilité réelle',
     ],
     ctaCls: 'bg-gold-500 text-black font-bold hover:bg-gold-400',
   },
   {
     key: 'ULTRA',
     nom: 'Ultra',
-    prix: '69',
-    desc: 'Résultats rapides',
+    prix: '49,90',
+    desc: 'Engagement mariage',
     color: 'border-purple-500/40',
-    badge: '🚀 Accéléré',
+    badge: '💍 Maximum',
+    note: 'Une formule pensée pour maximiser vos chances avec un cadre sérieux.',
     items: [
-      '3 profils compatibles / semaine',
-      'Tout le contenu Premium',
-      'Session imam offerte / mois',
-      'Mise en relation prioritaire',
-      'Accompagnement personnalisé',
+      'Profils sérieux proposés sans limite',
+      'Discussions supervisées illimitées',
+      'Rencontres encadrées illimitées (Mouqabala avec imam)',
+      'Profil mis en avant — vu en priorité',
+      'Accès en avant-première aux nouveaux inscrits',
+      'Accompagnement personnalisé (conseils, suivi)',
     ],
     ctaCls: 'bg-purple-600 text-white font-bold hover:bg-purple-500',
   },
 ]
 
 const PACKS = [
-  { key: 'PACK_1', label: '+ 1 profil supplémentaire', prix: '7', emoji: '⚡' },
-  { key: 'PACK_3', label: '+ 3 profils supplémentaires', prix: '18', emoji: '🔥' },
-  { key: 'PACK_5', label: '+ 5 profils supplémentaires', prix: '29', emoji: '💎' },
+  { key: 'PACK_3', label: '+ 3 profils supplémentaires', prix: '9,90', emoji: '🔥' },
 ]
 
 export default function AbonnementPage() {
@@ -281,7 +283,7 @@ export default function AbonnementPage() {
                   </div>
                 </div>
 
-                <ul className="space-y-2 flex-1 mb-5">
+                <ul className="space-y-2 mb-3">
                   {plan.items.map((item, j) => (
                     <li key={j} className="flex items-start gap-2 text-xs text-dark-300">
                       <Check size={12} className="text-gold-400 mt-0.5 flex-shrink-0" />
@@ -289,6 +291,9 @@ export default function AbonnementPage() {
                     </li>
                   ))}
                 </ul>
+                {plan.note && (
+                  <p className="text-dark-500 text-[11px] italic mb-4 leading-relaxed flex-1">{plan.note}</p>
+                )}
 
                 <button
                   onClick={() => !isActive && souscire(plan.key)}
@@ -315,7 +320,7 @@ export default function AbonnementPage() {
         {/* Crédits one-shot */}
         <h2 className="text-white font-semibold text-sm mb-1">Crédits supplémentaires</h2>
         <p className="text-dark-500 text-xs mb-4">Achetez des profils en plus, sans changer d&apos;abonnement</p>
-        <div className="grid sm:grid-cols-3 gap-4 mb-10">
+        <div className="grid sm:grid-cols-2 gap-4 mb-10 max-w-sm">
           {PACKS.map((pack, i) => (
             <motion.div
               key={pack.key}
@@ -342,20 +347,46 @@ export default function AbonnementPage() {
           ))}
         </div>
 
-        {/* Infos */}
+        {/* Pourquoi ces limites */}
+        <div className="bg-dark-800 border border-dark-700 rounded-2xl p-5 mb-4">
+          <h3 className="text-white font-semibold text-sm mb-2">Pourquoi ces limites ?</h3>
+          <p className="text-dark-400 text-xs leading-relaxed">
+            Parce que la qualité passe avant la quantité. Nous faisons le choix de proposer des profils pertinents, plutôt qu&apos;une infinité de rencontres sans sens.
+          </p>
+          <p className="text-amber-400/60 text-xs mt-3 leading-relaxed">
+            ⚠️ Les places sont volontairement limitées pour garantir un niveau de qualité élevé et des profils réellement engagés.
+          </p>
+        </div>
+
+        {/* Notre engagement */}
         <div className="bg-dark-800 border border-dark-700 rounded-2xl p-5">
-          <h3 className="text-white font-semibold text-sm mb-4">Informations & garanties</h3>
-          <div className="space-y-3">
+          <h3 className="text-white font-semibold text-sm mb-4">Notre engagement</h3>
+          <div className="grid grid-cols-2 gap-3 mb-5">
             {[
-              { icon: RefreshCw, text: 'Sans engagement — résiliation en 1 clic depuis ce tableau de bord' },
-              { icon: CreditCard, text: 'Paiement sécurisé par Stripe. Aucune carte enregistrée sans votre accord.' },
-              { icon: Shield, text: 'Remboursement intégral dans les 48h si vous n\'êtes pas satisfait(e)' },
-              { icon: Zap, text: 'Votre plan est activé instantanément après paiement' },
+              { icon: Shield,     text: 'Profils vérifiés' },
+              { icon: Heart,      text: 'Respect des valeurs' },
+              { icon: Star,       text: 'Rencontres encadrées' },
+              { icon: Check,      text: 'Démarche sérieuse uniquement' },
+            ].map((item, i) => {
+              const Icon = item.icon
+              return (
+                <div key={i} className="flex items-center gap-2 text-xs text-dark-300">
+                  <Icon size={13} className="text-gold-500 flex-shrink-0" />
+                  {item.text}
+                </div>
+              )
+            })}
+          </div>
+          <div className="space-y-2 border-t border-dark-700 pt-4">
+            {[
+              { icon: RefreshCw, text: 'Sans engagement — résiliation en 1 clic' },
+              { icon: CreditCard, text: 'Paiement sécurisé par Stripe' },
+              { icon: Zap, text: 'Plan activé instantanément après paiement' },
             ].map((item, i) => {
               const Icon = item.icon
               return (
                 <div key={i} className="flex items-start gap-3 text-xs text-dark-400">
-                  <Icon size={14} className="text-gold-500 mt-0.5 flex-shrink-0" />
+                  <Icon size={13} className="text-gold-500 mt-0.5 flex-shrink-0" />
                   {item.text}
                 </div>
               )
