@@ -15,9 +15,9 @@ import toast from 'react-hot-toast'
 const planLabel: Record<string, string> = {
   GRATUIT:  '1 profil/semaine',
   STANDARD: '1 profil/semaine',
-  BASIQUE:  '1 profil/semaine',
-  PREMIUM:  '2 profils/semaine',
-  ULTRA:    '3 profils/semaine',
+  BASIQUE:  '3 profils/mois',
+  PREMIUM:  '10 profils/mois',
+  ULTRA:    'Profils illimités',
 }
 
 export default function ParametresPage() {

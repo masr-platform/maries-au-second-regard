@@ -15,17 +15,17 @@ import toast from 'react-hot-toast'
 const planLabel: Record<string, string> = {
   GRATUIT: '1 profil/semaine',
   STANDARD: '1 profil/semaine',
-  BASIQUE: '1 profil/semaine',
+  BASIQUE: '3 profils/mois',
   PREMIUM: '2 profils/semaine',
-  ULTRA: '3 profils/semaine',
+  ULTRA: 'Profils illimités',
 }
 
 const planBadge: Record<string, { label: string; color: string; bg: string }> = {
   GRATUIT:  { label: 'Gratuit',  color: 'text-dark-400', bg: 'bg-dark-700' },
-  STANDARD: { label: 'Basique',  color: 'text-gold-400', bg: 'bg-gold-500/10' },
-  BASIQUE:  { label: 'Basique',  color: 'text-gold-400', bg: 'bg-gold-500/10' },
+  STANDARD: { label: 'Essentiel',  color: 'text-gold-400', bg: 'bg-gold-500/10' },
+  BASIQUE:  { label: 'Essentiel',  color: 'text-gold-400', bg: 'bg-gold-500/10' },
   PREMIUM:  { label: 'Premium',  color: 'text-purple-400', bg: 'bg-purple-500/10' },
-  ULTRA:    { label: 'Ultra',    color: 'text-blue-400', bg: 'bg-blue-500/10' },
+  ULTRA:    { label: 'Élite',    color: 'text-blue-400', bg: 'bg-blue-500/10' },
 }
 
 interface ProfilData {

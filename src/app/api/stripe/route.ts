@@ -3,7 +3,7 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { emailService } from '@/lib/email'
-import { addProfilCredits } from '@/app/api/stripe/credits/route'
+import { addProfilCredits } from '@/lib/credits'
 import Stripe from 'stripe'
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
@@ -15,17 +15,17 @@ const PLANS = {
   BASIQUE: {
     priceId:            process.env.STRIPE_PRICE_BASIQUE!,
     profilesParSemaine: 1,
-    montant:            '19,00 €',
+    montant:            '19,90 €',
   },
   PREMIUM: {
     priceId:            process.env.STRIPE_PRICE_PREMIUM!,
     profilesParSemaine: 2,
-    montant:            '39,00 €',
+    montant:            '29,90 €',
   },
   ULTRA: {
     priceId:            process.env.STRIPE_PRICE_ULTRA!,
     profilesParSemaine: 3,
-    montant:            '69,00 €',
+    montant:            '49,90 €',
   },
 } as const
 

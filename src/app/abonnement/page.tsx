@@ -15,9 +15,9 @@ import toast from 'react-hot-toast'
 const planLabel: Record<string, string> = {
   GRATUIT:  'Accès limité',
   STANDARD: 'Accès limité',
-  BASIQUE:  '3 profils / mois',
-  PREMIUM:  '10 profils / mois',
-  ULTRA:    'Profils illimités',
+  BASIQUE:  'Essentiel — 3 profils/mois',
+  PREMIUM:  'Premium — 10 profils/mois',
+  ULTRA:    'Élite — Profils illimités',
 }
 
 const PLANS = [
@@ -56,7 +56,7 @@ const PLANS = [
   },
   {
     key: 'ULTRA',
-    nom: 'Ultra',
+    nom: 'Élite',
     prix: '49,90',
     desc: 'Engagement mariage',
     color: 'border-purple-500/40',
