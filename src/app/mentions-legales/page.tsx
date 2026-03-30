@@ -11,7 +11,7 @@ export default function MentionsLegales() {
             <strong className="text-white">Lamia Belkhodja</strong><br/>
             Directrice de la publication : Lamia Belkhodja<br/>
             Email : <a href="mailto:contact@mariesausecondregard.fr" className="text-[#C9A84C]">contact@mariesausecondregard.fr</a><br/>
-            Adresse : disponible sur demande à l'adresse email ci-dessus</p>
+            Adresse : 137 rue Anatole France, 93170 Bagnolet, France</p>
           </section>
           <section>
             <h2 className="text-white font-semibold text-base mb-3">2. Hébergement</h2>
