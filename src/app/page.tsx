@@ -227,42 +227,6 @@ export default function HomePage() {
       </section>
 
       {/* ═══════════════════════════════════════════════════════════
-          VIDÉO — Projection émotionnelle
-      ═══════════════════════════════════════════════════════════ */}
-      <section className="py-20 px-6 bg-gradient-to-b from-transparent via-purple-950/5 to-transparent">
-        <div className="max-w-5xl mx-auto">
-          <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }} className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-black text-white mb-4">
-              Ils ne cherchaient plus.
-              <br />
-              <span className="bg-gradient-to-r from-purple-400 to-fuchsia-400 bg-clip-text text-transparent">Nous avions trouvé pour eux.</span>
-            </h2>
-            <p className="text-white/40 text-base max-w-lg mx-auto">
-              312 couples. Des histoires vraies. Des vies construites sur des bases solides.
-            </p>
-          </motion.div>
-          <motion.div initial={{ opacity: 0, scale: 0.97 }} whileInView={{ opacity: 1, scale: 1 }}
-            viewport={{ once: true }} transition={{ duration: 0.8 }}
-            className="relative rounded-3xl overflow-hidden border border-purple-500/20 shadow-2xl shadow-fuchsia-500/10">
-            <video
-              src="/couple.mp4"
-              autoPlay
-              muted
-              loop
-              playsInline
-              className="w-full h-auto max-h-[70vh] object-cover"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-[#060412]/60 via-transparent to-transparent pointer-events-none" />
-            <div className="absolute bottom-6 left-6 right-6 flex items-center gap-3 pointer-events-none">
-              <div className="w-2 h-2 rounded-full bg-fuchsia-400 animate-pulse" />
-              <p className="text-white/80 text-sm font-semibold">312 mariages formés — alhamdulillah</p>
-            </div>
-          </motion.div>
-        </div>
-      </section>
-
-      {/* ═══════════════════════════════════════════════════════════
           BARRE DE PREUVE — Crédibilité immédiate
       ═══════════════════════════════════════════════════════════ */}
       <section className="py-14 border-y border-purple-500/20 bg-gradient-to-r from-purple-950/30 via-fuchsia-950/20 to-purple-950/30 relative z-10">
@@ -379,6 +343,44 @@ export default function HomePage() {
                 {i < 4 && <div className="absolute top-7 left-full w-4 text-white/20 text-sm hidden sm:block">→</div>}
               </motion.div>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ═══════════════════════════════════════════════════════════
+          VIDÉO — Projection émotionnelle
+      ═══════════════════════════════════════════════════════════ */}
+      <section className="py-20 px-6 bg-gradient-to-b from-transparent via-purple-950/5 to-transparent">
+        <div className="max-w-5xl mx-auto">
+          <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }} className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-black text-white mb-4">
+              Ils ne cherchaient plus.
+              <br />
+              <span className="bg-gradient-to-r from-purple-400 to-fuchsia-400 bg-clip-text text-transparent">Nous avions trouvé pour eux.</span>
+            </h2>
+            <p className="text-white/40 text-base max-w-lg mx-auto">
+              312 couples. Des histoires vraies. Des vies construites sur des bases solides.
+            </p>
+          </motion.div>
+          <div className="flex justify-center">
+            <motion.div initial={{ opacity: 0, scale: 0.97 }} whileInView={{ opacity: 1, scale: 1 }}
+              viewport={{ once: true }} transition={{ duration: 0.8 }}
+              className="relative rounded-3xl overflow-hidden border border-purple-500/20 shadow-2xl shadow-fuchsia-500/10 w-full max-w-sm">
+              <video
+                src="/couple.mp4"
+                autoPlay
+                muted
+                loop
+                playsInline
+                className="w-full h-auto"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-[#060412]/60 via-transparent to-transparent pointer-events-none" />
+              <div className="absolute bottom-6 left-6 right-6 flex items-center gap-3 pointer-events-none">
+                <div className="w-2 h-2 rounded-full bg-fuchsia-400 animate-pulse" />
+                <p className="text-white/80 text-sm font-semibold">312 mariages formés — alhamdulillah</p>
+              </div>
+            </motion.div>
           </div>
         </div>
       </section>
