@@ -4,9 +4,6 @@ import { emailService } from '@/lib/email'
 import { addProfilCredits } from '@/lib/credits'
 import Stripe from 'stripe'
 
-// ⚠️ Désactiver le body parser Next.js — Stripe a besoin du raw body pour vérifier la signature
-export const config = { api: { bodyParser: false } }
-
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: '2024-06-20',
 })
