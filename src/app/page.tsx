@@ -464,65 +464,75 @@ export default function HomePage() {
       </section>
 
       {/* ═══════════════════════════════════════════════════════════
-          LE PROCESSUS — Parcours utilisateur clair
+          LE PROCESSUS — Le vrai parcours complet
       ═══════════════════════════════════════════════════════════ */}
       <section id="le-processus" className="py-28 px-6 bg-gradient-to-b from-transparent to-purple-950/10">
         <div className="max-w-4xl mx-auto">
           <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }} className="text-center mb-16">
-            <p className="text-purple-400 text-sm font-semibold uppercase tracking-widest mb-3">Le processus</p>
-            <h2 className="text-3xl md:text-4xl font-black text-white mb-4">Quatre étapes. Un seul objectif.</h2>
-            <p className="text-white/40 max-w-lg mx-auto">Votre mariage commence ici. Le chemin est simple. L'exigence est réelle.</p>
+            <p className="text-purple-400 text-sm font-semibold uppercase tracking-widest mb-3">Le processus complet</p>
+            <h2 className="text-3xl md:text-4xl font-black text-white mb-4">
+              De l'inscription au mariage.
+              <br />
+              <span className="bg-gradient-to-r from-purple-400 to-fuchsia-400 bg-clip-text text-transparent">Chaque étape a un sens.</span>
+            </h2>
+            <p className="text-white/40 max-w-lg mx-auto">Un parcours pensé pour protéger votre démarche, respecter vos valeurs et maximiser vos chances d'une vraie rencontre.</p>
           </motion.div>
 
           <div className="space-y-4">
             {[
               {
                 num: '01',
-                emoji: '👤',
-                titre: 'Inscription — Gratuite. 2 minutes.',
-                desc: 'Créez votre profil. Aucune carte bancaire, aucun engagement. La première étape est un acte d\'intention. Nous vous demandons d\'être sincère dès le début.',
-                free: true,
+                emoji: '📝',
+                titre: 'Inscription & questionnaire',
+                desc: 'Vous créez votre profil gratuitement en 2 minutes, puis répondez à 40 questions profondes conçues par nos psychologues cliniciens. Valeurs islamiques, projet de vie, caractère, vision du couple. Ce questionnaire est le cœur de tout — il permet à notre IA de vous connaître vraiment.',
+                tag: 'Gratuit',
+                tagColor: 'text-green-400 bg-green-500/15',
               },
               {
                 num: '02',
-                emoji: '🧠',
-                titre: 'Questionnaire profond — 15 minutes pour changer votre vie.',
-                desc: '40 questions conçues par nos psychologues cliniciens. Ce n\'est pas un formulaire — c\'est une exploration de qui vous êtes vraiment. Valeurs, foi, projet de vie, caractère. Chaque réponse compte.',
-                free: true,
+                emoji: '🤖',
+                titre: "L'IA analyse et nos psychologues valident",
+                desc: 'Notre algorithme analyse 7 dimensions de compatibilité et croise des centaines de profils. Un psychologue clinicien examine ensuite chaque résultat. Seules les compatibilités à +85% sont retenues. Les autres sont rejetées automatiquement. Vous ne voyez jamais un profil en dessous de ce seuil.',
+                tag: 'Science + humain',
+                tagColor: 'text-purple-300 bg-purple-500/15',
               },
               {
                 num: '03',
-                emoji: '✨',
-                titre: "L'IA analyse en 7 dimensions.",
-                desc: 'Des centaines de profils passés au crible simultanément. Notre algorithme ne présente pas de profils "potentiellement intéressants". Il ne présente que des profils validés scientifiquement. En dessous de 85% : rejeté automatiquement.',
-                free: false,
+                emoji: '💜',
+                titre: 'Vous recevez votre compatibilité — sans photo d\'abord',
+                desc: 'Vous recevez le score détaillé et l\'analyse de compatibilité. La photo n\'est pas encore visible. Pourquoi ? Parce que nous voulons que vous jugiez d\'abord sur ce qui compte : les valeurs, la foi, le projet de vie. Si vous acceptez cette compatibilité, la photo est débloquée.',
+                tag: 'Valeurs avant apparence',
+                tagColor: 'text-fuchsia-300 bg-fuchsia-500/15',
               },
               {
                 num: '04',
-                emoji: '💜',
-                titre: 'Votre compatibilité — validée. Certifiée. Remise.',
-                desc: 'Un psychologue clinicien examine chaque résultat avant de vous le transmettre. Vous recevez un score détaillé, une analyse complète et une compatibilité qui a passé tous les filtres. Ce n\'est pas une suggestion. C\'est une certitude.',
-                free: false,
+                emoji: '💬',
+                titre: 'Chat supervisé — si les deux acceptent',
+                desc: 'Si les deux parties acceptent après avoir vu le profil complet, un chat supervisé s\'ouvre. Les échanges sont encadrés et bienveillants. Aucun numéro, aucun réseau social. L\'objectif est simple : vérifier qu\'il y a une vraie alchimie par les mots, avant d\'aller plus loin.',
+                tag: '100% supervisé',
+                tagColor: 'text-blue-300 bg-blue-500/15',
+              },
+              {
+                num: '05',
+                emoji: '🤝',
+                titre: 'Mouqabala virtuelle — si l\'alchimie est confirmée',
+                desc: 'Si le chat confirme une compatibilité réelle, une mouqabala (entretien virtuel) est organisée sur notre plateforme. Elle peut se faire avec ou sans la famille, selon les préférences. C\'est l\'étape finale avant de décider d\'aller vers le mariage. Tout reste dans un cadre islamique respectueux.',
+                tag: 'Cadre islamique',
+                tagColor: 'text-amber-300 bg-amber-500/15',
               },
             ].map((step, i) => (
               <motion.div key={i} initial={{ opacity: 0, x: -20 }} whileInView={{ opacity: 1, x: 0 }}
                 viewport={{ once: true }} transition={{ delay: i * 0.1 }}
-                className="flex gap-5 bg-white/4 border border-white/8 rounded-2xl p-6 hover:border-purple-500/20 transition-all">
-                <div className="flex-shrink-0 text-purple-500/30 font-black text-3xl w-12 pt-1">{step.num}</div>
+                className="flex gap-5 bg-white/4 border border-white/8 rounded-2xl p-6 hover:border-purple-500/20 hover:bg-white/6 transition-all">
+                <div className="flex-shrink-0 font-black text-2xl text-white/15 w-10 pt-1">{step.num}</div>
                 <div className="flex-1">
-                  <div className="flex items-start gap-3 mb-2">
-                    <span className="text-xl mt-0.5">{step.emoji}</span>
-                    <div className="flex-1">
-                      <div className="flex items-center gap-3 flex-wrap">
-                        <h3 className="text-white font-bold">{step.titre}</h3>
-                        {step.free && (
-                          <span className="text-xs bg-green-500/15 text-green-400 px-2 py-0.5 rounded-full">Gratuit</span>
-                        )}
-                      </div>
-                    </div>
+                  <div className="flex items-center gap-3 flex-wrap mb-2">
+                    <span className="text-xl">{step.emoji}</span>
+                    <h3 className="text-white font-bold">{step.titre}</h3>
+                    <span className={`text-xs px-2.5 py-0.5 rounded-full font-semibold ${step.tagColor}`}>{step.tag}</span>
                   </div>
-                  <p className="text-white/50 text-sm leading-relaxed ml-8">{step.desc}</p>
+                  <p className="text-white/50 text-sm leading-relaxed">{step.desc}</p>
                 </div>
               </motion.div>
             ))}
