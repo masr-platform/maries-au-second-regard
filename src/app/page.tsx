@@ -363,10 +363,11 @@ export default function HomePage() {
               312 couples. Des histoires vraies. Des vies construites sur des bases solides.
             </p>
           </motion.div>
-          <div className="flex justify-center">
-            <motion.div initial={{ opacity: 0, scale: 0.97 }} whileInView={{ opacity: 1, scale: 1 }}
+          <div className="grid md:grid-cols-2 gap-12 items-center">
+            {/* Vidéo — gauche */}
+            <motion.div initial={{ opacity: 0, x: -30 }} whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }} transition={{ duration: 0.8 }}
-              className="relative rounded-3xl overflow-hidden border border-purple-500/20 shadow-2xl shadow-fuchsia-500/10 w-full max-w-sm">
+              className="relative rounded-3xl overflow-hidden border border-purple-500/20 shadow-2xl shadow-fuchsia-500/10">
               <video
                 src="/couple.mp4"
                 autoPlay
@@ -380,6 +381,45 @@ export default function HomePage() {
                 <div className="w-2 h-2 rounded-full bg-fuchsia-400 animate-pulse" />
                 <p className="text-white/80 text-sm font-semibold">312 mariages formés — alhamdulillah</p>
               </div>
+            </motion.div>
+
+            {/* Texte — droite */}
+            <motion.div initial={{ opacity: 0, x: 30 }} whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }} transition={{ duration: 0.8, delay: 0.15 }}
+              className="flex flex-col gap-8">
+              <div>
+                <p className="text-fuchsia-400 text-sm font-semibold uppercase tracking-widest mb-4">Ce que les autres ne font pas</p>
+                <h3 className="text-3xl md:text-4xl font-black text-white leading-tight mb-4">
+                  Ici, on ne vous donne pas accès à des profils.
+                  <br />
+                  <span className="bg-gradient-to-r from-purple-400 to-fuchsia-400 bg-clip-text text-transparent">On vous présente votre compatibilité.</span>
+                </h3>
+                <p className="text-white/50 text-base leading-relaxed">
+                  Pas de scroll infini. Pas de déception répétée. Nos psychologues analysent, notre IA valide, et vous recevez uniquement des profils prouvés à +85% compatibles avec vous.
+                </p>
+              </div>
+              <div className="flex flex-col gap-4">
+                {[
+                  { icon: '🧠', titre: 'Analyse sur 7 dimensions', texte: 'Valeurs, foi, caractère, vision du couple, style de vie, projet familial, communication.' },
+                  { icon: '🩺', titre: 'Validé par un psychologue', texte: 'Chaque compatibilité est confirmée par un clinicien avant de vous être envoyée.' },
+                  { icon: '🔒', titre: 'Cadre islamique garanti', texte: 'Zéro contact direct. Chat supervisé. Mouqabala encadrée. Votre honneur est protégé.' },
+                ].map((item, i) => (
+                  <div key={i} className="flex gap-4 items-start">
+                    <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-purple-600/30 to-fuchsia-600/20 border border-purple-500/20 flex items-center justify-center text-lg flex-shrink-0">
+                      {item.icon}
+                    </div>
+                    <div>
+                      <p className="text-white font-bold text-sm mb-1">{item.titre}</p>
+                      <p className="text-white/40 text-sm leading-relaxed">{item.texte}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <Link href="/inscription"
+                className="inline-flex items-center gap-2 bg-gradient-to-r from-purple-600 to-fuchsia-600 text-white px-8 py-4 rounded-full font-black text-base hover:scale-105 transition-all shadow-lg shadow-fuchsia-500/20 w-fit">
+                Commencer gratuitement
+                <ArrowRight size={16} />
+              </Link>
             </motion.div>
           </div>
         </div>
