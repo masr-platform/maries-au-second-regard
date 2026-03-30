@@ -614,9 +614,7 @@ export default function HomePage() {
             viewport={{ once: true }} className="text-center mb-16">
             <p className="text-purple-400 text-sm font-semibold uppercase tracking-widest mb-3">Comparaison</p>
             <h2 className="text-3xl md:text-5xl font-black text-white mb-4">
-              Pourquoi pas Muzz.
-              <br />
-              <span className="text-purple-400">Ni les autres.</span>
+              Pourquoi pas les autres.
             </h2>
             <p className="text-white/45 max-w-xl mx-auto">
               Sur les autres plateformes, vous cherchez seul(e) dans une masse. Ici, nous cherchons pour vous avec la rigueur de la science et la bienveillance de la foi islamique.
@@ -626,7 +624,7 @@ export default function HomePage() {
           <div className="overflow-hidden rounded-3xl border border-purple-500/20">
             <div className="grid grid-cols-3 bg-gradient-to-r from-purple-950/40 via-fuchsia-950/20 to-purple-950/40 px-6 py-4 text-xs font-bold uppercase tracking-wider border-b border-purple-500/20">
               <div className="text-white/40">Critère</div>
-              <div className="text-center text-white/30">Autres (Muzz, etc.)</div>
+              <div className="text-center text-white/30">Les autres</div>
               <div className="text-center text-fuchsia-300">Mariés au Second Regard</div>
             </div>
             {[
