@@ -6,31 +6,40 @@ import { Toaster } from 'react-hot-toast'
 import AuthProvider from '@/components/auth/AuthProvider'
 
 export const metadata: Metadata = {
-  title: 'Mariés au Second Regard — Rencontre islamique sérieuse',
+  title: 'Mariés au Second Regard — Mariage islamique sérieux en France',
   description:
-    'La première plateforme de mariage islamique intelligente. Matching par intelligence artificielle, ' +
-    'rencontre encadrée selon les préceptes de l\'Islam, accompagnement par des psychologues et imams.',
+    'La première plateforme de mariage islamique intelligente. Matching par IA, ' +
+    'validé par des psychologues cliniciens, encadré selon les préceptes de l\'Islam.',
   keywords: [
     'mariage islamique', 'rencontre halal', 'mariage musulman', 'nikah',
     'site de rencontre halal', 'marriage islam', 'wali', 'mouquabala',
   ],
   authors: [{ name: 'Mariés au Second Regard' }],
+  icons: {
+    icon: [
+      { url: '/favicon.ico', sizes: '32x32' },
+      { url: '/favicon-32.png', sizes: '32x32', type: 'image/png' },
+      { url: '/favicon-192.png', sizes: '192x192', type: 'image/png' },
+      { url: '/favicon-512.png', sizes: '512x512', type: 'image/png' },
+    ],
+    apple: [{ url: '/favicon-192.png' }],
+    shortcut: '/favicon.ico',
+  },
   openGraph: {
     title: 'Mariés au Second Regard',
-    description: 'La rencontre qui commence par le fond.',
+    description: 'Mariage islamique sérieux — IA + psychologues cliniciens musulmans.',
     type: 'website',
     locale: 'fr_FR',
-    url: 'https://mariesausecondregard.fr',
+    url: 'https://mariesausecondregard.com',
     siteName: 'Mariés au Second Regard',
-    images: [{ url: '/og-image.jpg', width: 1200, height: 630, alt: 'Mariés au Second Regard' }],
+    images: [{ url: '/logo.png', width: 512, height: 512, alt: 'Mariés au Second Regard' }],
   },
   twitter: {
     card: 'summary_large_image',
     title: 'Mariés au Second Regard',
-    description: 'La rencontre qui commence par le fond.',
+    description: 'Mariage islamique sérieux — IA + psychologues cliniciens musulmans.',
   },
   robots: { index: true, follow: true },
-  themeColor: '#0a0a0a',
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
