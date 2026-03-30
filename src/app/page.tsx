@@ -54,7 +54,7 @@ function AnimatedImage({ src, alt, caption, delay = 0 }: { src: string; alt: str
 function FAQItem({ q, a }: { q: string; a: string }) {
   const [open, setOpen] = useState(false)
   return (
-    <div className="border border-white/10 rounded-2xl overflow-hidden bg-white/5">
+    <div className="border border-purple-500/15 rounded-2xl overflow-hidden bg-gradient-to-r from-purple-950/20 to-fuchsia-950/10 hover:border-purple-500/30 transition-colors">
       <button onClick={() => setOpen(!open)} className="w-full flex justify-between items-center p-5 text-left">
         <span className="text-white font-medium pr-4">{q}</span>
         <ChevronDown size={18} className={`text-purple-400 flex-shrink-0 transition-transform duration-300 ${open ? 'rotate-180' : ''}`} />
@@ -99,9 +99,15 @@ const IMAGES = [
 export default function HomePage() {
   return (
     <main className="min-h-screen bg-[#060412] text-white overflow-hidden">
+      {/* Fond coloré global — dégradés ambiants fixes */}
+      <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
+        <div className="absolute top-0 left-0 w-[800px] h-[800px] bg-purple-700/8 rounded-full blur-[160px]" />
+        <div className="absolute top-1/2 right-0 w-[600px] h-[600px] bg-fuchsia-600/8 rounded-full blur-[140px]" />
+        <div className="absolute bottom-0 left-1/3 w-[500px] h-[500px] bg-violet-500/6 rounded-full blur-[120px]" />
+      </div>
 
       {/* ── NAVIGATION ─────────────────────────────────────────── */}
-      <nav className="fixed top-0 left-0 right-0 z-50 border-b border-white/5 bg-[#060412]/90 backdrop-blur-xl">
+      <nav className="fixed top-0 left-0 right-0 z-50 border-b border-purple-500/10 bg-[#060412]/90 backdrop-blur-xl">
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
           <Link href="/" className="text-xl font-bold text-white tracking-tight">
             Mariés <span className="text-purple-400">au Second Regard</span>
@@ -220,7 +226,7 @@ export default function HomePage() {
       {/* ═══════════════════════════════════════════════════════════
           BARRE DE PREUVE — Crédibilité immédiate
       ═══════════════════════════════════════════════════════════ */}
-      <section className="py-14 border-y border-white/5 bg-white/[0.02]">
+      <section className="py-14 border-y border-purple-500/20 bg-gradient-to-r from-purple-950/30 via-fuchsia-950/20 to-purple-950/30 relative z-10">
         <div className="max-w-5xl mx-auto px-6 grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
           {[
             { val: 2847, suffix: '+', label: 'Membres actifs', sub: 'profils vérifiés manuellement' },
@@ -243,14 +249,18 @@ export default function HomePage() {
       {/* ═══════════════════════════════════════════════════════════
           DÉCLARATION DE POSITIONNEMENT — L'identité de la marque
       ═══════════════════════════════════════════════════════════ */}
-      <section className="py-28 px-6">
-        <div className="max-w-4xl mx-auto text-center">
+      <section className="py-28 px-6 relative overflow-hidden">
+        {/* Glow derrière la citation */}
+        <div className="absolute inset-0 pointer-events-none">
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[300px] bg-fuchsia-700/6 rounded-full blur-[120px]" />
+        </div>
+        <div className="max-w-4xl mx-auto text-center relative z-10">
           <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
             <p className="text-purple-400/60 text-sm font-semibold uppercase tracking-widest mb-8">Notre engagement</p>
             <blockquote className="text-3xl md:text-4xl lg:text-5xl font-black text-white leading-tight mb-10">
               "Le mariage est une décision sacrée.
               <br />
-              <span className="text-purple-400">Elle mérite mieux qu'un algorithme.</span>
+              <span className="bg-gradient-to-r from-fuchsia-400 to-pink-400 bg-clip-text text-transparent">Elle mérite mieux qu'un algorithme.</span>
               <br />
               Elle mérite la science et la foi."
             </blockquote>
@@ -353,8 +363,11 @@ export default function HomePage() {
       {/* ═══════════════════════════════════════════════════════════
           L'IA — Au cœur de l'expérience
       ═══════════════════════════════════════════════════════════ */}
-      <section className="py-28 px-6 bg-gradient-to-b from-purple-950/10 to-transparent">
-        <div className="max-w-5xl mx-auto">
+      <section className="py-28 px-6 bg-gradient-to-b from-purple-950/15 via-fuchsia-950/8 to-transparent relative">
+        <div className="absolute inset-0 pointer-events-none overflow-hidden">
+          <div className="absolute bottom-0 right-1/4 w-[400px] h-[300px] bg-violet-600/6 rounded-full blur-[100px]" />
+        </div>
+        <div className="max-w-5xl mx-auto relative z-10">
           <div className="grid md:grid-cols-2 gap-16 items-center">
             <motion.div initial={{ opacity: 0, x: -30 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }}>
               <p className="text-purple-400 text-sm font-semibold uppercase tracking-widest mb-4">Notre technologie</p>
@@ -390,32 +403,32 @@ export default function HomePage() {
             {/* Visualisation IA */}
             <motion.div initial={{ opacity: 0, x: 30 }} whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }} transition={{ delay: 0.2 }}
-              className="bg-white/4 border border-white/10 rounded-3xl p-8">
-              <p className="text-purple-300 text-xs font-bold uppercase tracking-widest mb-6">Analyse en cours — profil anonymisé</p>
+              className="bg-gradient-to-br from-purple-950/40 to-fuchsia-950/30 border border-purple-500/20 rounded-3xl p-8 shadow-xl shadow-purple-900/20">
+              <p className="text-fuchsia-300 text-xs font-bold uppercase tracking-widest mb-6">Analyse en cours — profil anonymisé</p>
               {[
-                { label: 'Compatibilité spirituelle', score: 94 },
-                { label: 'Projet de vie commun', score: 91 },
-                { label: 'Communication & valeurs', score: 88 },
-                { label: 'Vision familiale', score: 87 },
-                { label: 'Attachement émotionnel', score: 85 },
+                { label: 'Compatibilité spirituelle', score: 94, bar: 'from-purple-500 to-violet-400' },
+                { label: 'Projet de vie commun', score: 91, bar: 'from-fuchsia-500 to-pink-400' },
+                { label: 'Communication & valeurs', score: 88, bar: 'from-purple-500 to-fuchsia-400' },
+                { label: 'Vision familiale', score: 87, bar: 'from-violet-500 to-purple-400' },
+                { label: 'Attachement émotionnel', score: 85, bar: 'from-fuchsia-600 to-pink-400' },
               ].map((dim, i) => (
                 <div key={i} className="mb-4">
                   <div className="flex justify-between text-xs text-white/60 mb-1.5">
                     <span>{dim.label}</span>
-                    <span className="text-purple-400 font-bold">{dim.score}%</span>
+                    <span className="text-fuchsia-300 font-bold">{dim.score}%</span>
                   </div>
                   <div className="h-1.5 bg-white/8 rounded-full overflow-hidden">
                     <motion.div initial={{ width: 0 }} whileInView={{ width: `${dim.score}%` }}
                       viewport={{ once: true }} transition={{ duration: 1, delay: i * 0.1 + 0.3, ease: 'easeOut' }}
-                      className="h-full bg-gradient-to-r from-purple-600 to-violet-400 rounded-full" />
+                      className={`h-full bg-gradient-to-r ${dim.bar} rounded-full`} />
                   </div>
                 </div>
               ))}
-              <div className="mt-6 pt-5 border-t border-white/8 flex items-center justify-between">
+              <div className="mt-6 pt-5 border-t border-purple-500/15 flex items-center justify-between">
                 <span className="text-white/40 text-xs">Score global validé</span>
-                <span className="text-2xl font-black text-purple-400">89%</span>
+                <span className="text-2xl font-black bg-gradient-to-r from-purple-400 to-fuchsia-400 bg-clip-text text-transparent">89%</span>
               </div>
-              <p className="text-white/30 text-xs mt-2">✓ Validé par Dr. Salma R. — Psychologue clinicienne</p>
+              <p className="text-fuchsia-400/40 text-xs mt-2">✓ Validé par Dr. Salma R. — Psychologue clinicienne</p>
             </motion.div>
           </div>
         </div>
@@ -424,15 +437,18 @@ export default function HomePage() {
       {/* ═══════════════════════════════════════════════════════════
           PSYCHOLOGUES — Autorité et crédibilité
       ═══════════════════════════════════════════════════════════ */}
-      <section className="py-28 px-6">
-        <div className="max-w-6xl mx-auto">
+      <section className="py-28 px-6 bg-gradient-to-b from-fuchsia-950/10 via-purple-950/15 to-transparent relative">
+        <div className="absolute inset-0 pointer-events-none overflow-hidden">
+          <div className="absolute top-1/2 left-0 w-[500px] h-[400px] bg-purple-700/5 rounded-full blur-[130px]" />
+        </div>
+        <div className="max-w-6xl mx-auto relative z-10">
           <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }} className="text-center mb-16">
-            <p className="text-purple-400 text-sm font-semibold uppercase tracking-widest mb-3">L'équipe derrière chaque compatibilité</p>
+            <p className="text-fuchsia-400 text-sm font-semibold uppercase tracking-widest mb-3">L'équipe derrière chaque compatibilité</p>
             <h2 className="text-3xl md:text-5xl font-black text-white mb-5">
               5 psychologues cliniciens musulmans.
               <br />
-              <span className="text-purple-400">Pas des bots. Des humains.</span>
+              <span className="bg-gradient-to-r from-purple-400 to-fuchsia-400 bg-clip-text text-transparent">Pas des bots. Des humains.</span>
             </h2>
             <p className="text-white/45 max-w-2xl mx-auto text-base leading-relaxed">
               Ils ont conçu notre questionnaire, calibré notre algorithme et valident chaque compatibilité.
@@ -443,16 +459,22 @@ export default function HomePage() {
           </motion.div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-10">
-            {psychologues.map((p, i) => (
+            {[
+              { ...psychologues[0], grad: 'from-purple-600 to-violet-700', border: 'hover:border-purple-500/40', badge: 'bg-purple-500/15 text-purple-300' },
+              { ...psychologues[1], grad: 'from-fuchsia-600 to-pink-700', border: 'hover:border-fuchsia-500/40', badge: 'bg-fuchsia-500/15 text-fuchsia-300' },
+              { ...psychologues[2], grad: 'from-violet-600 to-purple-700', border: 'hover:border-violet-500/40', badge: 'bg-violet-500/15 text-violet-300' },
+              { ...psychologues[3], grad: 'from-blue-600 to-indigo-700', border: 'hover:border-blue-500/40', badge: 'bg-blue-500/15 text-blue-300' },
+              { ...psychologues[4], grad: 'from-pink-600 to-rose-700', border: 'hover:border-pink-500/40', badge: 'bg-pink-500/15 text-pink-300' },
+            ].map((p, i) => (
               <motion.div key={i} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }} transition={{ delay: i * 0.1 }}
-                className="bg-white/4 border border-white/8 rounded-2xl p-5 text-center hover:border-purple-500/30 hover:bg-white/7 transition-all">
-                <div className="w-14 h-14 bg-gradient-to-br from-purple-600 to-violet-700 rounded-full flex items-center justify-center text-white font-black text-xl mx-auto mb-3">
+                className={`bg-white/4 border border-white/8 rounded-2xl p-5 text-center ${p.border} hover:bg-white/7 transition-all`}>
+                <div className={`w-14 h-14 bg-gradient-to-br ${p.grad} rounded-full flex items-center justify-center text-white font-black text-xl mx-auto mb-3 shadow-lg`}>
                   {p.initial}
                 </div>
                 <p className="text-white font-semibold text-sm mb-1">{p.nom}</p>
                 <p className="text-white/45 text-xs mb-3 leading-snug">{p.spec}</p>
-                <span className="text-xs bg-purple-500/15 text-purple-300 px-2.5 py-1 rounded-full">{p.annees} d'expérience</span>
+                <span className={`text-xs ${p.badge} px-2.5 py-1 rounded-full`}>{p.annees} d'expérience</span>
               </motion.div>
             ))}
           </div>
@@ -484,6 +506,7 @@ export default function HomePage() {
                 desc: 'Vous créez votre profil gratuitement en 2 minutes, puis répondez à 40 questions profondes conçues par nos psychologues cliniciens. Valeurs islamiques, projet de vie, caractère, vision du couple. Ce questionnaire est le cœur de tout — il permet à notre IA de vous connaître vraiment.',
                 tag: 'Gratuit',
                 tagColor: 'text-green-400 bg-green-500/15',
+                borderLeft: 'border-l-4 border-l-green-500/60',
               },
               {
                 num: '02',
@@ -492,6 +515,7 @@ export default function HomePage() {
                 desc: 'Notre algorithme analyse 7 dimensions de compatibilité et croise des centaines de profils. Un psychologue clinicien examine ensuite chaque résultat. Seules les compatibilités à +85% sont retenues. Les autres sont rejetées automatiquement. Vous ne voyez jamais un profil en dessous de ce seuil.',
                 tag: 'Science + humain',
                 tagColor: 'text-purple-300 bg-purple-500/15',
+                borderLeft: 'border-l-4 border-l-purple-500/60',
               },
               {
                 num: '03',
@@ -500,6 +524,7 @@ export default function HomePage() {
                 desc: 'Vous recevez le score détaillé, l\'analyse complète et la photo du profil. Les valeurs, la foi, le projet de vie — et l\'attirance physique. Les deux comptent. Si la compatibilité vous correspond et que la personne vous plaît, vous acceptez. L\'autre membre fait de même de son côté.',
                 tag: 'Score + photo',
                 tagColor: 'text-fuchsia-300 bg-fuchsia-500/15',
+                borderLeft: 'border-l-4 border-l-fuchsia-500/60',
               },
               {
                 num: '04',
@@ -508,6 +533,7 @@ export default function HomePage() {
                 desc: 'Si les deux parties acceptent après avoir vu le profil complet, un chat supervisé s\'ouvre. Les échanges sont encadrés et bienveillants. Aucun numéro, aucun réseau social. L\'objectif est simple : vérifier qu\'il y a une vraie alchimie par les mots, avant d\'aller plus loin.',
                 tag: '100% supervisé',
                 tagColor: 'text-blue-300 bg-blue-500/15',
+                borderLeft: 'border-l-4 border-l-blue-500/60',
               },
               {
                 num: '05',
@@ -516,11 +542,12 @@ export default function HomePage() {
                 desc: 'Si le chat confirme une compatibilité réelle, une mouqabala (entretien virtuel) est organisée sur notre plateforme. Elle peut se faire avec ou sans la famille, selon les préférences. C\'est l\'étape finale avant de décider d\'aller vers le mariage. Tout reste dans un cadre islamique respectueux.',
                 tag: 'Cadre islamique',
                 tagColor: 'text-amber-300 bg-amber-500/15',
+                borderLeft: 'border-l-4 border-l-amber-500/60',
               },
             ].map((step, i) => (
               <motion.div key={i} initial={{ opacity: 0, x: -20 }} whileInView={{ opacity: 1, x: 0 }}
                 viewport={{ once: true }} transition={{ delay: i * 0.1 }}
-                className="flex gap-5 bg-white/4 border border-white/8 rounded-2xl p-6 hover:border-purple-500/20 hover:bg-white/6 transition-all">
+                className={`flex gap-5 bg-white/4 border border-white/8 ${step.borderLeft} rounded-2xl p-6 hover:bg-white/6 transition-all`}>
                 <div className="flex-shrink-0 font-black text-2xl text-white/15 w-10 pt-1">{step.num}</div>
                 <div className="flex-1">
                   <div className="flex items-center gap-3 flex-wrap mb-2">
@@ -542,7 +569,7 @@ export default function HomePage() {
       {/* ═══════════════════════════════════════════════════════════
           DIFFÉRENCIATION — Vs concurrents
       ═══════════════════════════════════════════════════════════ */}
-      <section className="py-28 px-6">
+      <section className="py-28 px-6 bg-gradient-to-b from-transparent via-purple-950/10 to-transparent">
         <div className="max-w-5xl mx-auto">
           <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }} className="text-center mb-16">
@@ -557,11 +584,11 @@ export default function HomePage() {
             </p>
           </motion.div>
 
-          <div className="overflow-hidden rounded-3xl border border-white/8">
-            <div className="grid grid-cols-3 bg-white/5 px-6 py-4 text-xs font-bold uppercase tracking-wider">
-              <div className="text-white/30">Critère</div>
+          <div className="overflow-hidden rounded-3xl border border-purple-500/20">
+            <div className="grid grid-cols-3 bg-gradient-to-r from-purple-950/40 via-fuchsia-950/20 to-purple-950/40 px-6 py-4 text-xs font-bold uppercase tracking-wider border-b border-purple-500/20">
+              <div className="text-white/40">Critère</div>
               <div className="text-center text-white/30">Autres (Muzz, etc.)</div>
-              <div className="text-center text-purple-400">Mariés au Second Regard</div>
+              <div className="text-center text-fuchsia-300">Mariés au Second Regard</div>
             </div>
             {[
               ['Psychologues cliniciens', '✗ Aucun', '✓ 5 spécialistes'],
@@ -573,10 +600,10 @@ export default function HomePage() {
               ['Valeurs avant apparence', '✗ Photo en premier', '✓ Score en premier'],
               ['Objectif clair', '✗ Rencontres', '✓ Mariage uniquement'],
             ].map(([crit, eux, nous], i) => (
-              <div key={i} className={`grid grid-cols-3 px-6 py-4 text-sm border-t border-white/5 ${i % 2 === 0 ? 'bg-white/[0.015]' : ''}`}>
+              <div key={i} className={`grid grid-cols-3 px-6 py-4 text-sm border-t border-white/5 ${i % 2 === 0 ? 'bg-purple-950/10' : 'bg-white/[0.01]'}`}>
                 <div className="text-white/60 font-medium">{crit}</div>
-                <div className="text-center text-red-400/60 text-sm">{eux}</div>
-                <div className="text-center text-purple-400 font-semibold text-sm">{nous}</div>
+                <div className="text-center text-red-400/50 text-sm">{eux}</div>
+                <div className="text-center text-fuchsia-300 font-semibold text-sm">{nous}</div>
               </div>
             ))}
           </div>
@@ -603,6 +630,11 @@ export default function HomePage() {
                 ville: 'Lyon',
                 score: '89%',
                 detail: 'Mariée depuis 6 mois',
+                topGrad: 'from-purple-600/30 to-transparent',
+                starColor: 'fill-purple-400 text-purple-400',
+                avatarGrad: 'from-purple-600 to-violet-700',
+                scoreColor: 'bg-purple-500/15 text-purple-300',
+                border: 'border-purple-500/20',
               },
               {
                 texte: "Savoir qu'un psychologue clinicien a validé notre compatibilité avant même qu'on se parle — ça change tout. Pas de doute, pas d'hésitation. Une base solide avant le premier mot. Je n'aurais pas trouvé ailleurs.",
@@ -610,6 +642,11 @@ export default function HomePage() {
                 ville: 'Paris',
                 score: '91%',
                 detail: 'Marié depuis 4 mois',
+                topGrad: 'from-fuchsia-600/30 to-transparent',
+                starColor: 'fill-fuchsia-400 text-fuchsia-400',
+                avatarGrad: 'from-fuchsia-600 to-pink-700',
+                scoreColor: 'bg-fuchsia-500/15 text-fuchsia-300',
+                border: 'border-fuchsia-500/20',
               },
               {
                 texte: "Mon score était 92%. Et c'est exactement ce que je vis au quotidien. Aucune surprise, aucune déception. Juste quelqu'un qui me correspond dans la foi, le caractère et les valeurs. Exactement ce que j'avais demandé à Allah.",
@@ -617,18 +654,25 @@ export default function HomePage() {
                 ville: 'Marseille',
                 score: '92%',
                 detail: 'Mariée depuis 8 mois',
+                topGrad: 'from-pink-600/30 to-transparent',
+                starColor: 'fill-pink-400 text-pink-400',
+                avatarGrad: 'from-pink-600 to-rose-700',
+                scoreColor: 'bg-pink-500/15 text-pink-300',
+                border: 'border-pink-500/20',
               },
             ].map((t, i) => (
               <motion.div key={i} initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }} transition={{ delay: i * 0.15 }}
-                className="bg-white/4 border border-white/8 rounded-3xl p-7 hover:border-purple-500/20 transition-all flex flex-col">
+                className={`relative bg-white/4 border ${t.border} rounded-3xl p-7 hover:bg-white/6 transition-all flex flex-col overflow-hidden`}>
+                {/* Top gradient strip */}
+                <div className={`absolute top-0 left-0 right-0 h-1 bg-gradient-to-r ${t.topGrad}`} />
                 <div className="flex gap-0.5 mb-5">
-                  {[...Array(5)].map((_, j) => <Star key={j} size={13} className="fill-purple-400 text-purple-400" />)}
+                  {[...Array(5)].map((_, j) => <Star key={j} size={13} className={t.starColor} />)}
                 </div>
                 <p className="text-white/70 text-sm leading-relaxed mb-6 italic flex-1">"{t.texte}"</p>
                 <div className="flex items-center justify-between pt-4 border-t border-white/8">
                   <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 bg-purple-600/25 rounded-full flex items-center justify-center text-purple-300 font-bold text-sm">
+                    <div className={`w-9 h-9 bg-gradient-to-br ${t.avatarGrad} rounded-full flex items-center justify-center text-white font-bold text-sm`}>
                       {t.nom[0]}
                     </div>
                     <div>
@@ -636,7 +680,7 @@ export default function HomePage() {
                       <p className="text-white/30 text-xs">{t.detail}</p>
                     </div>
                   </div>
-                  <span className="text-xs bg-purple-500/15 text-purple-300 px-3 py-1.5 rounded-full font-black">{t.score}</span>
+                  <span className={`text-xs ${t.scoreColor} px-3 py-1.5 rounded-full font-black`}>{t.score}</span>
                 </div>
               </motion.div>
             ))}
@@ -647,7 +691,7 @@ export default function HomePage() {
       {/* ═══════════════════════════════════════════════════════════
           TARIFS — Investment framing
       ═══════════════════════════════════════════════════════════ */}
-      <section id="tarifs" className="py-28 px-6">
+      <section id="tarifs" className="py-28 px-6 bg-gradient-to-b from-fuchsia-950/10 via-purple-950/15 to-transparent">
         <div className="max-w-5xl mx-auto">
           <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }} className="text-center mb-5">
@@ -700,9 +744,12 @@ export default function HomePage() {
             ].map((plan, i) => (
               <motion.div key={i} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }} transition={{ delay: i * 0.1 }}
-                className={`relative rounded-3xl p-7 flex flex-col ${plan.popular
-                  ? 'bg-gradient-to-b from-purple-600/20 to-purple-900/20 border-2 border-purple-500 shadow-2xl shadow-purple-500/10'
-                  : 'bg-white/4 border border-white/8'
+                className={`relative rounded-3xl p-7 flex flex-col ${
+                  plan.popular
+                    ? 'bg-gradient-to-b from-purple-600/25 to-fuchsia-900/20 border-2 border-purple-500 shadow-2xl shadow-purple-500/15'
+                    : i === 0
+                      ? 'bg-gradient-to-b from-blue-950/30 to-indigo-950/20 border border-blue-500/20'
+                      : 'bg-gradient-to-b from-amber-950/20 to-orange-950/15 border border-amber-500/20'
                 }`}>
                 {plan.popular && (
                   <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-purple-600 text-white text-xs font-bold px-4 py-1.5 rounded-full whitespace-nowrap">
@@ -741,7 +788,7 @@ export default function HomePage() {
       {/* ═══════════════════════════════════════════════════════════
           FAQ
       ═══════════════════════════════════════════════════════════ */}
-      <section className="py-24 px-6">
+      <section className="py-24 px-6 bg-gradient-to-b from-transparent via-violet-950/8 to-transparent">
         <div className="max-w-3xl mx-auto">
           <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }} className="text-center mb-12">
@@ -789,8 +836,10 @@ export default function HomePage() {
       ═══════════════════════════════════════════════════════════ */}
       <section className="py-36 px-6 relative overflow-hidden">
         <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute inset-0 bg-gradient-to-b from-purple-950/20 via-purple-900/15 to-purple-950/20" />
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[400px] bg-purple-600/8 rounded-full blur-[100px]" />
+          <div className="absolute inset-0 bg-gradient-to-b from-purple-950/25 via-fuchsia-950/20 to-purple-950/25" />
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[900px] h-[500px] bg-gradient-to-r from-purple-600/10 via-fuchsia-600/10 to-pink-600/10 rounded-full blur-[100px]" />
+          <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-purple-500/30 to-transparent" />
+          <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-fuchsia-500/20 to-transparent" />
         </div>
 
         <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }}
@@ -824,9 +873,9 @@ export default function HomePage() {
       </section>
 
       {/* ── FOOTER ─────────────────────────────────────────────── */}
-      <footer className="border-t border-white/5 py-10 px-6">
+      <footer className="border-t border-purple-500/15 py-10 px-6 bg-gradient-to-r from-purple-950/20 via-fuchsia-950/10 to-purple-950/20">
         <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
-          <p className="text-white/30 text-sm font-bold">Mariés au Second Regard</p>
+          <p className="text-purple-300/60 text-sm font-bold">Mariés au Second Regard</p>
           <div className="flex items-center gap-6 text-sm text-white/25">
             <Link href="/mentions-legales" className="hover:text-white/50 transition-colors">Mentions légales</Link>
             <Link href="/confidentialite" className="hover:text-white/50 transition-colors">Confidentialité</Link>
