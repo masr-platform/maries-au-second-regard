@@ -500,9 +500,9 @@ export default function HomePage() {
               {
                 num: '03',
                 emoji: '💜',
-                titre: 'Vous recevez votre compatibilité — sans photo d\'abord',
-                desc: 'Vous recevez le score détaillé et l\'analyse de compatibilité. La photo n\'est pas encore visible. Pourquoi ? Parce que nous voulons que vous jugiez d\'abord sur ce qui compte : les valeurs, la foi, le projet de vie. Si vous acceptez cette compatibilité, la photo est débloquée.',
-                tag: 'Valeurs avant apparence',
+                titre: 'Vous recevez votre compatibilité — score ET photo',
+                desc: 'Vous recevez le score détaillé, l\'analyse complète et la photo du profil. Les valeurs, la foi, le projet de vie — et l\'attirance physique. Les deux comptent. Si la compatibilité vous correspond et que la personne vous plaît, vous acceptez. L\'autre membre fait de même de son côté.',
+                tag: 'Score + photo',
                 tagColor: 'text-fuchsia-300 bg-fuchsia-500/15',
               },
               {
