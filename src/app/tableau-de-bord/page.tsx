@@ -461,6 +461,33 @@ export default function TableauDeBordPage() {
               </div>
             ))}
           </div>
+        ) : session?.user?.plan === 'GRATUIT' ? (
+          /* ── PAYWALL FREEMIUM ── */
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
+            className="text-center py-20 px-6">
+            <div className="max-w-md mx-auto">
+              <div className="w-20 h-20 rounded-3xl bg-gradient-to-br from-purple-500/20 to-violet-700/20 border border-purple-500/30 flex items-center justify-center mx-auto mb-6">
+                <Sparkles size={32} className="text-purple-400" />
+              </div>
+              <h2 className="text-2xl font-serif font-bold text-white mb-3">
+                Votre profil est prêt — vos matchs aussi.
+              </h2>
+              <p className="text-dark-300 text-sm leading-relaxed mb-8">
+                Notre IA a analysé votre questionnaire. Pour découvrir vos profils compatibles,
+                choisissez un abonnement. <strong className="text-white">Inscription et questionnaire gratuits.</strong>
+              </p>
+              <Link href="/abonnement"
+                className="inline-flex items-center gap-2 bg-gradient-to-r from-purple-600 to-violet-600 hover:from-purple-500 hover:to-violet-500 text-white font-bold px-8 py-4 rounded-xl transition-all duration-200 shadow-lg shadow-purple-900/40">
+                <Sparkles size={18} />
+                Voir les abonnements
+                <ChevronRight size={18} />
+              </Link>
+              <div className="mt-6 flex items-center justify-center gap-6 text-xs text-dark-300">
+                <span className="flex items-center gap-1.5"><CheckCircle2 size={13} className="text-green-400" />Sans engagement</span>
+                <span className="flex items-center gap-1.5"><CheckCircle2 size={13} className="text-green-400" />Annulable à tout moment</span>
+              </div>
+            </div>
+          </motion.div>
         ) : resultats.length === 0 ? (
           <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="text-center py-24">
             <div className="w-16 h-16 rounded-full bg-gold-500/10 flex items-center justify-center mx-auto mb-5">

@@ -1,14 +1,14 @@
-/* Build cache bust: v2 */
+/* Build cache bust: v3-violet */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 :root {
-  --gold: #B8960C;
-  --gold-light: #e6b820;
-  --dark: #0a0a0a;
-  --dark-card: #111111;
-  --dark-border: #2c2c2c;
+  --gold: #8b5cf6;
+  --gold-light: #a78bfa;
+  --dark: #060412;
+  --dark-card: #13111f;
+  --dark-border: #2c2c3e;
 }
 
 * { box-sizing: border-box; }
@@ -16,7 +16,7 @@
 html { scroll-behavior: smooth; }
 
 body {
-  background-color: #0a0a0a;
+  background-color: #060412;
   color: #f0f0f0;
   font-family: 'Inter', Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
@@ -24,28 +24,28 @@ body {
 
 /* Scrollbar personnalisée */
 ::-webkit-scrollbar { width: 6px; }
-::-webkit-scrollbar-track { background: #111; }
-::-webkit-scrollbar-thumb { background: #B8960C; border-radius: 3px; }
+::-webkit-scrollbar-track { background: #0d0b17; }
+::-webkit-scrollbar-thumb { background: #7c3aed; border-radius: 3px; }
 
 /* Sélection de texte */
-::selection { background: rgba(184, 150, 12, 0.3); color: #fff; }
+::selection { background: rgba(139, 92, 246, 0.3); color: #fff; }
 
 /* ─── Composants réutilisables ─── */
 @layer components {
   .btn-gold {
-    @apply bg-gold-500 hover:bg-gold-400 text-black font-semibold px-6 py-3 rounded-lg
+    @apply bg-gold-500 hover:bg-gold-400 text-white font-semibold px-6 py-3 rounded-xl
            transition-all duration-200 shadow-gold hover:shadow-gold-lg
            focus:outline-none focus:ring-2 focus:ring-gold-400 focus:ring-offset-2 focus:ring-offset-dark-900
            disabled:opacity-50 disabled:cursor-not-allowed;
   }
 
   .btn-outline-gold {
-    @apply border border-gold-500 text-gold-500 hover:bg-gold-500 hover:text-black font-semibold px-6 py-3 rounded-lg
+    @apply border border-gold-500 text-gold-400 hover:bg-gold-500 hover:text-white font-semibold px-6 py-3 rounded-xl
            transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-gold-400;
   }
 
   .card-dark {
-    @apply bg-dark-700 border border-dark-500 rounded-xl p-6 shadow-lg;
+    @apply bg-dark-700 border border-dark-500 rounded-2xl p-6 shadow-lg;
   }
 
   .card-dark-hover {
@@ -53,9 +53,9 @@ body {
   }
 
   .input-dark {
-    @apply w-full bg-dark-700 border border-dark-500 text-white rounded-lg px-4 py-3
+    @apply w-full bg-dark-700 border border-dark-500 text-white rounded-xl px-4 py-3
            focus:outline-none focus:border-gold-500 focus:ring-1 focus:ring-gold-500
-           placeholder-dark-300 transition-colors duration-200
+           placeholder-dark-400 transition-colors duration-200
            disabled:opacity-50 disabled:cursor-not-allowed;
   }
 
@@ -81,24 +81,41 @@ body {
   }
 }
 
-/* ─── Animations ─── */
+/* ─── Shimmer text violet ─── */
 @keyframes shimmer {
   0% { background-position: -200% center; }
   100% { background-position: 200% center; }
 }
 
 .shimmer-text {
-  background: linear-gradient(90deg, #B8960C 0%, #e6b820 50%, #B8960C 100%);
+  background: linear-gradient(90deg, #7c3aed 0%, #c4b5fd 40%, #a78bfa 60%, #7c3aed 100%);
   background-size: 200% auto;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
+  background-clip: text;
   animation: shimmer 3s linear infinite;
+}
+
+.gradient-text {
+  background: linear-gradient(135deg, #a78bfa 0%, #c4b5fd 50%, #8b5cf6 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 /* ─── Loading skeleton ─── */
 .skeleton {
-  background: linear-gradient(90deg, #1a1a1a 25%, #2c2c2c 50%, #1a1a1a 75%);
+  background: linear-gradient(90deg, #13111f 25%, #1e1b2e 50%, #13111f 75%);
   background-size: 200% 100%;
   animation: shimmer 1.5s infinite;
-  border-radius: 6px;
+  border-radius: 8px;
+}
+
+/* ─── Orb glow ─── */
+.orb {
+  border-radius: 50%;
+  filter: blur(80px);
+  opacity: 0.15;
+  position: absolute;
+  pointer-events: none;
 }
