@@ -6,15 +6,36 @@ import { Toaster } from 'react-hot-toast'
 import AuthProvider from '@/components/auth/AuthProvider'
 
 export const metadata: Metadata = {
-  title: 'Mariés au Second Regard — Mariage islamique sérieux en France',
+  title: 'Mariés au Second Regard — Mariage islamique sérieux en France | Nikah halal',
   description:
-    'La première plateforme de mariage islamique intelligente. Matching par IA, ' +
-    'validé par des psychologues cliniciens, encadré selon les préceptes de l\'Islam.',
+    'Trouvez votre partenaire pour le mariage islamique en France. Compatibilité validée à +85% par IA et 5 psychologues cliniciens musulmans. Inscription gratuite. Nikah halal, chat supervisé, mouqabala encadrée.',
   keywords: [
-    'mariage islamique', 'rencontre halal', 'mariage musulman', 'nikah',
-    'site de rencontre halal', 'marriage islam', 'wali', 'mouquabala',
+    'mariage islamique France',
+    'mariage musulman France',
+    'rencontre halal France',
+    'site mariage halal',
+    'nikah France',
+    'mouquabala',
+    'rencontre musulmane sérieuse',
+    'mariage islamique sérieux',
+    'plateforme mariage halal',
+    'rencontre musulmane France',
+    'site nikah',
+    'mariage selon islam',
+    'célibataire musulman France',
+    'compatibilité islamique',
+    'psychologue mariage musulman',
+    'mariage halal gratuit',
+    'trouver mari musulman',
+    'trouver femme musulmane',
   ],
-  authors: [{ name: 'Mariés au Second Regard' }],
+  authors: [{ name: 'Mariés au Second Regard', url: 'https://mariesausecondregard.com' }],
+  creator: 'Mariés au Second Regard',
+  publisher: 'Mariés au Second Regard',
+  metadataBase: new URL('https://mariesausecondregard.com'),
+  alternates: {
+    canonical: 'https://mariesausecondregard.com',
+  },
   icons: {
     icon: [
       { url: '/favicon.ico', sizes: '32x32' },
@@ -26,20 +47,41 @@ export const metadata: Metadata = {
     shortcut: '/favicon.ico',
   },
   openGraph: {
-    title: 'Mariés au Second Regard',
-    description: 'Mariage islamique sérieux — IA + psychologues cliniciens musulmans.',
+    title: 'Mariés au Second Regard — Mariage islamique sérieux en France',
+    description: 'La première plateforme de mariage islamique avec IA + 5 psychologues cliniciens musulmans. Compatibilité prouvée à +85%. Inscription gratuite.',
     type: 'website',
     locale: 'fr_FR',
     url: 'https://mariesausecondregard.com',
     siteName: 'Mariés au Second Regard',
-    images: [{ url: '/logo.png', width: 512, height: 512, alt: 'Mariés au Second Regard' }],
+    images: [
+      {
+        url: 'https://images.pexels.com/photos/31619527/pexels-photo-31619527.jpeg?auto=compress&cs=tinysrgb&w=1200&q=80',
+        width: 1200,
+        height: 630,
+        alt: 'Mariés au Second Regard — Plateforme de mariage islamique en France',
+      },
+    ],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Mariés au Second Regard',
-    description: 'Mariage islamique sérieux — IA + psychologues cliniciens musulmans.',
+    title: 'Mariés au Second Regard — Mariage islamique sérieux',
+    description: 'Compatibilité validée à +85% par IA et psychologues musulmans. Inscription gratuite.',
+    images: ['https://images.pexels.com/photos/31619527/pexels-photo-31619527.jpeg?auto=compress&cs=tinysrgb&w=1200&q=80'],
   },
-  robots: { index: true, follow: true },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-video-preview': -1,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+    },
+  },
+  verification: {
+    google: 'à-remplir-après-Search-Console',
+  },
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

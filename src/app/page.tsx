@@ -96,9 +96,118 @@ const IMAGES = [
   },
 ]
 
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@graph': [
+    {
+      '@type': 'WebSite',
+      '@id': 'https://mariesausecondregard.com/#website',
+      url: 'https://mariesausecondregard.com',
+      name: 'Mariés au Second Regard',
+      description: 'Plateforme de mariage islamique sérieux en France — IA + psychologues cliniciens musulmans',
+      inLanguage: 'fr-FR',
+      potentialAction: {
+        '@type': 'SearchAction',
+        target: 'https://mariesausecondregard.com/inscription',
+        'query-input': 'required name=search_term_string',
+      },
+    },
+    {
+      '@type': 'Organization',
+      '@id': 'https://mariesausecondregard.com/#organization',
+      name: 'Mariés au Second Regard',
+      url: 'https://mariesausecondregard.com',
+      logo: {
+        '@type': 'ImageObject',
+        url: 'https://mariesausecondregard.com/logo.png',
+      },
+      contactPoint: {
+        '@type': 'ContactPoint',
+        email: 'mariesausecondregard@gmail.com',
+        contactType: 'customer service',
+        availableLanguage: 'French',
+      },
+      sameAs: [],
+    },
+    {
+      '@type': 'Service',
+      '@id': 'https://mariesausecondregard.com/#service',
+      name: 'Mariage islamique sérieux en France',
+      description: 'Service de mise en relation pour le mariage islamique. Compatibilité validée par IA et psychologues cliniciens musulmans. Inscription gratuite. Nikah halal.',
+      provider: { '@id': 'https://mariesausecondregard.com/#organization' },
+      areaServed: { '@type': 'Country', name: 'France' },
+      serviceType: 'Mariage islamique',
+      offers: [
+        {
+          '@type': 'Offer',
+          name: 'Essentiel',
+          price: '19.90',
+          priceCurrency: 'EUR',
+          description: '3 compatibilités par mois, mouqabala virtuelle, chat supervisé',
+        },
+        {
+          '@type': 'Offer',
+          name: 'Premium',
+          price: '29.90',
+          priceCurrency: 'EUR',
+          description: '10 compatibilités par mois, accompagnement psychologue',
+        },
+        {
+          '@type': 'Offer',
+          name: 'Élite',
+          price: '49.90',
+          priceCurrency: 'EUR',
+          description: 'Compatibilités illimitées, coach mariage dédié',
+        },
+      ],
+    },
+    {
+      '@type': 'FAQPage',
+      mainEntity: [
+        {
+          '@type': 'Question',
+          name: "Qu'est-ce que Mariés au Second Regard ?",
+          acceptedAnswer: {
+            '@type': 'Answer',
+            text: "Mariés au Second Regard est une plateforme de mariage islamique sérieux en France. Elle utilise l'IA et 5 psychologues cliniciens musulmans pour valider les compatibilités à +85% avant de les présenter aux membres.",
+          },
+        },
+        {
+          '@type': 'Question',
+          name: "Comment fonctionne le processus de mariage islamique sur la plateforme ?",
+          acceptedAnswer: {
+            '@type': 'Answer',
+            text: "Le processus se déroule en 5 étapes : questionnaire de 40 questions, analyse IA sur 7 dimensions, validation par un psychologue clinicien, chat supervisé si accord des deux parties, puis mouqabala virtuelle encadrée.",
+          },
+        },
+        {
+          '@type': 'Question',
+          name: "L'inscription est-elle gratuite ?",
+          acceptedAnswer: {
+            '@type': 'Answer',
+            text: "Oui, l'inscription et le questionnaire sont entièrement gratuits. Un abonnement est nécessaire uniquement pour recevoir vos compatibilités validées (à partir de 19,90€/mois).",
+          },
+        },
+        {
+          '@type': 'Question',
+          name: "Qu'est-ce qu'une mouqabala ?",
+          acceptedAnswer: {
+            '@type': 'Answer',
+            text: "Une mouqabala est un entretien encadré entre deux personnes envisageant le mariage. Elle se déroule de manière virtuelle sur la plateforme, dans un cadre islamique strict, sans échange de coordonnées personnelles.",
+          },
+        },
+      ],
+    },
+  ],
+}
+
 export default function HomePage() {
   return (
     <main className="min-h-screen bg-[#060412] text-white overflow-hidden">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       {/* Fond coloré global — dégradés ambiants fixes */}
       <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
         <div className="absolute top-0 left-0 w-[800px] h-[800px] bg-purple-700/8 rounded-full blur-[160px]" />
