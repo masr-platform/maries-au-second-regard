@@ -520,6 +520,52 @@ export default function HomePage() {
       </section>
 
       {/* ═══════════════════════════════════════════════════════════
+          PSYCHOLOGUES — Autorité et crédibilité
+      ═══════════════════════════════════════════════════════════ */}
+      <section className="py-28 px-6 bg-gradient-to-b from-fuchsia-950/10 via-purple-950/15 to-transparent relative">
+        <div className="absolute inset-0 pointer-events-none overflow-hidden">
+          <div className="absolute top-1/2 left-0 w-[500px] h-[400px] bg-purple-700/5 rounded-full blur-[130px]" />
+        </div>
+        <div className="max-w-6xl mx-auto relative z-10">
+          <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }} className="text-center mb-16">
+            <p className="text-fuchsia-400 text-sm font-semibold uppercase tracking-widest mb-3">L'équipe derrière chaque compatibilité</p>
+            <h2 className="text-3xl md:text-5xl font-black text-white mb-5">
+              5 psychologues cliniciens musulmans.
+              <br />
+              <span className="bg-gradient-to-r from-purple-400 to-fuchsia-400 bg-clip-text text-transparent">Pas des bots. Des humains.</span>
+            </h2>
+            <p className="text-white/45 max-w-2xl mx-auto text-base leading-relaxed">
+              Ils ont conçu notre questionnaire, calibré notre algorithme et valident chaque compatibilité.
+              Ce sont des <strong className="text-white">professionnels de santé mentale diplômés</strong>,
+              spécialisés dans la psychologie islamique du couple.
+              Leur mission unique : vous présenter uniquement la personne <strong className="text-white">réellement faite pour vous.</strong>
+            </p>
+          </motion.div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-10">
+            {[
+              { ...psychologues[0], grad: 'from-purple-600 to-violet-700', border: 'hover:border-purple-500/40', badge: 'bg-purple-500/15 text-purple-300' },
+              { ...psychologues[1], grad: 'from-fuchsia-600 to-pink-700', border: 'hover:border-fuchsia-500/40', badge: 'bg-fuchsia-500/15 text-fuchsia-300' },
+              { ...psychologues[2], grad: 'from-violet-600 to-purple-700', border: 'hover:border-violet-500/40', badge: 'bg-violet-500/15 text-violet-300' },
+              { ...psychologues[3], grad: 'from-blue-600 to-indigo-700', border: 'hover:border-blue-500/40', badge: 'bg-blue-500/15 text-blue-300' },
+              { ...psychologues[4], grad: 'from-pink-600 to-rose-700', border: 'hover:border-pink-500/40', badge: 'bg-pink-500/15 text-pink-300' },
+            ].map((p, i) => (
+              <motion.div key={i} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }} transition={{ delay: i * 0.1 }}
+                className={`bg-white/4 border border-white/8 rounded-2xl p-5 text-center ${p.border} hover:bg-white/7 transition-all`}>
+                <div className={`w-14 h-14 bg-gradient-to-br ${p.grad} rounded-full flex items-center justify-center text-white font-black text-xl mx-auto mb-3 shadow-lg`}>
+                  {p.initial}
+                </div>
+                <p className="text-white font-semibold text-sm mb-1">{p.nom}</p>
+                <p className="text-white/45 text-xs mb-3 leading-snug">{p.spec}</p>
+                <span className={`text-xs ${p.badge} px-2.5 py-1 rounded-full`}>{p.annees} d'expérience</span>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ═══════════════════════════════════════════════════════════
           DÉCLARATION DE POSITIONNEMENT — L'identité de la marque
       ═══════════════════════════════════════════════════════════ */}
       <section className="py-28 px-6 relative overflow-hidden">
@@ -617,53 +663,6 @@ export default function HomePage() {
               </div>
               <p className="text-fuchsia-400/40 text-xs mt-2">✓ Validé par Dr. Salma R. — Psychologue clinicienne</p>
             </motion.div>
-          </div>
-        </div>
-      </section>
-
-      {/* ═══════════════════════════════════════════════════════════
-          PSYCHOLOGUES — Autorité et crédibilité
-      ═══════════════════════════════════════════════════════════ */}
-      <section className="py-28 px-6 bg-gradient-to-b from-fuchsia-950/10 via-purple-950/15 to-transparent relative">
-        <div className="absolute inset-0 pointer-events-none overflow-hidden">
-          <div className="absolute top-1/2 left-0 w-[500px] h-[400px] bg-purple-700/5 rounded-full blur-[130px]" />
-        </div>
-        <div className="max-w-6xl mx-auto relative z-10">
-          <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }} className="text-center mb-16">
-            <p className="text-fuchsia-400 text-sm font-semibold uppercase tracking-widest mb-3">L'équipe derrière chaque compatibilité</p>
-            <h2 className="text-3xl md:text-5xl font-black text-white mb-5">
-              5 psychologues cliniciens musulmans.
-              <br />
-              <span className="bg-gradient-to-r from-purple-400 to-fuchsia-400 bg-clip-text text-transparent">Pas des bots. Des humains.</span>
-            </h2>
-            <p className="text-white/45 max-w-2xl mx-auto text-base leading-relaxed">
-              Ils ont conçu notre questionnaire, calibré notre algorithme et valident chaque compatibilité.
-              Ce sont des <strong className="text-white">professionnels de santé mentale diplômés</strong>,
-              spécialisés dans la psychologie islamique du couple.
-              Leur mission unique : vous présenter uniquement la personne <strong className="text-white">réellement faite pour vous.</strong>
-            </p>
-          </motion.div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-10">
-            {[
-              { ...psychologues[0], grad: 'from-purple-600 to-violet-700', border: 'hover:border-purple-500/40', badge: 'bg-purple-500/15 text-purple-300' },
-              { ...psychologues[1], grad: 'from-fuchsia-600 to-pink-700', border: 'hover:border-fuchsia-500/40', badge: 'bg-fuchsia-500/15 text-fuchsia-300' },
-              { ...psychologues[2], grad: 'from-violet-600 to-purple-700', border: 'hover:border-violet-500/40', badge: 'bg-violet-500/15 text-violet-300' },
-              { ...psychologues[3], grad: 'from-blue-600 to-indigo-700', border: 'hover:border-blue-500/40', badge: 'bg-blue-500/15 text-blue-300' },
-              { ...psychologues[4], grad: 'from-pink-600 to-rose-700', border: 'hover:border-pink-500/40', badge: 'bg-pink-500/15 text-pink-300' },
-            ].map((p, i) => (
-              <motion.div key={i} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }} transition={{ delay: i * 0.1 }}
-                className={`bg-white/4 border border-white/8 rounded-2xl p-5 text-center ${p.border} hover:bg-white/7 transition-all`}>
-                <div className={`w-14 h-14 bg-gradient-to-br ${p.grad} rounded-full flex items-center justify-center text-white font-black text-xl mx-auto mb-3 shadow-lg`}>
-                  {p.initial}
-                </div>
-                <p className="text-white font-semibold text-sm mb-1">{p.nom}</p>
-                <p className="text-white/45 text-xs mb-3 leading-snug">{p.spec}</p>
-                <span className={`text-xs ${p.badge} px-2.5 py-1 rounded-full`}>{p.annees} d'expérience</span>
-              </motion.div>
-            ))}
           </div>
         </div>
       </section>
