@@ -116,6 +116,14 @@ export default function HomePage() {
               alt="Mariés au Second Regard"
               style={{ width: 70, height: 70, objectFit: 'contain' }}
             />
+            <div className="flex flex-col leading-tight">
+              <span className="text-lg font-black tracking-widest uppercase bg-gradient-to-r from-purple-400 via-fuchsia-300 to-pink-400 bg-clip-text text-transparent">
+                Mariés au Second Regard
+              </span>
+              <span className="text-[10px] tracking-[0.2em] uppercase text-white/40 font-medium">
+                Selon les préceptes de l'Islam
+              </span>
+            </div>
           </Link>
           <div className="flex items-center gap-4">
             <Link href="/connexion" className="text-white/50 hover:text-white text-sm transition-colors hidden md:block">
