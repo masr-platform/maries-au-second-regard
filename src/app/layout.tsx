@@ -80,7 +80,7 @@ export const metadata: Metadata = {
     },
   },
   verification: {
-    google: 'à-remplir-après-Search-Console',
+    google: '',
   },
 }
 
