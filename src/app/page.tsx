@@ -148,12 +148,12 @@ export default function HomePage() {
             src="https://images.pexels.com/photos/31619527/pexels-photo-31619527.jpeg?auto=compress&cs=tinysrgb&w=1920&q=80"
             alt=""
             aria-hidden="true"
-            className="w-full h-full object-cover object-center scale-105"
-            style={{ filter: 'brightness(0.42) saturate(1.0)' }}
+            className="w-full h-full object-cover"
+            style={{ filter: 'brightness(0.55) saturate(1.0)', objectPosition: 'center 20%', transform: 'scale(0.95)' }}
           />
           {/* Dégradé par-dessus pour lisibilité du texte */}
-          <div className="absolute inset-0 bg-gradient-to-b from-[#060412]/50 via-[#060412]/20 to-[#060412]/70" />
-          <div className="absolute inset-0 bg-gradient-to-r from-[#060412]/40 via-transparent to-[#060412]/40" />
+          <div className="absolute inset-0 bg-gradient-to-b from-[#060412]/40 via-[#060412]/10 to-[#060412]/65" />
+          <div className="absolute inset-0 bg-gradient-to-r from-[#060412]/30 via-transparent to-[#060412]/30" />
         </div>
 
         {/* Orbs dramatiques par-dessus la photo */}
