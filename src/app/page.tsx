@@ -165,30 +165,28 @@ export default function HomePage() {
             Il ne manque que vous.
           </motion.p>
 
-          {/* PROCÉDÉ — 4 étapes simples, visuelles, juste sous l'accroche */}
+          {/* PROCÉDÉ — 5 étapes claires avec explications */}
           <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.5 }}
             className="max-w-3xl mx-auto mb-12">
-            <p className="text-white/35 text-xs uppercase tracking-widest font-semibold mb-5">Comment ça fonctionne</p>
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-0">
+            <p className="text-white/35 text-xs uppercase tracking-widest font-semibold mb-6">Comment ça fonctionne</p>
+            <div className="grid grid-cols-5 gap-2">
               {[
-                { num: '1', label: 'Profil gratuit', sub: '2 minutes' },
-                { num: '2', label: 'Questionnaire profond', sub: '40 questions' },
-                { num: '3', label: "L'IA analyse", sub: '7 dimensions' },
-                { num: '4', label: 'Psychologue valide', sub: 'seuil +85%' },
+                { emoji: '📝', label: 'Questionnaire', sub: '40 questions sur vos valeurs, votre foi, votre projet de vie' },
+                { emoji: '🤖', label: "L'IA analyse", sub: 'Compatibilité spirituelle, caractère, style de vie, vision du couple' },
+                { emoji: '🩺', label: 'Psychologue valide', sub: 'Il confirme que le score est réel et que le profil est sérieux' },
+                { emoji: '💬', label: 'Chat supervisé', sub: 'Si les deux acceptent — échanges encadrés sur la plateforme' },
+                { emoji: '🤝', label: 'Mouqabala', sub: 'Entretien virtuel pour confirmer avant le mariage' },
               ].map((step, i) => (
-                <div key={i} className="flex items-center">
-                  <div className="flex flex-col items-center text-center px-4 py-3">
-                    <div className="w-9 h-9 rounded-full bg-gradient-to-br from-purple-600 to-fuchsia-600 flex items-center justify-center text-white text-sm font-black mb-2 shadow-lg shadow-fuchsia-500/20">
-                      {step.num}
-                    </div>
-                    <p className="text-white text-sm font-semibold leading-tight">{step.label}</p>
-                    <p className="text-white/35 text-xs mt-0.5">{step.sub}</p>
+                <div key={i} className="flex flex-col items-center text-center gap-2 relative">
+                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-600 to-fuchsia-600 flex items-center justify-center text-lg shadow-lg shadow-fuchsia-500/20">
+                    {step.emoji}
                   </div>
-                  {i < 3 && <div className="hidden sm:block text-white/15 text-xl px-1">→</div>}
+                  <p className="text-white text-xs font-bold leading-tight">{step.label}</p>
+                  <p className="text-white/35 text-[10px] leading-snug">{step.sub}</p>
+                  {i < 4 && <div className="absolute top-5 left-full w-2 text-white/15 text-xs hidden sm:block">→</div>}
                 </div>
               ))}
             </div>
-            <p className="text-white/25 text-xs mt-4">Vous recevez votre compatibilité validée. Pas une suggestion — une certitude.</p>
           </motion.div>
 
           {/* CTA principal */}
@@ -296,58 +294,56 @@ export default function HomePage() {
       <section className="py-28 px-6">
         <div className="max-w-5xl mx-auto">
           <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }} className="text-center mb-16">
-            <p className="text-purple-400 text-sm font-semibold uppercase tracking-widest mb-3">Ce que nous exigeons</p>
-            <h2 className="text-3xl md:text-5xl font-black text-white mb-5">
-              Nous ne sommes pas
+            viewport={{ once: true }} className="text-center mb-12">
+            <p className="text-purple-400 text-sm font-semibold uppercase tracking-widest mb-3">Ce qu'on est vraiment</p>
+            <h2 className="text-3xl md:text-5xl font-black text-white mb-4">
+              Mariés au Second Regard,
               <br />
-              <span className="text-purple-400">la plateforme de tout le monde.</span>
+              <span className="bg-gradient-to-r from-purple-400 to-fuchsia-400 bg-clip-text text-transparent">c'est quoi ?</span>
             </h2>
-            <p className="text-white/45 max-w-2xl mx-auto text-lg leading-relaxed">
-              Nous avons fait le choix délibéré de refuser les profils non sérieux.
-              Chaque membre est vérifié. Chaque intention est évaluée.
-              Ici, <strong className="text-white">vous n'êtes jamais seul(e) face à l'inconnu.</strong>
-            </p>
           </motion.div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {[
               {
-                icon: <Brain size={24} />,
-                titre: 'Un questionnaire qui va au fond',
-                texte: '40 questions profondes conçues par nos psychologues cliniciens. Valeurs islamiques, projet de vie, caractère, attentes. Pas de superficiel. Chaque réponse construit votre profil de compatibilité réelle.',
-                badge: 'Conçu par 5 cliniciens',
+                emoji: '🧠',
+                titre: 'Une plateforme de mariage islamique sérieux',
+                texte: 'Pas une appli de rencontres. Ici, tout le monde cherche le nikah. Rien d\'autre.',
+                gradient: 'from-purple-600/20 to-violet-800/20',
+                border: 'border-purple-500/30',
+                color: 'text-purple-300',
               },
               {
-                icon: <Shield size={24} />,
-                titre: 'Vérification manuelle de chaque profil',
-                texte: 'Avant d\'apparaître dans les résultats, chaque profil est examiné par notre équipe. Nous rejetons les inscriptions non sérieuses, les profils incomplets et les intentions douteuses. Votre temps est précieux.',
-                badge: 'Zéro profil non vérifié',
+                emoji: '🤖',
+                titre: 'Une IA qui analyse vraiment',
+                texte: 'Elle compare vos valeurs, votre foi, votre caractère, votre vision du couple. Sur 7 critères. Seul un score +85% passe.',
+                gradient: 'from-fuchsia-600/20 to-pink-800/20',
+                border: 'border-fuchsia-500/30',
+                color: 'text-fuchsia-300',
               },
               {
-                icon: <Lock size={24} />,
-                titre: 'Cadre islamique non négociable',
-                texte: 'Zéro échange de coordonnées personnelles. Zéro contact hors plateforme. Chaque échange est supervisé. La pudeur et le respect ne sont pas des options — ce sont des règles fondamentales.',
-                badge: '100% supervisé',
+                emoji: '🩺',
+                titre: '5 psychologues cliniciens musulmans',
+                texte: 'Ils ont conçu les questions, calibré l\'IA, et valident chaque compatibilité avant qu\'elle vous soit envoyée.',
+                gradient: 'from-blue-600/20 to-indigo-800/20',
+                border: 'border-blue-500/30',
+                color: 'text-blue-300',
               },
               {
-                icon: <Users size={24} />,
-                titre: 'Compatibilité avant tout — pas de photo d\'abord',
-                texte: 'Sur notre plateforme, la valeur d\'une personne n\'est pas sa photo. C\'est sa profondeur, ses valeurs, sa foi. Les profils sont présentés par score de compatibilité. L\'apparence suit. Jamais l\'inverse.',
-                badge: 'Valeurs avant apparence',
+                emoji: '🔒',
+                titre: 'Un cadre islamique à chaque étape',
+                texte: 'Chat supervisé, mouqabala encadrée, zéro échange de coordonnées. Votre réputation est protégée.',
+                gradient: 'from-amber-600/15 to-orange-800/15',
+                border: 'border-amber-500/30',
+                color: 'text-amber-300',
               },
             ].map((b, i) => (
               <motion.div key={i} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }} transition={{ delay: i * 0.1 }}
-                className="flex gap-5 bg-white/4 border border-white/8 rounded-2xl p-7 hover:border-purple-500/25 hover:bg-white/6 transition-all group">
-                <div className="w-11 h-11 bg-purple-600/15 rounded-xl flex items-center justify-center text-purple-400 flex-shrink-0 group-hover:bg-purple-600/25 transition-colors">
-                  {b.icon}
-                </div>
-                <div>
-                  <span className="text-xs bg-purple-500/12 text-purple-300 px-2.5 py-1 rounded-full mb-2 inline-block">{b.badge}</span>
-                  <h3 className="text-white font-bold text-base mb-2">{b.titre}</h3>
-                  <p className="text-white/50 text-sm leading-relaxed">{b.texte}</p>
-                </div>
+                className={`bg-gradient-to-br ${b.gradient} border ${b.border} rounded-3xl p-7 hover:scale-[1.02] transition-all`}>
+                <div className="text-4xl mb-4">{b.emoji}</div>
+                <h3 className={`font-black text-lg mb-2 ${b.color}`}>{b.titre}</h3>
+                <p className="text-white/60 text-sm leading-relaxed">{b.texte}</p>
               </motion.div>
             ))}
           </div>
