@@ -137,37 +137,39 @@ export default function HomePage() {
             Pour ceux qui cherchent le mariage. Pas autre chose.
           </motion.div>
 
-          {/* HEADLINE — Identité de marque forte, gravité, filtrage */}
+          {/* HEADLINE — Certitude, destin, promesse tenue */}
           <motion.h1 initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.1 }}
             className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-black leading-[1.0] tracking-tight mb-8">
-            <span className="text-white">Vous n'êtes pas là</span>
+            <span className="text-white">Votre moitié</span>
             <br />
-            <span className="text-white">pour essayer.</span>
+            <span className="text-white">existe déjà.</span>
             <br />
-            <span className="bg-gradient-to-r from-purple-400 via-violet-300 to-purple-500 bg-clip-text text-transparent">
-              Nous non plus.
+            <span className="bg-gradient-to-r from-purple-400 via-fuchsia-300 to-pink-400 bg-clip-text text-transparent">
+              Nous l'avons trouvée.
             </span>
           </motion.h1>
 
           {/* Sous-titre — promesse de certitude, pas de probabilité */}
           <motion.p initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.2 }}
             className="text-lg md:text-xl text-white/60 max-w-2xl mx-auto mb-4 leading-relaxed">
-            Mariés au Second Regard est la seule plateforme de mariage islamique où{' '}
+            La seule plateforme de mariage islamique où{' '}
             <strong className="text-white">5 psychologues cliniciens musulmans</strong> et une IA haute performance
-            valident chaque compatibilité à <strong className="text-purple-400">+85%</strong> avant de vous la présenter.
+            valident chaque compatibilité à <strong className="text-fuchsia-400">+85%</strong> avant de vous la présenter.
+            <br />
+            <span className="text-white/40 text-base">Il ne manque que vous.</span>
           </motion.p>
 
           {/* Phrase de filtrage — le site s'adresse à quelqu'un de précis */}
           <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.35 }}
-            className="text-white/35 text-sm italic mb-10">
-            Si vous êtes là pour flirter ou "voir comment ça se passe" — cette plateforme n'est pas pour vous.
+            className="text-white/30 text-sm italic mb-10">
+            Pour ceux qui cherchent un mariage sérieux — pas autre chose.
           </motion.p>
 
           {/* CTAs */}
           <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.3 }}
             className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-14">
             <Link href="/inscription"
-              className="group bg-gradient-to-r from-purple-600 to-violet-600 hover:from-purple-500 hover:to-violet-500 text-white px-10 py-5 rounded-full text-lg font-black transition-all shadow-2xl shadow-purple-500/30 hover:shadow-purple-500/50 hover:scale-105">
+              className="group bg-gradient-to-r from-purple-600 via-fuchsia-600 to-pink-600 hover:from-purple-500 hover:via-fuchsia-500 hover:to-pink-500 text-white px-10 py-5 rounded-full text-lg font-black transition-all shadow-2xl shadow-fuchsia-500/30 hover:shadow-fuchsia-500/50 hover:scale-105">
               Je veux me marier — commencer
               <ArrowRight size={18} className="inline ml-2 group-hover:translate-x-1 transition-transform" />
             </Link>
@@ -208,7 +210,7 @@ export default function HomePage() {
           ].map((s, i) => (
             <motion.div key={i} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }} transition={{ delay: i * 0.1 }}>
-              <div className="text-3xl md:text-4xl font-black text-white mb-1">
+              <div className="text-3xl md:text-4xl font-black bg-gradient-to-r from-purple-400 via-fuchsia-300 to-pink-400 bg-clip-text text-transparent mb-1">
                 <Counter end={s.val} suffix={s.suffix} />
               </div>
               <div className="text-purple-400 font-semibold text-sm mb-0.5">{s.label}</div>
@@ -252,7 +254,7 @@ export default function HomePage() {
             <h2 className="text-3xl md:text-4xl font-black text-white mb-4">
               Ils ne cherchaient plus.
               <br />
-              <span className="text-purple-400">Nous avions trouvé pour eux.</span>
+              <span className="bg-gradient-to-r from-purple-400 to-fuchsia-400 bg-clip-text text-transparent">Nous avions trouvé pour eux.</span>
             </h2>
             <p className="text-white/40 text-base max-w-lg mx-auto">
               312 couples. Des histoires vraies. Des vies construites sur des bases solides.
@@ -771,7 +773,7 @@ export default function HomePage() {
           <h2 className="text-4xl md:text-6xl font-black text-white mb-6 leading-[1.05]">
             Votre futur(e) conjoint(e)
             <br />
-            <span className="text-purple-400">est déjà là.</span>
+            <span className="bg-gradient-to-r from-purple-400 via-fuchsia-300 to-pink-400 bg-clip-text text-transparent">est déjà là.</span>
           </h2>
 
           <p className="text-white/50 text-lg mb-4 max-w-xl mx-auto leading-relaxed">
@@ -784,7 +786,7 @@ export default function HomePage() {
           </p>
 
           <Link href="/inscription"
-            className="inline-flex items-center gap-3 bg-gradient-to-r from-purple-600 to-violet-600 hover:from-purple-500 hover:to-violet-500 text-white px-12 py-6 rounded-full text-xl font-black transition-all shadow-2xl shadow-purple-500/30 hover:shadow-purple-500/50 hover:scale-105">
+            className="inline-flex items-center gap-3 bg-gradient-to-r from-purple-600 via-fuchsia-600 to-pink-600 hover:from-purple-500 hover:via-fuchsia-500 hover:to-pink-500 text-white px-12 py-6 rounded-full text-xl font-black transition-all shadow-2xl shadow-fuchsia-500/30 hover:shadow-fuchsia-500/50 hover:scale-105">
             Je commence maintenant — gratuitement
             <ArrowRight size={22} />
           </Link>
