@@ -4,7 +4,7 @@ import { waitUntil } from '@vercel/functions'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
-import { superviserMessage, verifierProgressionEtape } from '@/lib/supervision-chat'
+import { superviserMessage, verifierProgressionEtape, analyseRapide } from '@/lib/supervision-chat'
 import { checkRateLimit } from '@/lib/redis'
 import { emailService } from '@/lib/email'
 
@@ -127,7 +127,25 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Conversation non accessible' }, { status: 403 })
     }
 
-    // Créer le message
+    // ── Détection coordonnées AVANT envoi ────────────────────────────
+    const analysePreventive = analyseRapide(contenu.trim())
+    if (analysePreventive.isFlagged) {
+      // Signaler la tentative sans envoyer le message
+      await prisma.signalement.create({
+        data: {
+          signaleurId: userId,
+          signaleId:   userId,
+          type:        'AUTRE',
+          description: `Tentative de partage de coordonnées bloquée. Type: ${analysePreventive.flagType}. Contenu: ${contenu.slice(0, 100)}`,
+        },
+      }).catch(() => {})
+      return NextResponse.json({
+        error: '🚫 Message bloqué — coordonnées personnelles interdites sur la plateforme (CGU art. 5). Violation = bannissement + pénalité 1 mois.',
+        blocked: true,
+      }, { status: 403 })
+    }
+
+        // Créer le message
     const message = await prisma.message.create({
       data: {
         conversationId,
