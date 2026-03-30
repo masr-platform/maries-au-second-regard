@@ -109,8 +109,13 @@ export default function HomePage() {
       {/* ── NAVIGATION ─────────────────────────────────────────── */}
       <nav className="fixed top-0 left-0 right-0 z-50 border-b border-purple-500/10 bg-[#060412]/90 backdrop-blur-xl">
         <div className="max-w-7xl mx-auto px-6 py-3 flex items-center justify-between">
-          <Link href="/" className="text-base font-bold text-white tracking-tight">
-            Mariés <span className="text-purple-400">au Second Regard</span>
+          <Link href="/" className="flex items-center gap-3">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/logo.png"
+              alt="Mariés au Second Regard"
+              style={{ width: 70, height: 70, objectFit: 'contain' }}
+            />
           </Link>
           <div className="flex items-center gap-4">
             <Link href="/connexion" className="text-white/50 hover:text-white text-sm transition-colors hidden md:block">
