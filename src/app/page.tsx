@@ -149,7 +149,7 @@ export default function HomePage() {
             alt=""
             aria-hidden="true"
             className="w-full h-full object-cover"
-            style={{ filter: 'brightness(0.55) saturate(1.0)', objectPosition: 'center 5%', transform: 'scale(0.95)' }}
+            style={{ filter: 'brightness(0.55) saturate(1.0)', objectPosition: 'center 10%', transform: 'scale(0.72)' }}
           />
           {/* Dégradé par-dessus pour lisibilité du texte */}
           <div className="absolute inset-0 bg-gradient-to-b from-[#060412]/40 via-[#060412]/10 to-[#060412]/65" />
