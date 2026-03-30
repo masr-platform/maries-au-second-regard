@@ -140,7 +140,7 @@ export default function HomePage() {
       {/* ═══════════════════════════════════════════════════════════
           HERO — Cinématique, inattendu, émotionnel
       ═══════════════════════════════════════════════════════════ */}
-      <section className="relative min-h-screen flex items-center justify-center pt-28 pb-20 px-6">
+      <section className="relative h-screen flex items-center justify-center pt-28 pb-20 px-6">
         {/* Photo de fond — mariage musulman */}
         <div className="absolute inset-0 overflow-hidden">
           {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -148,8 +148,8 @@ export default function HomePage() {
             src="https://images.pexels.com/photos/31619527/pexels-photo-31619527.jpeg?auto=compress&cs=tinysrgb&w=1920&q=80"
             alt=""
             aria-hidden="true"
-            className="w-full h-full object-contain"
-            style={{ filter: 'brightness(0.55) saturate(1.0)', objectPosition: 'center top' }}
+            className="w-full h-full object-cover"
+            style={{ filter: 'brightness(0.55) saturate(1.0)', objectPosition: 'center 8%' }}
           />
           {/* Dégradé par-dessus pour lisibilité du texte */}
           <div className="absolute inset-0 bg-gradient-to-b from-[#060412]/40 via-[#060412]/10 to-[#060412]/65" />
