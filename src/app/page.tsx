@@ -108,9 +108,13 @@ export default function HomePage() {
 
       {/* ── NAVIGATION ─────────────────────────────────────────── */}
       <nav className="fixed top-0 left-0 right-0 z-50 border-b border-purple-500/10 bg-[#060412]/90 backdrop-blur-xl">
-        <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-          <Link href="/" className="text-xl font-bold text-white tracking-tight">
-            Mariés <span className="text-purple-400">au Second Regard</span>
+        <div className="max-w-7xl mx-auto px-6 py-3 flex items-center justify-between">
+          <Link href="/" className="flex items-center gap-3">
+            {/* Remplacer logo.png par votre vrai fichier dans /public/logo.png */}
+            <Image src="/logo.svg" alt="Mariés au Second Regard" width={44} height={44} className="rounded-full object-cover" />
+            <span className="text-base font-bold text-white tracking-tight hidden sm:block">
+              Mariés <span className="text-purple-400">au Second Regard</span>
+            </span>
           </Link>
           <div className="flex items-center gap-4">
             <Link href="/connexion" className="text-white/50 hover:text-white text-sm transition-colors hidden md:block">
@@ -798,28 +802,52 @@ export default function HomePage() {
           <div className="space-y-3">
             {[
               {
-                q: 'Pourquoi seulement des compatibilités à +85% ?',
-                a: 'Parce que votre mariage mérite une base solide, pas une probabilité. Nos psychologues cliniciens ont établi ce seuil après des années d\'études sur les couples musulmans. En dessous de 85%, la probabilité de réussite à long terme chute significativement. Nous préférons vous présenter moins de profils — mais les bons.',
+                q: 'Quel est l\'objectif de Mariés au Second Regard ?',
+                a: 'Mariés au Second Regard a pour mission de faciliter les rencontres entre célibataires musulmans désireux de trouver un partenaire compatible pour un mariage respectueux des principes et préceptes de l\'Islam.',
               },
               {
-                q: 'En quoi êtes-vous différents de Muzz ou d\'autres applis ?',
-                a: 'Sur Muzz, vous naviguez seul(e) dans une masse de profils non filtrés. Ici, nous faisons le travail pour vous : 5 psychologues cliniciens et une IA analysent des centaines de profils pour n\'en retenir que ceux compatibles à +85%. Personne d\'autre ne propose ça. Ni en France, ni en Europe.',
+                q: 'Comment fonctionne le processus de recherche de partenaires ?',
+                a: 'Vous remplissez un questionnaire avec vos critères de recherche, puis notre équipe utilise une intelligence artificielle sophistiquée pour vous proposer des profils compatibles. Dans un premier temps, nous vous proposerons d\'échanger avec le ou les profils (selon l\'abonnement choisi) par chat sur notre site. Si des affinités se développent, vous pourrez organiser une première rencontre — la "mouquabala" — par vidéoconférence en présence d\'un imam qualifié.',
               },
               {
-                q: 'Est-ce que mes données sont protégées ?',
-                a: 'Vos données sont chiffrées, stockées en Europe et ne sont jamais vendues à des tiers. Nous sommes conformes au RGPD. Votre profil n\'est visible que par les membres avec qui vous avez une compatibilité validée. Votre démarche reste privée.',
+                q: 'Comment puis-je m\'inscrire sur Mariés au Second Regard ?',
+                a: 'Vous pouvez vous inscrire sur notre site web en remplissant un formulaire et en choisissant l\'abonnement qui vous convient. Une fois inscrit et l\'abonnement choisi, vous pourrez participer au processus de sélection.',
               },
               {
-                q: 'L\'inscription est vraiment gratuite ?',
-                a: 'Oui, à 100%. Inscription et questionnaire complet sont entièrement gratuits. Aucune carte bancaire requise à l\'inscription. L\'abonnement est nécessaire uniquement pour recevoir vos compatibilités validées. Vous pouvez construire votre profil complet sans dépenser un centime.',
+                q: 'Qu\'est-ce qu\'une mouquabala ?',
+                a: 'Une mouquabala, terme arabe, se traduit par une rencontre ou un entretien. C\'est une étape lors de laquelle un homme et une femme qui envisagent un mariage se rencontrent pour se connaître, échanger et évaluer leur compatibilité. Elle ne constitue pas une demande de mariage formelle, mais une opportunité pour les deux personnes de décider si elles souhaitent poursuivre leur relation vers le mariage.',
               },
               {
-                q: 'Comment fonctionne la supervision des échanges ?',
-                a: 'Chaque mouqabala (entretien virtuel) se déroule sur notre plateforme, sous supervision de nos modérateurs. Aucun numéro de téléphone, aucun compte de réseau social, aucune adresse email ne peut être échangé avant mariage. Votre sécurité et votre réputation sont protégées à chaque étape.',
+                q: 'Qui compose l\'équipe de Mariés au Second Regard ?',
+                a: 'Notre équipe comprend des psychologues cliniciens musulmans, des experts en thérapie conjugale, et des imams qui jouent un rôle crucial dans le soutien spirituel et religieux des participants. Ils peuvent également agir comme médiateurs pour les couples déjà formés. Des administrateurs sont aussi disponibles pour répondre à vos questions et superviser les discussions en ligne.',
               },
               {
-                q: 'Puis-je annuler à tout moment ?',
-                a: 'Oui, sans condition, sans frais, sans question. Annulation en un clic depuis votre espace. Vous gardez l\'accès jusqu\'à la fin de la période payée. Aucune rétention abusive.',
+                q: 'Quels sont les tests utilisés pour évaluer la compatibilité ?',
+                a: 'Nous utilisons des tests de compatibilité composés de plusieurs questions pour évaluer les objectifs à long terme des célibataires. Un deuxième questionnaire de psychologie affective est également utilisé pour comprendre les besoins émotionnels spécifiques de chaque candidat.',
+              },
+              {
+                q: 'Comment fonctionne le chat supervisé ?',
+                a: 'Les participants communiquent via le chat du site, supervisé par un membre de notre équipe pour garantir des échanges sérieux et conformes aux principes de l\'Islam. Les données personnelles (numéros de téléphone, réseaux sociaux, photos) sont strictement interdites d\'échange entre membres.',
+              },
+              {
+                q: 'Quels sont les abonnements disponibles ?',
+                a: 'Nous proposons trois abonnements : ESSENTIEL (19,99€), PREMIUM (29,99€) et ÉLITE (49,99€). Chaque formule offre des avantages différents en termes de nombre de profils proposés et de niveau de suivi personnalisé.',
+              },
+              {
+                q: 'Qui peut s\'inscrire sur Mariés au Second Regard ?',
+                a: 'Tous les célibataires musulmans de plus de 18 ans avec un engagement sérieux et sincère peuvent s\'inscrire. Pour les femmes divorcées, le respect de la période d\'attente après le divorce est requis. La polygamie est interdite sur notre site. Nous respectons les lois françaises et n\'acceptons que les personnes en situation régulière.',
+              },
+              {
+                q: 'Comment contacter l\'équipe de Mariés au Second Regard ?',
+                a: 'Vous pouvez nous contacter via le formulaire de contact sur notre site ou par e-mail à mariesausecondregard@gmail.com. Notre équipe vous répondra dans les plus brefs délais.',
+              },
+              {
+                q: 'Comment organiser une mouquabala ?',
+                a: 'Si des affinités se développent avec un candidat(e) proposé(e), cliquez sur l\'icône "mouquabala" dans votre profil. Notre équipe vous guidera tout au long du processus pour organiser un entretien virtuel en présence d\'un imam qualifié.',
+              },
+              {
+                q: 'Quelle est la garantie de réussite de Mariés au Second Regard ?',
+                a: 'Bien que nous investissions tous nos efforts pour assister nos utilisateurs dans leur recherche de partenaire compatible, nous ne pouvons garantir le résultat final sous forme de mariage. Notre approche méthodique et hautement structurée est néanmoins spécifiquement conçue pour optimiser les probabilités de succès dans cette quête.',
               },
             ].map((faq, i) => (
               <motion.div key={i} initial={{ opacity: 0 }} whileInView={{ opacity: 1 }}
