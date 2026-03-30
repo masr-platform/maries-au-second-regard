@@ -274,58 +274,6 @@ export default function HomePage() {
       </section>
 
       {/* ═══════════════════════════════════════════════════════════
-          DÉCLARATION DE POSITIONNEMENT — L'identité de la marque
-      ═══════════════════════════════════════════════════════════ */}
-      <section className="py-28 px-6 relative overflow-hidden">
-        {/* Glow derrière la citation */}
-        <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[300px] bg-fuchsia-700/6 rounded-full blur-[120px]" />
-        </div>
-        <div className="max-w-4xl mx-auto text-center relative z-10">
-          <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
-            <p className="text-purple-400/60 text-sm font-semibold uppercase tracking-widest mb-8">Notre engagement</p>
-            <blockquote className="text-3xl md:text-4xl lg:text-5xl font-black text-white leading-tight mb-10">
-              "Le mariage est une décision sacrée.
-              <br />
-              <span className="bg-gradient-to-r from-fuchsia-400 to-pink-400 bg-clip-text text-transparent">Elle mérite mieux qu'un algorithme.</span>
-              <br />
-              Elle mérite la science et la foi."
-            </blockquote>
-            <p className="text-white/45 text-base max-w-2xl mx-auto leading-relaxed">
-              Pendant que les autres plateformes vous donnent accès à des milliers de profils sans filtre,
-              nous faisons le travail en amont. Nos psychologues cliniciens et notre IA analysent,
-              filtrent et valident pour vous ne présenter <strong className="text-white/80">que la certitude</strong>.
-              Pas des possibilités. Des compatibilités prouvées.
-            </p>
-          </motion.div>
-        </div>
-      </section>
-
-      {/* ═══════════════════════════════════════════════════════════
-          IMAGES VIVANTES — Projection émotionnelle
-      ═══════════════════════════════════════════════════════════ */}
-      <section className="py-20 px-6 bg-gradient-to-b from-transparent via-purple-950/5 to-transparent">
-        <div className="max-w-6xl mx-auto">
-          <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }} className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-black text-white mb-4">
-              Ils ne cherchaient plus.
-              <br />
-              <span className="bg-gradient-to-r from-purple-400 to-fuchsia-400 bg-clip-text text-transparent">Nous avions trouvé pour eux.</span>
-            </h2>
-            <p className="text-white/40 text-base max-w-lg mx-auto">
-              312 couples. Des histoires vraies. Des vies construites sur des bases solides.
-            </p>
-          </motion.div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {IMAGES.map((img, i) => (
-              <AnimatedImage key={i} src={img.src} alt={img.alt} caption={img.caption} delay={i * 0.15} />
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ═══════════════════════════════════════════════════════════
           FILTRAGE & SÉLECTION — Mécanisme de qualification
       ═══════════════════════════════════════════════════════════ */}
       <section className="py-28 px-6">
@@ -384,6 +332,58 @@ export default function HomePage() {
               </motion.div>
             ))}
           </div>
+        </div>
+      </section>
+
+      {/* ═══════════════════════════════════════════════════════════
+          IMAGES VIVANTES — Projection émotionnelle
+      ═══════════════════════════════════════════════════════════ */}
+      <section className="py-20 px-6 bg-gradient-to-b from-transparent via-purple-950/5 to-transparent">
+        <div className="max-w-6xl mx-auto">
+          <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }} className="text-center mb-16">
+            <h2 className="text-3xl md:text-4xl font-black text-white mb-4">
+              Ils ne cherchaient plus.
+              <br />
+              <span className="bg-gradient-to-r from-purple-400 to-fuchsia-400 bg-clip-text text-transparent">Nous avions trouvé pour eux.</span>
+            </h2>
+            <p className="text-white/40 text-base max-w-lg mx-auto">
+              312 couples. Des histoires vraies. Des vies construites sur des bases solides.
+            </p>
+          </motion.div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {IMAGES.map((img, i) => (
+              <AnimatedImage key={i} src={img.src} alt={img.alt} caption={img.caption} delay={i * 0.15} />
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ═══════════════════════════════════════════════════════════
+          DÉCLARATION DE POSITIONNEMENT — L'identité de la marque
+      ═══════════════════════════════════════════════════════════ */}
+      <section className="py-28 px-6 relative overflow-hidden">
+        {/* Glow derrière la citation */}
+        <div className="absolute inset-0 pointer-events-none">
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[300px] bg-fuchsia-700/6 rounded-full blur-[120px]" />
+        </div>
+        <div className="max-w-4xl mx-auto text-center relative z-10">
+          <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
+            <p className="text-purple-400/60 text-sm font-semibold uppercase tracking-widest mb-8">Notre engagement</p>
+            <blockquote className="text-3xl md:text-4xl lg:text-5xl font-black text-white leading-tight mb-10">
+              "Le mariage est une décision sacrée.
+              <br />
+              <span className="bg-gradient-to-r from-fuchsia-400 to-pink-400 bg-clip-text text-transparent">Elle mérite mieux qu'un algorithme.</span>
+              <br />
+              Elle mérite la science et la foi."
+            </blockquote>
+            <p className="text-white/45 text-base max-w-2xl mx-auto leading-relaxed">
+              Pendant que les autres plateformes vous donnent accès à des milliers de profils sans filtre,
+              nous faisons le travail en amont. Nos psychologues cliniciens et notre IA analysent,
+              filtrent et valident pour vous ne présenter <strong className="text-white/80">que la certitude</strong>.
+              Pas des possibilités. Des compatibilités prouvées.
+            </p>
+          </motion.div>
         </div>
       </section>
 
