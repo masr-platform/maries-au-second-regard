@@ -141,11 +141,25 @@ export default function HomePage() {
           HERO — Cinématique, inattendu, émotionnel
       ═══════════════════════════════════════════════════════════ */}
       <section className="relative min-h-screen flex items-center justify-center pt-28 pb-20 px-6">
-        {/* Orbs dramatiques */}
+        {/* Photo de fond — mariage musulman */}
+        <div className="absolute inset-0 overflow-hidden">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="https://images.pexels.com/photos/31619527/pexels-photo-31619527.jpeg?auto=compress&cs=tinysrgb&w=1920&q=80"
+            alt=""
+            aria-hidden="true"
+            className="w-full h-full object-cover object-center scale-105"
+            style={{ filter: 'brightness(0.22) saturate(0.8)' }}
+          />
+          {/* Dégradé par-dessus pour lisibilité du texte */}
+          <div className="absolute inset-0 bg-gradient-to-b from-[#060412]/60 via-[#060412]/30 to-[#060412]/80" />
+          <div className="absolute inset-0 bg-gradient-to-r from-[#060412]/40 via-transparent to-[#060412]/40" />
+        </div>
+
+        {/* Orbs dramatiques par-dessus la photo */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute top-1/4 left-1/4 w-[600px] h-[600px] bg-purple-700/12 rounded-full blur-[140px]" />
-          <div className="absolute bottom-1/3 right-1/4 w-[400px] h-[400px] bg-fuchsia-600/10 rounded-full blur-[100px]" />
-          <div className="absolute top-2/3 left-1/2 w-64 h-64 bg-pink-500/8 rounded-full blur-[80px]" />
+          <div className="absolute top-1/4 left-1/4 w-[600px] h-[600px] bg-purple-700/8 rounded-full blur-[140px]" />
+          <div className="absolute bottom-1/3 right-1/4 w-[400px] h-[400px] bg-fuchsia-600/8 rounded-full blur-[100px]" />
         </div>
 
         <div className="relative z-10 text-center max-w-5xl mx-auto">
