@@ -14,8 +14,14 @@ export default function CGU() {
             <p>L'inscription est réservée aux personnes majeures (18 ans et plus), célibataires ou divorcées, ayant une intention sérieuse de mariage. Tout profil créé à des fins autres que le mariage sera supprimé.</p>
           </section>
           <section>
-            <h2 className="text-white font-semibold text-base mb-3">3. Comportement sur la plateforme</h2>
-            <p>Il est strictement interdit de :<br/>— Partager des coordonnées personnelles (téléphone, email, réseaux sociaux) via le chat avant accord de l'équipe<br/>— Tenir des propos irrespectueux, discriminatoires ou à caractère sexuel<br/>— Créer de faux profils ou usurper une identité<br/>— Utiliser la plateforme à des fins commerciales</p>
+            <h2 className="text-white font-semibold text-base mb-3">3. Interdiction de la polygamie</h2>
+            <p className="font-medium text-white/90">La polygamie est strictement interdite sur la plateforme Mariés au Second Regard, conformément à la législation française en vigueur.</p>
+            <p className="mt-2">En France, la polygamie est prohibée par l'article 147 du Code civil et constitue une infraction pénale. Tout membre marié cherchant à contracter un nouveau mariage, ou toute personne tentant d'utiliser la plateforme à des fins de mise en relation polygame, verra son compte supprimé immédiatement et définitivement, sans remboursement, et pourra faire l'objet d'un signalement aux autorités compétentes.</p>
+            <p className="mt-2">En s'inscrivant sur Mariés au Second Regard, chaque membre certifie sur l'honneur être libre de tout lien matrimonial légal au moment de son inscription.</p>
+          </section>
+          <section>
+            <h2 className="text-white font-semibold text-base mb-3">4. Comportement sur la plateforme</h2>
+            <p>Il est strictement interdit de :<br/>— Partager des coordonnées personnelles (téléphone, email, réseaux sociaux) via le chat avant accord de l'équipe<br/>— Tenir des propos irrespectueux, discriminatoires ou à caractère sexuel<br/>— Créer de faux profils ou usurper une identité<br/>— Utiliser la plateforme à des fins commerciales<br/>— Rechercher ou proposer une relation polygame</p>
             <p className="mt-2">Tout manquement entraîne un bannissement immédiat et définitif.</p>
           </section>
           <section>
