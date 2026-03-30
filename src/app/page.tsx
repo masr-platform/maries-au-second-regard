@@ -80,18 +80,18 @@ const psychologues = [
 
 const IMAGES = [
   {
-    src: 'https://images.unsplash.com/photo-1516589178581-6cd7833ae3b2?auto=format&fit=crop&w=800&q=85',
-    alt: 'Couple marié heureux',
+    src: 'https://images.unsplash.com/photo-1759888107119-aa9accda6085?auto=format&fit=crop&w=800&q=90',
+    alt: 'Couple musulman au coucher du soleil',
     caption: '312 couples formés — alhamdulillah',
   },
   {
-    src: 'https://images.unsplash.com/photo-1529156069898-49953e39b3ac?auto=format&fit=crop&w=800&q=85',
-    alt: 'Couple sérein et épanoui',
+    src: 'https://images.unsplash.com/photo-1774233430628-ee64b5fc59b6?auto=format&fit=crop&w=800&q=90',
+    alt: 'Silhouette de couple au coucher du soleil',
     caption: 'Compatibilité validée à +85%',
   },
   {
-    src: 'https://images.unsplash.com/photo-1511632765486-a01980e01a18?auto=format&fit=crop&w=800&q=85',
-    alt: 'Famille islamique heureuse',
+    src: 'https://images.unsplash.com/photo-1774256561783-1cc2a1a1e55e?auto=format&fit=crop&w=800&q=90',
+    alt: 'Deux âmes au coucher du soleil',
     caption: 'Un mariage. Pas une rencontre.',
   },
 ]
