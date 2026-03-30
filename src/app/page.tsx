@@ -227,12 +227,12 @@ export default function HomePage() {
       </section>
 
       {/* ═══════════════════════════════════════════════════════════
-          IMAGES VIVANTES — Projection émotionnelle
+          VIDÉO — Projection émotionnelle
       ═══════════════════════════════════════════════════════════ */}
       <section className="py-20 px-6 bg-gradient-to-b from-transparent via-purple-950/5 to-transparent">
-        <div className="max-w-6xl mx-auto">
+        <div className="max-w-5xl mx-auto">
           <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }} className="text-center mb-16">
+            viewport={{ once: true }} className="text-center mb-12">
             <h2 className="text-3xl md:text-4xl font-black text-white mb-4">
               Ils ne cherchaient plus.
               <br />
@@ -242,11 +242,23 @@ export default function HomePage() {
               312 couples. Des histoires vraies. Des vies construites sur des bases solides.
             </p>
           </motion.div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {IMAGES.map((img, i) => (
-              <AnimatedImage key={i} src={img.src} alt={img.alt} caption={img.caption} delay={i * 0.15} />
-            ))}
-          </div>
+          <motion.div initial={{ opacity: 0, scale: 0.97 }} whileInView={{ opacity: 1, scale: 1 }}
+            viewport={{ once: true }} transition={{ duration: 0.8 }}
+            className="relative rounded-3xl overflow-hidden border border-purple-500/20 shadow-2xl shadow-fuchsia-500/10">
+            <video
+              src="/couple.mp4"
+              autoPlay
+              muted
+              loop
+              playsInline
+              className="w-full h-auto max-h-[70vh] object-cover"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-[#060412]/60 via-transparent to-transparent pointer-events-none" />
+            <div className="absolute bottom-6 left-6 right-6 flex items-center gap-3 pointer-events-none">
+              <div className="w-2 h-2 rounded-full bg-fuchsia-400 animate-pulse" />
+              <p className="text-white/80 text-sm font-semibold">312 mariages formés — alhamdulillah</p>
+            </div>
+          </motion.div>
         </div>
       </section>
 
@@ -734,14 +746,13 @@ export default function HomePage() {
             viewport={{ once: true }} className="text-center mb-5">
             <p className="text-purple-400 text-sm font-semibold uppercase tracking-widest mb-3">Accès</p>
             <h2 className="text-3xl md:text-4xl font-black text-white mb-4">
-              Votre mariage vaut
+              Un seul profil.
               <br />
-              <span className="text-purple-400">plus que ça coûte.</span>
+              <span className="bg-gradient-to-r from-fuchsia-400 to-pink-400 bg-clip-text text-transparent">Le bon.</span>
             </h2>
             <p className="text-white/45 max-w-lg mx-auto leading-relaxed">
-              L'inscription et le questionnaire sont <strong className="text-white">entièrement gratuits</strong>.
-              L'abonnement débloque vos compatibilités validées à +85%.
-              Moins cher qu'une sortie. Infiniment plus important.
+              Pas 500 swipes. Pas de hasard. Nos psychologues et notre IA sélectionnent pour vous
+              les profils les plus compatibles. <strong className="text-white">Vous n'avez qu'une décision à prendre.</strong>
             </p>
           </motion.div>
 
