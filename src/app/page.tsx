@@ -312,42 +312,6 @@ export default function HomePage() {
       </section>
 
       {/* ═══════════════════════════════════════════════════════════
-          PROCÉDÉ — 5 étapes de l'inscription au mariage
-      ═══════════════════════════════════════════════════════════ */}
-      <section className="py-20 px-6 bg-gradient-to-b from-transparent via-purple-950/5 to-transparent">
-        <div className="max-w-4xl mx-auto">
-          <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }} className="text-center mb-14">
-            <p className="text-purple-400 text-sm font-semibold uppercase tracking-widest mb-3">De l'inscription au mariage</p>
-            <h2 className="text-3xl md:text-4xl font-black text-white mb-4">
-              Chaque étape a
-              <span className="bg-gradient-to-r from-purple-400 to-fuchsia-400 bg-clip-text text-transparent"> un sens.</span>
-            </h2>
-          </motion.div>
-          <div className="grid grid-cols-5 gap-4">
-            {[
-              { emoji: '📝', label: 'Questionnaire', sub: '40 questions sur vos valeurs, votre foi, votre projet de vie' },
-              { emoji: '🤖', label: "L'IA analyse", sub: 'Compatibilité spirituelle, caractère, style de vie, vision du couple' },
-              { emoji: '🩺', label: 'Psychologue valide', sub: 'Il confirme que le score est réel et que le profil est sérieux' },
-              { emoji: '💬', label: 'Chat supervisé', sub: 'Si les deux acceptent — échanges encadrés sur la plateforme' },
-              { emoji: '🤝', label: 'Mouqabala', sub: 'Entretien virtuel pour confirmer avant le mariage' },
-            ].map((step, i) => (
-              <motion.div key={i} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }} transition={{ delay: i * 0.1 }}
-                className="flex flex-col items-center text-center gap-3 relative">
-                <div className="w-14 h-14 rounded-full bg-gradient-to-br from-purple-600 to-fuchsia-600 flex items-center justify-center text-2xl shadow-lg shadow-fuchsia-500/20">
-                  {step.emoji}
-                </div>
-                <p className="text-white text-sm font-bold leading-tight">{step.label}</p>
-                <p className="text-white/40 text-xs leading-snug">{step.sub}</p>
-                {i < 4 && <div className="absolute top-7 left-full w-4 text-white/20 text-sm hidden sm:block">→</div>}
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ═══════════════════════════════════════════════════════════
           VIDÉO — Projection émotionnelle
       ═══════════════════════════════════════════════════════════ */}
       <section className="py-20 px-6 bg-gradient-to-b from-transparent via-purple-950/5 to-transparent">
@@ -421,6 +385,136 @@ export default function HomePage() {
                 <ArrowRight size={16} />
               </Link>
             </motion.div>
+          </div>
+        </div>
+      </section>
+
+      {/* ═══════════════════════════════════════════════════════════
+          PROCÉDÉ — 5 étapes de l'inscription au mariage
+      ═══════════════════════════════════════════════════════════ */}
+      <section className="py-20 px-6 bg-gradient-to-b from-transparent via-purple-950/5 to-transparent">
+        <div className="max-w-4xl mx-auto">
+          <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }} className="text-center mb-14">
+            <p className="text-purple-400 text-sm font-semibold uppercase tracking-widest mb-3">De l'inscription au mariage</p>
+            <h2 className="text-3xl md:text-4xl font-black text-white mb-4">
+              Chaque étape a
+              <span className="bg-gradient-to-r from-purple-400 to-fuchsia-400 bg-clip-text text-transparent"> un sens.</span>
+            </h2>
+          </motion.div>
+          <div className="grid grid-cols-5 gap-4">
+            {[
+              { emoji: '📝', label: 'Questionnaire', sub: '40 questions sur vos valeurs, votre foi, votre projet de vie' },
+              { emoji: '🤖', label: "L'IA analyse", sub: 'Compatibilité spirituelle, caractère, style de vie, vision du couple' },
+              { emoji: '🩺', label: 'Psychologue valide', sub: 'Il confirme que le score est réel et que le profil est sérieux' },
+              { emoji: '💬', label: 'Chat supervisé', sub: 'Si les deux acceptent — échanges encadrés sur la plateforme' },
+              { emoji: '🤝', label: 'Mouqabala', sub: 'Entretien virtuel pour confirmer avant le mariage' },
+            ].map((step, i) => (
+              <motion.div key={i} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }} transition={{ delay: i * 0.1 }}
+                className="flex flex-col items-center text-center gap-3 relative">
+                <div className="w-14 h-14 rounded-full bg-gradient-to-br from-purple-600 to-fuchsia-600 flex items-center justify-center text-2xl shadow-lg shadow-fuchsia-500/20">
+                  {step.emoji}
+                </div>
+                <p className="text-white text-sm font-bold leading-tight">{step.label}</p>
+                <p className="text-white/40 text-xs leading-snug">{step.sub}</p>
+                {i < 4 && <div className="absolute top-7 left-full w-4 text-white/20 text-sm hidden sm:block">→</div>}
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ═══════════════════════════════════════════════════════════
+          TARIFS — Investment framing
+      ═══════════════════════════════════════════════════════════ */}
+      <section id="tarifs" className="py-28 px-6 bg-gradient-to-b from-fuchsia-950/10 via-purple-950/15 to-transparent">
+        <div className="max-w-5xl mx-auto">
+          <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }} className="text-center mb-5">
+            <p className="text-purple-400 text-sm font-semibold uppercase tracking-widest mb-3">Accès</p>
+            <h2 className="text-3xl md:text-4xl font-black text-white mb-4">
+              Un seul profil.
+              <br />
+              <span className="bg-gradient-to-r from-fuchsia-400 to-pink-400 bg-clip-text text-transparent">Le bon.</span>
+            </h2>
+            <p className="text-white/45 max-w-lg mx-auto leading-relaxed">
+              Pas 500 swipes. Pas de hasard. Nos psychologues et notre IA sélectionnent pour vous
+              les profils les plus compatibles. <strong className="text-white">Vous n'avez qu'une décision à prendre.</strong>
+            </p>
+          </motion.div>
+          <motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }}
+            className="text-center mb-12">
+            <span className="inline-block bg-purple-500/10 border border-purple-500/20 text-purple-300 text-sm px-5 py-2 rounded-full">
+              Inscription + Questionnaire gratuits · Abonnement pour recevoir vos compatibilités
+            </span>
+          </motion.div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {[
+              {
+                nom: 'Essentiel',
+                prix: '19,90€',
+                desc: 'Pour commencer votre démarche.',
+                features: ['3 compatibilités / mois', '1 mouqabala virtuelle / mois', 'Score détaillé 7 dimensions', 'Chat sécurisé supervisé', 'Support email'],
+                cta: 'Commencer',
+                popular: false,
+              },
+              {
+                nom: 'Premium',
+                prix: '29,90€',
+                desc: 'Pour ceux qui veulent aller vite.',
+                features: ['10 compatibilités / mois', '3 mouqabalas virtuelles / mois', 'Analyse psychologique complète', 'Chat prioritaire supervisé', 'Accompagnement par un psychologue', 'Support prioritaire'],
+                cta: 'Choisir Premium',
+                popular: true,
+              },
+              {
+                nom: 'Élite',
+                prix: '49,90€',
+                desc: 'Pour ceux qui refusent d\'attendre.',
+                features: ['Compatibilités illimitées', 'Mouqabalas illimitées', 'Analyse IA complète', 'Suivi psychologique personnalisé', 'Accès prioritaire aux profils', 'Coach mariage dédié'],
+                cta: 'Choisir Élite',
+                popular: false,
+              },
+            ].map((plan, i) => (
+              <motion.div key={i} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }} transition={{ delay: i * 0.1 }}
+                className={`relative rounded-3xl p-7 flex flex-col ${
+                  plan.popular
+                    ? 'bg-gradient-to-b from-purple-600/25 to-fuchsia-900/20 border-2 border-purple-500 shadow-2xl shadow-purple-500/15'
+                    : i === 0
+                      ? 'bg-gradient-to-b from-blue-950/30 to-indigo-950/20 border border-blue-500/20'
+                      : 'bg-gradient-to-b from-amber-950/20 to-orange-950/15 border border-amber-500/20'
+                }`}>
+                {plan.popular && (
+                  <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-purple-600 text-white text-xs font-bold px-4 py-1.5 rounded-full whitespace-nowrap">
+                    ⭐ Le plus choisi
+                  </div>
+                )}
+                <div className="mb-6">
+                  <h3 className="text-white font-black text-xl mb-1">{plan.nom}</h3>
+                  <p className="text-white/40 text-sm mb-4">{plan.desc}</p>
+                  <div className="flex items-end gap-1">
+                    <span className="text-4xl font-black text-white">{plan.prix}</span>
+                    <span className="text-white/35 text-sm mb-1">/ mois</span>
+                  </div>
+                </div>
+                <ul className="space-y-3 flex-1 mb-7">
+                  {plan.features.map((f, j) => (
+                    <li key={j} className="flex items-start gap-2.5 text-sm text-white/60">
+                      <CheckCircle2 size={15} className="text-purple-400 flex-shrink-0 mt-0.5" />
+                      {f}
+                    </li>
+                  ))}
+                </ul>
+                <Link href="/inscription"
+                  className={`w-full text-center py-4 rounded-2xl font-bold text-sm transition-all ${plan.popular
+                    ? 'bg-purple-600 hover:bg-purple-500 text-white shadow-lg shadow-purple-500/20 hover:shadow-purple-500/40'
+                    : 'bg-white/8 hover:bg-white/12 text-white'
+                  }`}>
+                  {plan.cta}
+                </Link>
+              </motion.div>
+            ))}
           </div>
         </div>
       </section>
@@ -773,102 +867,6 @@ export default function HomePage() {
                   </div>
                   <span className={`text-xs ${t.scoreColor} px-3 py-1.5 rounded-full font-black`}>{t.score}</span>
                 </div>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ═══════════════════════════════════════════════════════════
-          TARIFS — Investment framing
-      ═══════════════════════════════════════════════════════════ */}
-      <section id="tarifs" className="py-28 px-6 bg-gradient-to-b from-fuchsia-950/10 via-purple-950/15 to-transparent">
-        <div className="max-w-5xl mx-auto">
-          <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }} className="text-center mb-5">
-            <p className="text-purple-400 text-sm font-semibold uppercase tracking-widest mb-3">Accès</p>
-            <h2 className="text-3xl md:text-4xl font-black text-white mb-4">
-              Un seul profil.
-              <br />
-              <span className="bg-gradient-to-r from-fuchsia-400 to-pink-400 bg-clip-text text-transparent">Le bon.</span>
-            </h2>
-            <p className="text-white/45 max-w-lg mx-auto leading-relaxed">
-              Pas 500 swipes. Pas de hasard. Nos psychologues et notre IA sélectionnent pour vous
-              les profils les plus compatibles. <strong className="text-white">Vous n'avez qu'une décision à prendre.</strong>
-            </p>
-          </motion.div>
-
-          <motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }}
-            className="text-center mb-12">
-            <span className="inline-block bg-purple-500/10 border border-purple-500/20 text-purple-300 text-sm px-5 py-2 rounded-full">
-              Inscription + Questionnaire gratuits · Abonnement pour recevoir vos compatibilités
-            </span>
-          </motion.div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {[
-              {
-                nom: 'Essentiel',
-                prix: '19,90€',
-                desc: 'Pour commencer votre démarche.',
-                features: ['3 compatibilités / mois', '1 mouqabala virtuelle / mois', 'Score détaillé 7 dimensions', 'Chat sécurisé supervisé', 'Support email'],
-                cta: 'Commencer',
-                popular: false,
-              },
-              {
-                nom: 'Premium',
-                prix: '29,90€',
-                desc: 'Pour ceux qui veulent aller vite.',
-                features: ['10 compatibilités / mois', '3 mouqabalas virtuelles / mois', 'Analyse psychologique complète', 'Chat prioritaire supervisé', 'Accompagnement par un psychologue', 'Support prioritaire'],
-                cta: 'Choisir Premium',
-                popular: true,
-              },
-              {
-                nom: 'Élite',
-                prix: '49,90€',
-                desc: 'Pour ceux qui refusent d\'attendre.',
-                features: ['Compatibilités illimitées', 'Mouqabalas illimitées', 'Analyse IA complète', 'Suivi psychologique personnalisé', 'Accès prioritaire aux profils', 'Coach mariage dédié'],
-                cta: 'Choisir Élite',
-                popular: false,
-              },
-            ].map((plan, i) => (
-              <motion.div key={i} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }} transition={{ delay: i * 0.1 }}
-                className={`relative rounded-3xl p-7 flex flex-col ${
-                  plan.popular
-                    ? 'bg-gradient-to-b from-purple-600/25 to-fuchsia-900/20 border-2 border-purple-500 shadow-2xl shadow-purple-500/15'
-                    : i === 0
-                      ? 'bg-gradient-to-b from-blue-950/30 to-indigo-950/20 border border-blue-500/20'
-                      : 'bg-gradient-to-b from-amber-950/20 to-orange-950/15 border border-amber-500/20'
-                }`}>
-                {plan.popular && (
-                  <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-purple-600 text-white text-xs font-bold px-4 py-1.5 rounded-full whitespace-nowrap">
-                    ⭐ Le plus choisi
-                  </div>
-                )}
-                <div className="mb-6">
-                  <h3 className="text-white font-black text-xl mb-1">{plan.nom}</h3>
-                  <p className="text-white/40 text-sm mb-4">{plan.desc}</p>
-                  <div className="flex items-end gap-1">
-                    <span className="text-4xl font-black text-white">{plan.prix}</span>
-                    <span className="text-white/35 text-sm mb-1">/ mois</span>
-                  </div>
-                </div>
-                <ul className="space-y-3 flex-1 mb-7">
-                  {plan.features.map((f, j) => (
-                    <li key={j} className="flex items-start gap-2.5 text-sm text-white/60">
-                      <CheckCircle2 size={15} className="text-purple-400 flex-shrink-0 mt-0.5" />
-                      {f}
-                    </li>
-                  ))}
-                </ul>
-                <Link href="/inscription"
-                  className={`w-full text-center py-4 rounded-2xl font-bold text-sm transition-all ${plan.popular
-                    ? 'bg-purple-600 hover:bg-purple-500 text-white shadow-lg shadow-purple-500/20 hover:shadow-purple-500/40'
-                    : 'bg-white/8 hover:bg-white/12 text-white'
-                  }`}>
-                  {plan.cta}
-                </Link>
               </motion.div>
             ))}
           </div>
