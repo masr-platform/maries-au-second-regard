@@ -149,10 +149,10 @@ export default function HomePage() {
             alt=""
             aria-hidden="true"
             className="w-full h-full object-cover object-center scale-105"
-            style={{ filter: 'brightness(0.22) saturate(0.8)' }}
+            style={{ filter: 'brightness(0.42) saturate(1.0)' }}
           />
           {/* Dégradé par-dessus pour lisibilité du texte */}
-          <div className="absolute inset-0 bg-gradient-to-b from-[#060412]/60 via-[#060412]/30 to-[#060412]/80" />
+          <div className="absolute inset-0 bg-gradient-to-b from-[#060412]/50 via-[#060412]/20 to-[#060412]/70" />
           <div className="absolute inset-0 bg-gradient-to-r from-[#060412]/40 via-transparent to-[#060412]/40" />
         </div>
 
