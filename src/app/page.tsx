@@ -254,9 +254,14 @@ export default function HomePage() {
         <div className="absolute inset-0 overflow-hidden">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src="https://images.pexels.com/photos/31619527/pexels-photo-31619527.jpeg?auto=compress&cs=tinysrgb&w=1920&q=80"
+            src="https://images.pexels.com/photos/31619527/pexels-photo-31619527.jpeg?auto=compress&cs=tinysrgb&w=1260&q=75"
+            srcSet="https://images.pexels.com/photos/31619527/pexels-photo-31619527.jpeg?auto=compress&cs=tinysrgb&w=768&q=70 768w, https://images.pexels.com/photos/31619527/pexels-photo-31619527.jpeg?auto=compress&cs=tinysrgb&w=1260&q=75 1260w, https://images.pexels.com/photos/31619527/pexels-photo-31619527.jpeg?auto=compress&cs=tinysrgb&w=1920&q=80 1920w"
+            sizes="100vw"
             alt=""
             aria-hidden="true"
+            fetchPriority="high"
+            loading="eager"
+            decoding="sync"
             className="w-full h-full object-cover"
             style={{ filter: 'brightness(0.55) saturate(1.0)', objectPosition: 'center 8%' }}
           />
@@ -1018,6 +1023,7 @@ export default function HomePage() {
                 muted
                 loop
                 playsInline
+                preload="none"
                 className="w-full h-auto"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-[#060412]/60 via-transparent to-transparent pointer-events-none" />
