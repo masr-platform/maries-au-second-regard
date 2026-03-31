@@ -80,6 +80,8 @@ model User {
   subscriptions          Subscription[]
   adminLogs              AdminLog[] @relation("AdminLogs")
   adminLogsTarget        AdminLog[] @relation("AdminLogsTarget")
+  signalementsEmis       Signalement[] @relation("SignaleurRelation")
+  signalementsRecus      Signalement[] @relation("SignaleRelation")
 
   @@index([email])
   @@index([genre])
@@ -410,6 +412,36 @@ model Notification {
   @@index([createdAt])
 }
 
+// ─── SIGNALEMENTS ────────────────────────────────────────────────────
+model Signalement {
+  id          String          @id @default(cuid())
+  signaleurId String
+  signaleur   User            @relation("SignaleurRelation", fields: [signaleurId], references: [id])
+  signaleId   String
+  signale     User            @relation("SignaleRelation", fields: [signaleId], references: [id])
+
+  type        SignalementType
+  description String?         @db.Text
+
+  // Lien optionnel vers le message ou la conversation signalée
+  messageId      String?
+  conversationId String?
+
+  // Traitement admin
+  status         SignalementStatus @default(EN_ATTENTE)
+  traitePar      String?
+  traiteAt       DateTime?
+  actionPrise    String?   @db.Text
+
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  @@index([signaleurId])
+  @@index([signaleId])
+  @@index([status])
+  @@index([type])
+}
+
 // ─── LOGS ADMIN ──────────────────────────────────────────────────────
 model AdminLog {
   id              String   @id @default(cuid())
@@ -530,4 +562,22 @@ enum NotificationType {
   WALI_INVITE
   ABONNEMENT
   SYSTEME
+  MESSAGE_SIGNALE
+}
+
+enum SignalementType {
+  SNAP
+  TELEPHONE
+  RESEAU_SOCIAL
+  INAPPROPRIE
+  HARCELEMENT
+  AUTRE
+}
+
+enum SignalementStatus {
+  EN_ATTENTE
+  EN_COURS
+  TRAITE
+  CLOS
+  FAUX_POSITIF
 }

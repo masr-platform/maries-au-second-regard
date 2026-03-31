@@ -8,10 +8,14 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: '2024-06-20',
 })
 
+// Aligné avec la page /abonnement :
+//   BASIQUE  = 1 profil/semaine
+//   PREMIUM  = 7 profils/semaine (1/jour)
+//   ULTRA    = 21 profils/semaine (3/jour)
 const PLANS = {
-  BASIQUE: { profilesParSemaine: 3,  montant: '19,90 €' },
-  PREMIUM: { profilesParSemaine: 10, montant: '29,90 €' },
-  ULTRA:   { profilesParSemaine: 99, montant: '49,90 €' }, // 99 = illimité en pratique
+  BASIQUE: { profilesParSemaine: 1,  montant: '19,90 €' },
+  PREMIUM: { profilesParSemaine: 7,  montant: '29,90 €' },
+  ULTRA:   { profilesParSemaine: 21, montant: '49,90 €' },
 } as const
 
 type PlanKey = keyof typeof PLANS

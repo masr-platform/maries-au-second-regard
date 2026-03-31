@@ -163,8 +163,26 @@ async function signalerMessage(
       }),
     ])
 
-    // TODO: Notifier les admins (email/notification push)
     console.log(`[SUPERVISION] Message ${messageId} signalé: ${analyse.flagType}`)
+
+    // Notifier tous les admins et modérateurs via la table Notification
+    const admins = await prisma.user.findMany({
+      where: { role: { in: ['ADMIN', 'SUPER_ADMIN', 'MODERATEUR'] }, isBanned: false, isSuspended: false },
+      select: { id: true },
+    })
+
+    if (admins.length > 0) {
+      await prisma.notification.createMany({
+        data: admins.map((admin) => ({
+          userId:  admin.id,
+          type:    'MESSAGE_SIGNALE' as const,
+          titre:   `⚠️ Message signalé — ${analyse.flagType ?? 'AUTRE'}`,
+          contenu: `Un message (conv: ${conversationId}) a été automatiquement signalé. Score: ${(analyse.flagScore * 100).toFixed(0)}%. Raison: ${analyse.flagDetails ?? '—'}`,
+          data:    JSON.stringify({ messageId, conversationId, flagType: analyse.flagType, flagScore: analyse.flagScore }),
+        })),
+        skipDuplicates: true,
+      })
+    }
   } catch (error) {
     console.error('Erreur signalement message:', error)
   }

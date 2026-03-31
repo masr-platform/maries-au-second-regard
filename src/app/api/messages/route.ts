@@ -130,15 +130,19 @@ export async function POST(req: NextRequest) {
     // ── Détection coordonnées AVANT envoi ────────────────────────────
     const analysePreventive = analyseRapide(contenu.trim())
     if (analysePreventive.isFlagged) {
-      // Signaler la tentative sans envoyer le message
+      // Signaler la tentative via le modèle Signalement (persiste en DB)
       await prisma.signalement.create({
         data: {
-          signaleurId: userId,
-          signaleId:   userId,
-          type:        'AUTRE',
-          description: `Tentative de partage de coordonnées bloquée. Type: ${analysePreventive.flagType}. Contenu: ${contenu.slice(0, 100)}`,
+          signaleurId:   userId,
+          signaleId:     userId, // auto-signalement : l'expéditeur est signalé
+          type:          (analysePreventive.flagType as 'SNAP' | 'TELEPHONE' | 'RESEAU_SOCIAL' | 'INAPPROPRIE' | 'HARCELEMENT' | 'AUTRE') ?? 'AUTRE',
+          description:   `Tentative de partage de coordonnées bloquée. Type: ${analysePreventive.flagType}. Contenu: ${contenu.slice(0, 200)}`,
+          conversationId,
         },
-      }).catch(() => {})
+      }).catch((err) => {
+        // Ne jamais crasher l'API à cause du signalement
+        console.error('[Signalement] Erreur création:', err)
+      })
       return NextResponse.json({
         error: '🚫 Message bloqué — coordonnées personnelles interdites sur la plateforme (CGU art. 5). Violation = bannissement + pénalité 1 mois.',
         blocked: true,
