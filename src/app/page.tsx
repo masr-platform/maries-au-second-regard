@@ -1,9 +1,8 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { motion, useInView, useScroll, useTransform, AnimatePresence } from 'framer-motion'
+import { motion, useInView, AnimatePresence } from 'framer-motion'
 import Link from 'next/link'
-import Image from 'next/image'
 import { CheckCircle2, ChevronDown, Star, ArrowRight, Shield, Brain, Lock, Users } from 'lucide-react'
 
 // ─── Compteur animé ───────────────────────────────────────────────
@@ -25,30 +24,6 @@ function Counter({ end, suffix = '', duration = 2 }: { end: number; suffix?: str
   return <span ref={ref}>{count}{suffix}</span>
 }
 
-// ─── Image animée avec parallax ──────────────────────────────────
-function AnimatedImage({ src, alt, caption, delay = 0 }: { src: string; alt: string; caption: string; delay?: number }) {
-  const ref = useRef(null)
-  const { scrollYProgress } = useScroll({ target: ref, offset: ['start end', 'end start'] })
-  const y = useTransform(scrollYProgress, [0, 1], [-20, 20])
-  return (
-    <motion.div ref={ref} initial={{ opacity: 0, y: 40 }} whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true }} transition={{ duration: 0.8, delay }}
-      className="relative group overflow-hidden rounded-3xl aspect-[4/5]">
-      <motion.div style={{ y }} className="absolute inset-0 scale-110">
-        <Image src={src} alt={alt} fill className="object-cover" sizes="(max-width: 768px) 100vw, 33vw" />
-      </motion.div>
-      <div className="absolute inset-0 bg-gradient-to-t from-[#060412] via-purple-900/30 to-transparent" />
-      <motion.div initial={{ opacity: 0, y: 10 }} whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true }} transition={{ delay: delay + 0.3 }}
-        className="absolute bottom-0 left-0 right-0 p-6">
-        <div className="flex items-center gap-2 bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl px-4 py-3">
-          <div className="w-2 h-2 rounded-full bg-purple-400 animate-pulse" />
-          <p className="text-white font-semibold text-sm">{caption}</p>
-        </div>
-      </motion.div>
-    </motion.div>
-  )
-}
 
 // ─── FAQ ─────────────────────────────────────────────────────────
 function FAQItem({ q, a }: { q: string; a: string }) {
@@ -78,23 +53,6 @@ const psychologues = [
   { initial: 'N', nom: 'Dr. Nour E.', spec: 'Psychologue clinicienne · Projet de vie islamique', annees: '8 ans' },
 ]
 
-const IMAGES = [
-  {
-    src: 'https://images.unsplash.com/photo-1759888107119-aa9accda6085?auto=format&fit=crop&w=800&q=90',
-    alt: 'Couple musulman au coucher du soleil',
-    caption: '312 couples formés — alhamdulillah',
-  },
-  {
-    src: 'https://images.unsplash.com/photo-1774233430628-ee64b5fc59b6?auto=format&fit=crop&w=800&q=90',
-    alt: 'Silhouette de couple au coucher du soleil',
-    caption: 'Compatibilité validée à +85%',
-  },
-  {
-    src: 'https://images.unsplash.com/photo-1774256561783-1cc2a1a1e55e?auto=format&fit=crop&w=800&q=90',
-    alt: 'Deux âmes au coucher du soleil',
-    caption: 'Un mariage. Pas une rencontre.',
-  },
-]
 
 const jsonLd = {
   '@context': 'https://schema.org',
@@ -235,6 +193,12 @@ export default function HomePage() {
             </div>
           </Link>
           <div className="flex items-center gap-4">
+            <Link href="/tarifs" className="text-white/50 hover:text-white text-sm transition-colors hidden md:block">
+              Tarifs
+            </Link>
+            <Link href="/faq" className="text-white/50 hover:text-white text-sm transition-colors hidden md:block">
+              FAQ
+            </Link>
             <Link href="/connexion" className="text-white/50 hover:text-white text-sm transition-colors hidden md:block">
               Connexion
             </Link>
@@ -1017,14 +981,13 @@ export default function HomePage() {
             <motion.div initial={{ opacity: 0, x: -30 }} whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }} transition={{ duration: 0.8 }}
               className="relative rounded-3xl overflow-hidden border border-purple-500/20 shadow-2xl shadow-fuchsia-500/10">
-              <video
-                src="/couple.mp4"
-                autoPlay
-                muted
-                loop
-                playsInline
-                preload="none"
-                className="w-full h-auto"
+              <img
+                src="https://images.pexels.com/photos/1024993/pexels-photo-1024993.jpeg?auto=compress&cs=tinysrgb&w=800&q=75"
+                alt="Couple heureux"
+                loading="lazy"
+                decoding="async"
+                className="w-full h-auto object-cover"
+                style={{ aspectRatio: '4/3' }}
               />
               <div className="absolute inset-0 bg-gradient-to-t from-[#060412]/60 via-transparent to-transparent pointer-events-none" />
               <div className="absolute bottom-6 left-6 right-6 flex items-center gap-3 pointer-events-none">
@@ -1120,11 +1083,13 @@ export default function HomePage() {
       <footer className="border-t border-purple-500/15 py-10 px-6 bg-gradient-to-r from-purple-950/20 via-fuchsia-950/10 to-purple-950/20">
         <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
           <p className="text-purple-300/60 text-sm font-bold">Mariés au Second Regard</p>
-          <div className="flex items-center gap-6 text-sm text-white/25">
+          <div className="flex flex-wrap items-center gap-4 text-sm text-white/25">
+            <Link href="/tarifs" className="hover:text-white/50 transition-colors">Tarifs</Link>
+            <Link href="/faq" className="hover:text-white/50 transition-colors">FAQ</Link>
+            <Link href="/connexion" className="hover:text-white/50 transition-colors">Connexion</Link>
             <Link href="/mentions-legales" className="hover:text-white/50 transition-colors">Mentions légales</Link>
             <Link href="/confidentialite" className="hover:text-white/50 transition-colors">Confidentialité</Link>
             <Link href="/cgu" className="hover:text-white/50 transition-colors">CGU</Link>
-            <Link href="/contact" className="hover:text-white/50 transition-colors">Contact</Link>
           </div>
           <p className="text-white/20 text-xs">© 2026 Mariés au Second Regard. Mariage islamique sérieux en France.</p>
         </div>
