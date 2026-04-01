@@ -14,7 +14,7 @@ export default withAuth(
       !path.startsWith('/api') &&
       !path.startsWith('/_next')
     ) {
-      if (path !== '/connexion' && path !== '/inscription') {
+      if (path !== '/connexion' && path !== '/inscription' && path !== '/tarifs' && path !== '/faq') {
         return NextResponse.redirect(new URL('/questionnaire', req.url))
       }
     }
@@ -38,6 +38,8 @@ export default withAuth(
           path === '/' ||
           path.startsWith('/inscription') ||
           path.startsWith('/connexion') ||
+          path.startsWith('/tarifs') ||
+          path.startsWith('/faq') ||
           path.startsWith('/api/auth') ||
           path.startsWith('/api/users') ||
           path.startsWith('/mentions-legales') ||
