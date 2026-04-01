@@ -2,8 +2,9 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { motion, useInView, AnimatePresence } from 'framer-motion'
+import Image from 'next/image'
 import Link from 'next/link'
-import { CheckCircle2, ChevronDown, Star, ArrowRight, Shield, Brain, Lock, Users } from 'lucide-react'
+import { CheckCircle2, ChevronDown, Star, ArrowRight } from 'lucide-react'
 
 // ─── Compteur animé ───────────────────────────────────────────────
 function Counter({ end, suffix = '', duration = 2 }: { end: number; suffix?: string; duration?: number }) {
@@ -216,17 +217,14 @@ export default function HomePage() {
       <section className="relative h-screen flex items-center justify-center pt-28 pb-20 px-6">
         {/* Photo de fond — mariage musulman */}
         <div className="absolute inset-0 overflow-hidden">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
+          <Image
             src="https://images.pexels.com/photos/31619527/pexels-photo-31619527.jpeg?auto=compress&cs=tinysrgb&w=1260&q=75"
-            srcSet="https://images.pexels.com/photos/31619527/pexels-photo-31619527.jpeg?auto=compress&cs=tinysrgb&w=768&q=70 768w, https://images.pexels.com/photos/31619527/pexels-photo-31619527.jpeg?auto=compress&cs=tinysrgb&w=1260&q=75 1260w, https://images.pexels.com/photos/31619527/pexels-photo-31619527.jpeg?auto=compress&cs=tinysrgb&w=1920&q=80 1920w"
-            sizes="100vw"
             alt=""
-            aria-hidden="true"
-            fetchPriority="high"
-            loading="eager"
-            decoding="sync"
-            className="w-full h-full object-cover"
+            fill
+            priority
+            quality={75}
+            sizes="100vw"
+            className="object-cover"
             style={{ filter: 'brightness(0.55) saturate(1.0)', objectPosition: 'center 8%' }}
           />
           {/* Dégradé par-dessus pour lisibilité du texte */}
