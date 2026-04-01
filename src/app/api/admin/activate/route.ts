@@ -8,6 +8,13 @@ import { prisma } from '@/lib/prisma'
 
 const ADMIN_SECRET = process.env.ADMIN_SECRET ?? 'masr-activate-2026'
 
+// BASIQUE n'est pas encore dans l'enum DB → on mappe vers STANDARD (équivalent)
+const PLAN_MAP: Record<string, string> = {
+  BASIQUE: 'STANDARD',
+  PREMIUM: 'PREMIUM',
+  ULTRA:   'ULTRA',
+}
+
 const PLANS: Record<string, { profilesParSemaine: number }> = {
   BASIQUE: { profilesParSemaine: 1  },
   PREMIUM: { profilesParSemaine: 7  },
@@ -36,11 +43,12 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: `Utilisateur introuvable: ${email}` }, { status: 404 })
     }
 
-    // 2. Mettre à jour le plan de l'utilisateur
+    // 2. Mettre à jour le plan — mapper BASIQUE→STANDARD si nécessaire
+    const dbPlan = PLAN_MAP[plan] ?? plan
     await prisma.user.update({
       where: { id: user.id },
       data: {
-        plan:               plan as 'BASIQUE' | 'PREMIUM' | 'ULTRA',
+        plan:               dbPlan as 'STANDARD' | 'PREMIUM' | 'ULTRA',
         profilesParSemaine: planData.profilesParSemaine,
       },
     })
@@ -59,7 +67,7 @@ export async function GET(req: NextRequest) {
     await prisma.subscription.create({
       data: {
         userId:              user.id,
-        plan:                plan as 'BASIQUE' | 'PREMIUM' | 'ULTRA',
+        plan:                dbPlan as 'STANDARD' | 'PREMIUM' | 'ULTRA',
         profilesParSemaine:  planData.profilesParSemaine,
         stripeSubscriptionId: uniqueId,
         stripePriceId:        '',

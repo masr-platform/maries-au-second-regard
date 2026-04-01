@@ -86,11 +86,14 @@ export async function POST(req: NextRequest) {
         const planData    = PLANS[plan]
         const nextBilling = new Date(Date.now() + 30 * 24 * 3600 * 1000)
 
+        // BASIQUE n'existe pas encore dans l'enum DB → mapper vers STANDARD
+        const dbPlan = plan === 'BASIQUE' ? 'STANDARD' : plan
+
         // Mettre à jour l'utilisateur
         await prisma.user.update({
           where: { id: userId },
           data: {
-            plan,
+            plan:                 dbPlan as 'STANDARD' | 'PREMIUM' | 'ULTRA',
             profilesParSemaine:   planData.profilesParSemaine,
             stripeSubscriptionId: session.subscription as string,
           },
@@ -100,7 +103,7 @@ export async function POST(req: NextRequest) {
         await prisma.subscription.create({
           data: {
             userId,
-            plan,
+            plan:                 dbPlan as 'STANDARD' | 'PREMIUM' | 'ULTRA',
             profilesParSemaine:   planData.profilesParSemaine,
             stripeSubscriptionId: session.subscription as string,
             stripePriceId:        process.env[`STRIPE_PRICE_${plan}`] ?? '',

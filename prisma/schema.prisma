@@ -469,10 +469,9 @@ enum Genre {
 
 enum Plan {
   GRATUIT
-  STANDARD  // legacy — mapped to BASIQUE
-  BASIQUE
-  PREMIUM
-  ULTRA
+  STANDARD  // Essentiel — 1 profil/semaine — 19,90€
+  PREMIUM   // Premium   — 1 profil/jour    — 29,90€
+  ULTRA     // Elite     — 3 profils/jour   — 49,90€
 }
 
 enum UserRole {
