@@ -85,11 +85,11 @@ const PACKS = [
   { key: 'PACK_3', label: '+ 3 profils supplémentaires', prix: '9,90', emoji: '🔥' },
 ]
 
-// ─── Stripe Payment Links ─────────────────────────────────────────────────────
+// ─── Stripe Payment Links (LIVE) ─────────────────────────────────────────────
 const PAYMENT_LINKS: Record<string, string> = {
-  BASIQUE: 'https://buy.stripe.com/test_3cIbJ06Tz7To9K905sgnK02',
-  PREMIUM: 'https://buy.stripe.com/test_3cI14m7XDa1w2hH6tQgnK01',
-  ULTRA:   'https://buy.stripe.com/test_5kQ28qcdTgpU5tTdWignK00',
+  BASIQUE: 'https://buy.stripe.com/5kQ28qcdTgpU5tTdWignK00',  // Essentiel 19,90€
+  PREMIUM: 'https://buy.stripe.com/3cI14m7XDa1w2hH6tQgnK01',  // Premium   29,90€
+  ULTRA:   'https://buy.stripe.com/3cIbJ06Tz7To9K905sgnK02',  // Élite     49,90€
 }
 
 export default function AbonnementPage() {
