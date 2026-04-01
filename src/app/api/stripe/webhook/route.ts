@@ -85,7 +85,7 @@ export async function POST(req: NextRequest) {
             plan,
             profilesParSemaine:   planData.profilesParSemaine,
             stripeSubscriptionId: session.subscription as string,
-            stripePriceId:        session.metadata?.priceId ?? '',
+            stripePriceId:        process.env[`STRIPE_PRICE_${plan}`] ?? '',
             status:               'ACTIVE',
             currentPeriodStart:   new Date(),
             currentPeriodEnd:     nextBilling,
@@ -238,13 +238,14 @@ export async function POST(req: NextRequest) {
           }
         }
 
-        // Abonnement passé en statut d'attente de résiliation
-        if (sub.status === 'canceled' || sub.cancel_at_period_end) {
+        // Abonnement réellement annulé (pas juste programmé pour l'être)
+        if (sub.status === 'canceled') {
           await prisma.subscription.updateMany({
             where: { userId, status: 'ACTIVE' },
             data:  { status: 'CANCELLED', cancelledAt: new Date() },
           })
         }
+        // cancel_at_period_end=true = annulation programmée, l'accès reste actif jusqu'à currentPeriodEnd
         break
       }
 
