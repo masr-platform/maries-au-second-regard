@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession }          from 'next-auth'
-import { authOptions }               from '@/app/api/auth/[...nextauth]/route'
+import { authOptions }               from '@/lib/auth'
 import { v2 as cloudinary }          from 'cloudinary'
 import { prisma }                    from '@/lib/prisma'
 
@@ -71,9 +71,6 @@ export async function POST(req: NextRequest) {
             transformation: [
               { width: 800, height: 800, crop: 'limit', quality: 'auto:good' },
             ],
-            // Accès restreint — non indexé publiquement
-            type:          'upload',
-            access_mode:   'authenticated',
           },
           (err, result) => {
             if (err || !result) reject(err ?? new Error('Upload échoué'))
