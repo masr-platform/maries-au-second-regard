@@ -97,6 +97,7 @@ export default function AbonnementPage() {
 
   const souscire = async (planKey: string) => {
     setLoadingPlan(planKey)
+    console.log(`[STRIPE] Clic bouton plan: "${planKey}"`)
     try {
       const res = await fetch('/api/stripe', {
         method: 'POST',
@@ -104,12 +105,16 @@ export default function AbonnementPage() {
         body: JSON.stringify({ plan: planKey }),
       })
       const data = await res.json()
+      console.log(`[STRIPE] Réponse serveur:`, data)
       if (data.url) {
+        console.log(`[STRIPE] Redirection checkout OK`)
         window.location.href = data.url
       } else {
-        toast.error(data.error || 'Erreur lors de la création du paiement')
+        console.error(`[STRIPE] Erreur:`, data.error, data.detail)
+        toast.error(data.error || data.detail || 'Erreur lors de la création du paiement')
       }
-    } catch {
+    } catch (err) {
+      console.error(`[STRIPE] Erreur réseau:`, err)
       toast.error('Erreur réseau')
     } finally {
       setLoadingPlan(null)
