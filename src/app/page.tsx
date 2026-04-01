@@ -1,28 +1,13 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
-import { motion, useInView, AnimatePresence } from 'framer-motion'
+import { useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { CheckCircle2, ChevronDown, Star, ArrowRight } from 'lucide-react'
 
 // ─── Compteur animé ───────────────────────────────────────────────
-function Counter({ end, suffix = '', duration = 2 }: { end: number; suffix?: string; duration?: number }) {
-  const [count, setCount] = useState(0)
-  const ref = useRef(null)
-  const inView = useInView(ref, { once: true })
-  useEffect(() => {
-    if (!inView) return
-    let start = 0
-    const step = end / (duration * 60)
-    const timer = setInterval(() => {
-      start += step
-      if (start >= end) { setCount(end); clearInterval(timer) }
-      else setCount(Math.floor(start))
-    }, 1000 / 60)
-    return () => clearInterval(timer)
-  }, [inView, end, duration])
-  return <span ref={ref}>{count}{suffix}</span>
+function Counter({ end, suffix = '' }: { end: number; suffix?: string; duration?: number }) {
+  return <span>{end}{suffix}</span>
 }
 
 
@@ -35,13 +20,11 @@ function FAQItem({ q, a }: { q: string; a: string }) {
         <span className="text-white font-medium pr-4">{q}</span>
         <ChevronDown size={18} className={`text-purple-400 flex-shrink-0 transition-transform duration-300 ${open ? 'rotate-180' : ''}`} />
       </button>
-      <AnimatePresence>
-        {open && (
-          <motion.div initial={{ height: 0 }} animate={{ height: 'auto' }} exit={{ height: 0 }} className="overflow-hidden">
+              {open && (
+          <div className="overflow-hidden">
             <p className="px-5 pb-5 text-white/60 text-sm leading-relaxed">{a}</p>
-          </motion.div>
+          </div>
         )}
-      </AnimatePresence>
     </div>
   )
 }
@@ -241,7 +224,7 @@ export default function HomePage() {
         <div className="relative z-10 text-center max-w-5xl mx-auto">
 
           {/* Indicateur live — preuve de vie et d'activité */}
-          <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}
+          <div
             className="inline-flex items-center gap-3 bg-white/5 border border-white/10 rounded-full px-5 py-2.5 mb-14">
             <span className="relative flex h-2.5 w-2.5">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-fuchsia-400 opacity-75" />
@@ -250,32 +233,32 @@ export default function HomePage() {
             <span className="text-white/55 text-sm">
               En ce moment — <strong className="text-white">3 nouvelles compatibilités</strong> viennent d'être validées
             </span>
-          </motion.div>
+          </div>
 
           {/* HEADLINE — Cinématique, narratif, inattendu */}
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.4 }}>
-            <motion.p initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
+          <div>
+            <p
               className="text-white/35 text-lg md:text-xl font-medium tracking-wide mb-4">
               Quelque part en France,
-            </motion.p>
-          </motion.div>
+            </p>
+          </div>
 
-          <motion.h1 initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.2 }}
+          <h1
             className="text-5xl sm:text-6xl md:text-7xl lg:text-[85px] font-black leading-[1.05] tracking-tight mb-5">
             <span className="text-white">quelqu'un vous cherche.</span>
             <br />
             <span className="bg-gradient-to-r from-purple-400 via-fuchsia-300 to-pink-400 bg-clip-text text-transparent">
               Nous l'avons trouvé(e).
             </span>
-          </motion.h1>
+          </h1>
 
-          <motion.p initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.45 }}
+          <p
             className="text-white/30 text-base md:text-lg font-medium italic mb-10">
             Il ne manque que vous.
-          </motion.p>
+          </p>
 
           {/* CTA principal */}
-          <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.6 }}
+          <div
             className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-14">
             <Link href="/inscription"
               className="group relative overflow-hidden bg-gradient-to-r from-purple-600 via-fuchsia-600 to-pink-600 text-white px-10 py-5 rounded-full text-lg font-black transition-all shadow-2xl shadow-fuchsia-500/25 hover:shadow-fuchsia-500/45 hover:scale-105">
@@ -288,17 +271,17 @@ export default function HomePage() {
             <Link href="#le-processus" className="text-white/30 hover:text-white/60 text-sm transition-colors">
               Comment ça marche ↓
             </Link>
-          </motion.div>
+          </div>
 
           {/* Signaux de confiance */}
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.8 }}
+          <div
             className="flex flex-wrap items-center justify-center gap-6 text-xs text-white/30">
             {['Aucune carte bancaire', 'Inscription 2 min', 'Psychologues certifiés', '100% halal'].map((t, i) => (
               <span key={i} className="flex items-center gap-1.5">
                 <CheckCircle2 size={12} className="text-fuchsia-400" /> {t}
               </span>
             ))}
-          </motion.div>
+          </div>
         </div>
       </section>
 
@@ -313,14 +296,13 @@ export default function HomePage() {
             { val: 312, suffix: '', label: 'Mariages formés', sub: 'alhamdulillah' },
             { val: 5, suffix: '', label: 'Psychologues', sub: 'cliniciens musulmans diplômés' },
           ].map((s, i) => (
-            <motion.div key={i} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }} transition={{ delay: i * 0.1 }}>
+            <div key={i}>
               <div className="text-3xl md:text-4xl font-black bg-gradient-to-r from-purple-400 via-fuchsia-300 to-pink-400 bg-clip-text text-transparent mb-1">
                 <Counter end={s.val} suffix={s.suffix} />
               </div>
               <div className="text-purple-400 font-semibold text-sm mb-0.5">{s.label}</div>
               <div className="text-white/30 text-xs">{s.sub}</div>
-            </motion.div>
+            </div>
           ))}
         </div>
       </section>
@@ -330,15 +312,14 @@ export default function HomePage() {
       ═══════════════════════════════════════════════════════════ */}
       <section className="py-28 px-6">
         <div className="max-w-5xl mx-auto">
-          <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }} className="text-center mb-14">
+          <div className="text-center mb-14">
             <p className="text-purple-400 text-sm font-semibold uppercase tracking-widest mb-3">Ce qu'on est vraiment</p>
             <h2 className="text-3xl md:text-5xl font-black text-white mb-4">
               Mariés au Second Regard,
               <br />
               <span className="bg-gradient-to-r from-purple-400 to-fuchsia-400 bg-clip-text text-transparent">c'est quoi ?</span>
             </h2>
-          </motion.div>
+          </div>
 
           {/* ── 5 étapes ────────────────────────────────────────── */}
           <div className="mb-16">
@@ -355,8 +336,7 @@ export default function HomePage() {
                 { emoji: '💬', label: 'Chat supervisé', sub: 'Si les deux acceptent — échanges encadrés sur la plateforme' },
                 { emoji: '🤝', label: 'Mouqabala', sub: 'Entretien virtuel pour confirmer avant le mariage' },
               ].map((step, i) => (
-                <motion.div key={i} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }} transition={{ delay: i * 0.1 }}
+                <div key={i}
                   className="flex flex-col items-center text-center gap-3 relative">
                   <div className="w-14 h-14 rounded-full bg-gradient-to-br from-purple-600 to-fuchsia-600 flex items-center justify-center text-2xl shadow-lg shadow-fuchsia-500/20">
                     {step.emoji}
@@ -364,7 +344,7 @@ export default function HomePage() {
                   <p className="text-white text-sm font-bold leading-tight">{step.label}</p>
                   <p className="text-white/40 text-xs leading-snug">{step.sub}</p>
                   {i < 4 && <div className="absolute top-7 left-full w-4 text-white/20 text-sm hidden sm:block">→</div>}
-                </motion.div>
+                </div>
               ))}
             </div>
           </div>
@@ -405,13 +385,12 @@ export default function HomePage() {
                 color: 'text-amber-300',
               },
             ].map((b, i) => (
-              <motion.div key={i} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }} transition={{ delay: i * 0.1 }}
+              <div key={i}
                 className={`bg-gradient-to-br ${b.gradient} border ${b.border} rounded-3xl p-7 hover:scale-[1.02] transition-all`}>
                 <div className="text-4xl mb-4">{b.emoji}</div>
                 <h3 className={`font-black text-lg mb-2 ${b.color}`}>{b.titre}</h3>
                 <p className="text-white/60 text-sm leading-relaxed">{b.texte}</p>
-              </motion.div>
+              </div>
             ))}
           </div>
         </div>
@@ -422,8 +401,7 @@ export default function HomePage() {
       ═══════════════════════════════════════════════════════════ */}
       <section id="tarifs" className="py-28 px-6 bg-gradient-to-b from-fuchsia-950/10 via-purple-950/15 to-transparent">
         <div className="max-w-5xl mx-auto">
-          <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }} className="text-center mb-5">
+          <div className="text-center mb-5">
             <p className="text-purple-400 text-sm font-semibold uppercase tracking-widest mb-3">Accès</p>
             <h2 className="text-3xl md:text-4xl font-black text-white mb-4">
               Un seul profil.
@@ -434,13 +412,13 @@ export default function HomePage() {
               Pas 500 swipes. Pas de hasard. Nos psychologues et notre IA sélectionnent pour vous
               les profils les plus compatibles. <strong className="text-white">Vous n'avez qu'une décision à prendre.</strong>
             </p>
-          </motion.div>
-          <motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }}
+          </div>
+          <div
             className="text-center mb-12">
             <span className="inline-block bg-purple-500/10 border border-purple-500/20 text-purple-300 text-sm px-5 py-2 rounded-full">
               Inscription + Questionnaire gratuits · Abonnement pour recevoir vos compatibilités
             </span>
-          </motion.div>
+          </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {[
               {
@@ -492,8 +470,7 @@ export default function HomePage() {
                 popular: false,
               },
             ].map((plan, i) => (
-              <motion.div key={i} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }} transition={{ delay: i * 0.1 }}
+              <div key={i}
                 className={`relative rounded-3xl p-7 flex flex-col ${
                   plan.popular
                     ? 'bg-gradient-to-b from-purple-600/25 to-fuchsia-900/20 border-2 border-purple-500 shadow-2xl shadow-purple-500/15'
@@ -529,7 +506,7 @@ export default function HomePage() {
                   }`}>
                   {plan.cta}
                 </Link>
-              </motion.div>
+              </div>
             ))}
           </div>
         </div>
@@ -543,8 +520,7 @@ export default function HomePage() {
           <div className="absolute top-1/2 left-0 w-[500px] h-[400px] bg-purple-700/5 rounded-full blur-[130px]" />
         </div>
         <div className="max-w-6xl mx-auto relative z-10">
-          <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }} className="text-center mb-16">
+          <div className="text-center mb-16">
             <p className="text-fuchsia-400 text-sm font-semibold uppercase tracking-widest mb-3">L'équipe derrière chaque compatibilité</p>
             <h2 className="text-3xl md:text-5xl font-black text-white mb-5">
               5 psychologues cliniciens musulmans.
@@ -557,7 +533,7 @@ export default function HomePage() {
               spécialisés dans la psychologie islamique du couple.
               Leur mission unique : vous présenter uniquement la personne <strong className="text-white">réellement faite pour vous.</strong>
             </p>
-          </motion.div>
+          </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-10">
             {[
               { ...psychologues[0], grad: 'from-purple-600 to-violet-700', border: 'hover:border-purple-500/40', badge: 'bg-purple-500/15 text-purple-300' },
@@ -566,8 +542,7 @@ export default function HomePage() {
               { ...psychologues[3], grad: 'from-blue-600 to-indigo-700', border: 'hover:border-blue-500/40', badge: 'bg-blue-500/15 text-blue-300' },
               { ...psychologues[4], grad: 'from-pink-600 to-rose-700', border: 'hover:border-pink-500/40', badge: 'bg-pink-500/15 text-pink-300' },
             ].map((p, i) => (
-              <motion.div key={i} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }} transition={{ delay: i * 0.1 }}
+              <div key={i}
                 className={`bg-white/4 border border-white/8 rounded-2xl p-5 text-center ${p.border} hover:bg-white/7 transition-all`}>
                 <div className={`w-14 h-14 bg-gradient-to-br ${p.grad} rounded-full flex items-center justify-center text-white font-black text-xl mx-auto mb-3 shadow-lg`}>
                   {p.initial}
@@ -575,7 +550,7 @@ export default function HomePage() {
                 <p className="text-white font-semibold text-sm mb-1">{p.nom}</p>
                 <p className="text-white/45 text-xs mb-3 leading-snug">{p.spec}</p>
                 <span className={`text-xs ${p.badge} px-2.5 py-1 rounded-full`}>{p.annees} d'expérience</span>
-              </motion.div>
+              </div>
             ))}
           </div>
         </div>
@@ -590,7 +565,7 @@ export default function HomePage() {
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[300px] bg-fuchsia-700/6 rounded-full blur-[120px]" />
         </div>
         <div className="max-w-4xl mx-auto text-center relative z-10">
-          <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
+          <div>
             <p className="text-purple-400/60 text-sm font-semibold uppercase tracking-widest mb-8">Notre engagement</p>
             <blockquote className="text-3xl md:text-4xl lg:text-5xl font-black text-white leading-tight mb-10">
               "Le mariage est une décision sacrée.
@@ -605,7 +580,7 @@ export default function HomePage() {
               filtrent et valident pour vous ne présenter <strong className="text-white/80">que la certitude</strong>.
               Pas des possibilités. Des compatibilités prouvées.
             </p>
-          </motion.div>
+          </div>
         </div>
       </section>
 
@@ -618,7 +593,7 @@ export default function HomePage() {
         </div>
         <div className="max-w-5xl mx-auto relative z-10">
           <div className="grid md:grid-cols-2 gap-16 items-center">
-            <motion.div initial={{ opacity: 0, x: -30 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }}>
+            <div>
               <p className="text-purple-400 text-sm font-semibold uppercase tracking-widest mb-4">Notre technologie</p>
               <h2 className="text-3xl md:text-4xl font-black text-white mb-6 leading-tight">
                 L'IA qui analyse
@@ -647,11 +622,10 @@ export default function HomePage() {
                   </div>
                 ))}
               </div>
-            </motion.div>
+            </div>
 
             {/* Visualisation IA */}
-            <motion.div initial={{ opacity: 0, x: 30 }} whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }} transition={{ delay: 0.2 }}
+            <div
               className="bg-gradient-to-br from-purple-950/40 to-fuchsia-950/30 border border-purple-500/20 rounded-3xl p-8 shadow-xl shadow-purple-900/20">
               <p className="text-fuchsia-300 text-xs font-bold uppercase tracking-widest mb-6">Analyse en cours — profil anonymisé</p>
               {[
@@ -667,8 +641,7 @@ export default function HomePage() {
                     <span className="text-fuchsia-300 font-bold">{dim.score}%</span>
                   </div>
                   <div className="h-1.5 bg-white/8 rounded-full overflow-hidden">
-                    <motion.div initial={{ width: 0 }} whileInView={{ width: `${dim.score}%` }}
-                      viewport={{ once: true }} transition={{ duration: 1, delay: i * 0.1 + 0.3, ease: 'easeOut' }}
+                    <div whileInView={{ width: `${dim.score}%` }}
                       className={`h-full bg-gradient-to-r ${dim.bar} rounded-full`} />
                   </div>
                 </div>
@@ -678,7 +651,7 @@ export default function HomePage() {
                 <span className="text-2xl font-black bg-gradient-to-r from-purple-400 to-fuchsia-400 bg-clip-text text-transparent">89%</span>
               </div>
               <p className="text-fuchsia-400/40 text-xs mt-2">✓ Validé par Dr. Salma R. — Psychologue clinicienne</p>
-            </motion.div>
+            </div>
           </div>
         </div>
       </section>
@@ -688,8 +661,7 @@ export default function HomePage() {
       ═══════════════════════════════════════════════════════════ */}
       <section id="le-processus" className="py-28 px-6 bg-gradient-to-b from-transparent to-purple-950/10">
         <div className="max-w-4xl mx-auto">
-          <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }} className="text-center mb-16">
+          <div className="text-center mb-16">
             <p className="text-purple-400 text-sm font-semibold uppercase tracking-widest mb-3">Le processus complet</p>
             <h2 className="text-3xl md:text-4xl font-black text-white mb-4">
               De l'inscription au mariage.
@@ -697,7 +669,7 @@ export default function HomePage() {
               <span className="bg-gradient-to-r from-purple-400 to-fuchsia-400 bg-clip-text text-transparent">Chaque étape a un sens.</span>
             </h2>
             <p className="text-white/40 max-w-lg mx-auto">Un parcours pensé pour protéger votre démarche, respecter vos valeurs et maximiser vos chances d'une vraie rencontre.</p>
-          </motion.div>
+          </div>
 
           <div className="space-y-4">
             {[
@@ -747,8 +719,7 @@ export default function HomePage() {
                 borderLeft: 'border-l-4 border-l-amber-500/60',
               },
             ].map((step, i) => (
-              <motion.div key={i} initial={{ opacity: 0, x: -20 }} whileInView={{ opacity: 1, x: 0 }}
-                viewport={{ once: true }} transition={{ delay: i * 0.1 }}
+              <div key={i}
                 className={`flex gap-5 bg-white/4 border border-white/8 ${step.borderLeft} rounded-2xl p-6 hover:bg-white/6 transition-all`}>
                 <div className="flex-shrink-0 font-black text-2xl text-white/15 w-10 pt-1">{step.num}</div>
                 <div className="flex-1">
@@ -759,7 +730,7 @@ export default function HomePage() {
                   </div>
                   <p className="text-white/50 text-sm leading-relaxed">{step.desc}</p>
                 </div>
-              </motion.div>
+              </div>
             ))}
           </div>
           <p className="text-center text-white/30 text-xs mt-8">
@@ -773,8 +744,7 @@ export default function HomePage() {
       ═══════════════════════════════════════════════════════════ */}
       <section className="py-28 px-6 bg-gradient-to-b from-transparent via-purple-950/10 to-transparent">
         <div className="max-w-5xl mx-auto">
-          <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }} className="text-center mb-16">
+          <div className="text-center mb-16">
             <p className="text-purple-400 text-sm font-semibold uppercase tracking-widest mb-3">Comparaison</p>
             <h2 className="text-3xl md:text-5xl font-black text-white mb-4">
               Pourquoi pas les autres.
@@ -782,7 +752,7 @@ export default function HomePage() {
             <p className="text-white/45 max-w-xl mx-auto">
               Sur les autres plateformes, vous cherchez seul(e) dans une masse. Ici, nous cherchons pour vous avec la rigueur de la science et la bienveillance de la foi islamique.
             </p>
-          </motion.div>
+          </div>
 
           <div className="overflow-hidden rounded-3xl border border-purple-500/20">
             <div className="grid grid-cols-3 bg-gradient-to-r from-purple-950/40 via-fuchsia-950/20 to-purple-950/40 px-6 py-4 text-xs font-bold uppercase tracking-wider border-b border-purple-500/20">
@@ -815,12 +785,11 @@ export default function HomePage() {
       ═══════════════════════════════════════════════════════════ */}
       <section className="py-28 px-6 bg-gradient-to-b from-transparent to-purple-950/10">
         <div className="max-w-6xl mx-auto">
-          <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }} className="text-center mb-16">
+          <div className="text-center mb-16">
             <p className="text-purple-400 text-sm font-semibold uppercase tracking-widest mb-3">Ils témoignent</p>
             <h2 className="text-3xl md:text-4xl font-black text-white mb-3">312 couples. Des histoires vraies.</h2>
             <p className="text-white/40">Pas des témoignages inventés. Des vies réelles, construites ici.</p>
-          </motion.div>
+          </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {[
@@ -861,8 +830,7 @@ export default function HomePage() {
                 border: 'border-pink-500/20',
               },
             ].map((t, i) => (
-              <motion.div key={i} initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }} transition={{ delay: i * 0.15 }}
+              <div key={i}
                 className={`relative bg-white/4 border ${t.border} rounded-3xl p-7 hover:bg-white/6 transition-all flex flex-col overflow-hidden`}>
                 {/* Top gradient strip */}
                 <div className={`absolute top-0 left-0 right-0 h-1 bg-gradient-to-r ${t.topGrad}`} />
@@ -882,7 +850,7 @@ export default function HomePage() {
                   </div>
                   <span className={`text-xs ${t.scoreColor} px-3 py-1.5 rounded-full font-black`}>{t.score}</span>
                 </div>
-              </motion.div>
+              </div>
             ))}
           </div>
         </div>
@@ -893,11 +861,10 @@ export default function HomePage() {
       ═══════════════════════════════════════════════════════════ */}
       <section className="py-24 px-6 bg-gradient-to-b from-transparent via-violet-950/8 to-transparent">
         <div className="max-w-3xl mx-auto">
-          <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }} className="text-center mb-12">
+          <div className="text-center mb-12">
             <h2 className="text-3xl font-black text-white mb-3">Vos questions.</h2>
             <p className="text-white/40">Nous répondons à tout. Franchement.</p>
-          </motion.div>
+          </div>
           <div className="space-y-3">
             {[
               {
@@ -949,10 +916,9 @@ export default function HomePage() {
                 a: 'Bien que nous investissions tous nos efforts pour assister nos utilisateurs dans leur recherche de partenaire compatible, nous ne pouvons garantir le résultat final sous forme de mariage. Notre approche méthodique et hautement structurée est néanmoins spécifiquement conçue pour optimiser les probabilités de succès dans cette quête.',
               },
             ].map((faq, i) => (
-              <motion.div key={i} initial={{ opacity: 0 }} whileInView={{ opacity: 1 }}
-                viewport={{ once: true }} transition={{ delay: i * 0.04 }}>
+              <div key={i}>
                 <FAQItem q={faq.q} a={faq.a} />
-              </motion.div>
+              </div>
             ))}
           </div>
         </div>
@@ -963,8 +929,7 @@ export default function HomePage() {
       ═══════════════════════════════════════════════════════════ */}
       <section className="py-20 px-6 bg-gradient-to-b from-transparent via-purple-950/5 to-transparent">
         <div className="max-w-5xl mx-auto">
-          <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }} className="text-center mb-12">
+          <div className="text-center mb-12">
             <h2 className="text-3xl md:text-4xl font-black text-white mb-4">
               Ils ne cherchaient plus.
               <br />
@@ -973,11 +938,10 @@ export default function HomePage() {
             <p className="text-white/40 text-base max-w-lg mx-auto">
               312 couples. Des histoires vraies. Des vies construites sur des bases solides.
             </p>
-          </motion.div>
+          </div>
           <div className="grid md:grid-cols-2 gap-12 items-center">
             {/* Vidéo — gauche */}
-            <motion.div initial={{ opacity: 0, x: -30 }} whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }} transition={{ duration: 0.8 }}
+            <div
               className="relative rounded-3xl overflow-hidden border border-purple-500/20 shadow-2xl shadow-fuchsia-500/10">
               <img
                 src="https://images.pexels.com/photos/1024993/pexels-photo-1024993.jpeg?auto=compress&cs=tinysrgb&w=800&q=75"
@@ -992,11 +956,10 @@ export default function HomePage() {
                 <div className="w-2 h-2 rounded-full bg-fuchsia-400 animate-pulse" />
                 <p className="text-white/80 text-sm font-semibold">312 mariages formés — alhamdulillah</p>
               </div>
-            </motion.div>
+            </div>
 
             {/* Texte — droite */}
-            <motion.div initial={{ opacity: 0, x: 30 }} whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }} transition={{ duration: 0.8, delay: 0.15 }}
+            <div
               className="flex flex-col gap-8">
               <div>
                 <p className="text-fuchsia-400 text-sm font-semibold uppercase tracking-widest mb-4">Ce que les autres ne font pas</p>
@@ -1031,7 +994,7 @@ export default function HomePage() {
                 Commencer gratuitement
                 <ArrowRight size={16} />
               </Link>
-            </motion.div>
+            </div>
           </div>
         </div>
       </section>
@@ -1047,8 +1010,7 @@ export default function HomePage() {
           <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-fuchsia-500/20 to-transparent" />
         </div>
 
-        <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }} className="relative z-10 max-w-3xl mx-auto text-center">
+        <div className="relative z-10 max-w-3xl mx-auto text-center">
 
           <p className="text-purple-400/60 text-sm font-semibold uppercase tracking-widest mb-8">La décision vous appartient</p>
 
@@ -1074,7 +1036,7 @@ export default function HomePage() {
           </Link>
 
           <p className="text-white/25 text-xs mt-6">Aucune carte bancaire · 2 minutes · 100% halal & supervisé</p>
-        </motion.div>
+        </div>
       </section>
 
       {/* ── FOOTER ─────────────────────────────────────────────── */}
