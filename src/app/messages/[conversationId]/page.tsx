@@ -3,7 +3,6 @@
 import { useEffect, useRef, useState, useCallback } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { useSession } from 'next-auth/react'
-import { motion, AnimatePresence } from 'framer-motion'
 import Image from 'next/image'
 import {
   ArrowLeft, Send, User, ShieldCheck, AlertTriangle,
@@ -73,14 +72,16 @@ function BulleMessage({
   showAvatar: boolean
 }) {
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 8 }}
-      animate={{ opacity: 1, y: 0 }}
+    <div
       className={`flex items-end gap-2 ${isMine ? 'flex-row-reverse' : 'flex-row'}`}
+      style={{ animation: 'msgFadeIn 0.2s ease both' }}
     >
       {/* Avatar interlocuteur */}
       {!isMine && (
-        <div className="w-7 h-7 rounded-full bg-dark-600 overflow-hidden flex-shrink-0 self-end">
+        <div
+          className="w-7 h-7 rounded-full overflow-hidden flex-shrink-0 self-end"
+          style={{ background: 'rgba(255,255,255,0.06)' }}
+        >
           {showAvatar ? (
             message.sender.photoUrl ? (
               <Image
@@ -104,16 +105,17 @@ function BulleMessage({
       <div className={`flex flex-col ${isMine ? 'items-end' : 'items-start'} max-w-[72%]`}>
         {/* Bulle */}
         <div
-          className={`px-4 py-2.5 rounded-2xl text-sm leading-relaxed ${
+          className="px-4 py-2.5 rounded-2xl text-sm leading-relaxed"
+          style={
             message.isFlagged
-              ? 'bg-red-900/30 border border-red-500/40 text-red-300'
+              ? { background: 'rgba(239,68,68,0.15)', border: '1px solid rgba(239,68,68,0.3)', color: '#fca5a5' }
               : isMine
-              ? 'bg-gold-500 text-black rounded-br-sm'
-              : 'bg-dark-700 text-white rounded-bl-sm'
-          }`}
+              ? { background: 'linear-gradient(135deg, #D4AF37, #f0d060)', color: '#000', borderBottomRightRadius: 4 }
+              : { background: 'rgba(255,255,255,0.07)', color: '#fff', borderBottomLeftRadius: 4 }
+          }
         >
           {message.isFlagged && (
-            <div className="flex items-center gap-1 mb-1 text-red-400 text-[10px]">
+            <div className="flex items-center gap-1 mb-1 text-[10px]" style={{ color: '#f87171' }}>
               <AlertTriangle size={10} />
               Message signalé par la supervision
             </div>
@@ -123,17 +125,17 @@ function BulleMessage({
 
         {/* Heure + statut lu */}
         <div className="flex items-center gap-1 mt-0.5 px-1">
-          <span className="text-dark-500 text-[10px]">
+          <span className="text-[10px]" style={{ color: 'rgba(255,255,255,0.25)' }}>
             {format(new Date(message.createdAt), 'HH:mm')}
           </span>
           {isMine && (
             message.isRead
-              ? <CheckCheck size={12} className="text-gold-500" />
-              : <Check size={12} className="text-dark-500" />
+              ? <CheckCheck size={12} style={{ color: '#D4AF37' }} />
+              : <Check size={12} style={{ color: 'rgba(255,255,255,0.25)' }} />
           )}
         </div>
       </div>
-    </motion.div>
+    </div>
   )
 }
 
@@ -175,7 +177,6 @@ export default function ChatPage() {
 
       const data = await res.json()
 
-      // Charger les infos de la conversation en parallèle
       if (!conv) {
         const convRes = await fetch('/api/conversations')
         const convData = await convRes.json()
@@ -184,7 +185,6 @@ export default function ChatPage() {
       }
 
       if (cursorParam) {
-        // Pagination : ajouter en tête
         setMessages(prev => [...(data.messages as Message[]), ...prev])
       } else {
         setMessages(data.messages as Message[])
@@ -199,7 +199,7 @@ export default function ChatPage() {
     }
   }, [conversationId, conv, router])
 
-  // ─── Supabase Realtime — écoute les nouveaux messages ─────────────────────
+  // ─── Supabase Realtime ─────────────────────────────────────────────────────
   useEffect(() => {
     if (!userId) return
 
@@ -207,7 +207,6 @@ export default function ChatPage() {
 
     const supabase = getSupabaseClient()
 
-    // Souscrire aux INSERT sur la table Message (filtre client-side pour compatibilité camelCase)
     const channel = supabase
       .channel(`conv:${conversationId}`)
       .on(
@@ -229,15 +228,10 @@ export default function ChatPage() {
             isFlagged: boolean
           }
 
-          // Filtrer côté client (évite les problèmes de filtre camelCase côté Supabase)
           if (newMsg.conversationId !== conversationId) return
-
-          // Ne pas dupliquer nos propres messages (déjà ajoutés à l'envoi)
           if (newMsg.senderId === userId) return
 
-          // Récupérer les infos du sender si nécessaire
           setMessages(prev => {
-            // Éviter les doublons
             if (prev.some(m => m.id === newMsg.id)) return prev
             return [
               ...prev,
@@ -262,7 +256,7 @@ export default function ChatPage() {
     }
   }, [conversationId, userId])
 
-  // ─── Scroll auto vers le bas ───────────────────────────────────────────────
+  // ─── Scroll auto ───────────────────────────────────────────────────────────
   useEffect(() => {
     if (!loading) {
       endRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -277,7 +271,6 @@ export default function ChatPage() {
     setTexte('')
     setEnvoi(true)
 
-    // Optimistic update
     const msgTemp: Message = {
       id: `temp-${Date.now()}`,
       content: contenu,
@@ -303,7 +296,6 @@ export default function ChatPage() {
 
       if (!res.ok) {
         const err = await res.json()
-        // Supprimer le message temp
         setMessages(prev => prev.filter(m => m.id !== msgTemp.id))
         setTexte(contenu)
         toast.error(err.error || 'Erreur lors de l\'envoi')
@@ -312,7 +304,6 @@ export default function ChatPage() {
 
       const { message: msgServeur } = await res.json()
 
-      // Remplacer le temp par le vrai message
       setMessages(prev =>
         prev.map(m => (m.id === msgTemp.id ? msgServeur : m))
       )
@@ -326,7 +317,6 @@ export default function ChatPage() {
     }
   }
 
-  // ─── Touche Entrée pour envoyer (Shift+Entrée = nouvelle ligne) ───────────
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault()
@@ -334,7 +324,7 @@ export default function ChatPage() {
     }
   }
 
-  // ─── Regrouper les messages par date ──────────────────────────────────────
+  // ─── Grouper par date ──────────────────────────────────────────────────────
   const groupes = messages.reduce<{ date: string; msgs: Message[] }[]>((acc, msg) => {
     const dateStr = format(new Date(msg.createdAt), 'EEEE d MMMM', { locale: fr })
     const last = acc[acc.length - 1]
@@ -349,7 +339,10 @@ export default function ChatPage() {
   if (loading) {
     return (
       <div className="h-screen bg-dark-900 flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-gold-500/30 border-t-gold-500 rounded-full animate-spin" />
+        <div
+          className="w-8 h-8 rounded-full animate-spin"
+          style={{ border: '2px solid rgba(212,175,55,0.2)', borderTopColor: '#D4AF37' }}
+        />
       </div>
     )
   }
@@ -360,13 +353,23 @@ export default function ChatPage() {
     <div className="h-screen bg-dark-900 flex flex-col">
 
       {/* ── Header ────────────────────────────────────────────────── */}
-      <div className="flex-shrink-0 bg-dark-800 border-b border-dark-700 px-4 py-3 flex items-center gap-3">
-        <Link href="/messages" className="p-2 rounded-lg hover:bg-dark-700 transition-colors text-dark-300 hover:text-white">
+      <div
+        className="flex-shrink-0 px-4 py-3 flex items-center gap-3"
+        style={{ background: 'rgba(10,10,14,0.95)', borderBottom: '1px solid rgba(255,255,255,0.07)', backdropFilter: 'blur(20px)' }}
+      >
+        <Link
+          href="/messages"
+          className="p-2 rounded-lg transition-colors"
+          style={{ color: 'rgba(255,255,255,0.4)' }}
+        >
           <ArrowLeft size={18} />
         </Link>
 
         {/* Avatar */}
-        <div className="w-10 h-10 rounded-full bg-dark-600 overflow-hidden flex-shrink-0">
+        <div
+          className="w-10 h-10 rounded-full overflow-hidden flex-shrink-0"
+          style={{ background: 'rgba(255,255,255,0.06)' }}
+        >
           {interlocuteur?.photoUrl ? (
             <Image
               src={interlocuteur.photoUrl}
@@ -387,50 +390,60 @@ export default function ChatPage() {
             <h2 className="text-white font-semibold text-sm truncate">
               {interlocuteur?.prenom || '…'}
             </h2>
-            <span className="text-[10px] text-gold-400 bg-gold-500/10 px-2 py-0.5 rounded-full border border-gold-500/20 flex-shrink-0">
+            <span
+              className="text-[10px] px-2 py-0.5 rounded-full flex-shrink-0"
+              style={{ color: '#D4AF37', background: 'rgba(212,175,55,0.12)', border: '1px solid rgba(212,175,55,0.2)' }}
+            >
               {ETAPE_LABELS[conv?.etape || ''] || conv?.etape}
             </span>
           </div>
           {interlocuteur?.lastActiveAt && (
-            <p className="text-dark-400 text-[11px]">
+            <p className="text-[11px]" style={{ color: 'rgba(255,255,255,0.3)' }}>
               Actif {formatDistanceToNow(new Date(interlocuteur.lastActiveAt), { addSuffix: true, locale: fr })}
             </p>
           )}
         </div>
 
-        {/* Info étape */}
+        {/* Bouton info étape */}
         <button
           onClick={() => setShowEtapeInfo(!showEtapeInfo)}
-          className="p-2 rounded-lg hover:bg-dark-700 transition-colors text-dark-400 hover:text-white"
+          className="p-2 rounded-lg transition-all"
+          style={{
+            color: showEtapeInfo ? '#D4AF37' : 'rgba(255,255,255,0.3)',
+            background: showEtapeInfo ? 'rgba(212,175,55,0.1)' : 'transparent',
+          }}
         >
           <Info size={16} />
         </button>
       </div>
 
-      {/* ── Bandeau info étape ────────────────────────────────────── */}
-      <AnimatePresence>
-        {showEtapeInfo && (
-          <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: 'auto', opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            className="overflow-hidden flex-shrink-0"
-          >
-            <div className="bg-dark-800 border-b border-dark-700 px-4 py-3 flex items-start gap-2">
-              <Lock size={13} className="text-gold-400 mt-0.5 flex-shrink-0" />
-              <p className="text-dark-300 text-xs leading-relaxed">
-                {ETAPE_INFO[conv?.etape || ''] || ''}
-              </p>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {/* ── Bandeau info étape — CSS maxHeight transition ─────────── */}
+      <div
+        className="flex-shrink-0 overflow-hidden transition-all duration-300"
+        style={{
+          maxHeight: showEtapeInfo ? '120px' : '0px',
+          opacity: showEtapeInfo ? 1 : 0,
+        }}
+      >
+        <div
+          className="px-4 py-3 flex items-start gap-2"
+          style={{ background: 'rgba(212,175,55,0.06)', borderBottom: '1px solid rgba(212,175,55,0.15)' }}
+        >
+          <Lock size={13} style={{ color: '#D4AF37', marginTop: 2, flexShrink: 0 }} />
+          <p className="text-xs leading-relaxed" style={{ color: 'rgba(255,255,255,0.55)' }}>
+            {ETAPE_INFO[conv?.etape || ''] || ''}
+          </p>
+        </div>
+      </div>
 
       {/* ── Bandeau conversation signalée ─────────────────────────── */}
       {conv?.isFlagged && (
-        <div className="flex-shrink-0 bg-red-900/30 border-b border-red-500/30 px-4 py-2 flex items-center gap-2">
-          <AlertTriangle size={13} className="text-red-400" />
-          <p className="text-red-300 text-xs">
+        <div
+          className="flex-shrink-0 px-4 py-2 flex items-center gap-2"
+          style={{ background: 'rgba(239,68,68,0.12)', borderBottom: '1px solid rgba(239,68,68,0.2)' }}
+        >
+          <AlertTriangle size={13} style={{ color: '#f87171' }} />
+          <p className="text-xs" style={{ color: '#fca5a5' }}>
             Cette conversation est sous surveillance suite à un contenu signalé. Restez respectueux.
           </p>
         </div>
@@ -444,7 +457,11 @@ export default function ChatPage() {
           <div className="flex justify-center mb-4">
             <button
               onClick={() => chargerMessages(cursor || undefined)}
-              className="text-xs text-dark-400 hover:text-white border border-dark-600 hover:border-dark-500 px-4 py-1.5 rounded-full transition-colors"
+              className="text-xs border px-4 py-1.5 rounded-full transition-colors"
+              style={{
+                color: 'rgba(255,255,255,0.4)',
+                borderColor: 'rgba(255,255,255,0.1)',
+              }}
             >
               Charger les messages précédents
             </button>
@@ -453,11 +470,14 @@ export default function ChatPage() {
 
         {messages.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full text-center py-12">
-            <div className="w-12 h-12 rounded-full bg-gold-500/10 flex items-center justify-center mb-3">
-              <ShieldCheck size={20} className="text-gold-500" />
+            <div
+              className="w-12 h-12 rounded-full flex items-center justify-center mb-3"
+              style={{ background: 'rgba(212,175,55,0.1)' }}
+            >
+              <ShieldCheck size={20} style={{ color: '#D4AF37' }} />
             </div>
             <p className="text-white font-medium text-sm mb-1">Conversation ouverte</p>
-            <p className="text-dark-400 text-xs max-w-xs">
+            <p className="text-xs max-w-xs" style={{ color: 'rgba(255,255,255,0.35)' }}>
               Commencez par vous présenter. Restez sincère, respectueux et dans le cadre de votre démarche de mariage.
             </p>
           </div>
@@ -466,12 +486,14 @@ export default function ChatPage() {
             <div key={groupe.date}>
               {/* Séparateur de date */}
               <div className="flex items-center gap-3 my-4">
-                <div className="flex-1 h-px bg-dark-700" />
-                <span className="text-dark-500 text-[11px] capitalize">{groupe.date}</span>
-                <div className="flex-1 h-px bg-dark-700" />
+                <div className="flex-1 h-px" style={{ background: 'rgba(255,255,255,0.07)' }} />
+                <span className="text-[11px] capitalize" style={{ color: 'rgba(255,255,255,0.25)' }}>
+                  {groupe.date}
+                </span>
+                <div className="flex-1 h-px" style={{ background: 'rgba(255,255,255,0.07)' }} />
               </div>
 
-              {/* Messages du groupe */}
+              {/* Messages */}
               <div className="space-y-1">
                 {groupe.msgs.map((msg, idx) => {
                   const isMine = msg.senderId === userId
@@ -495,12 +517,15 @@ export default function ChatPage() {
       </div>
 
       {/* ── Zone saisie ───────────────────────────────────────────── */}
-      <div className="flex-shrink-0 bg-dark-800 border-t border-dark-700 px-4 py-3">
-        {/* Compteur de messages étape PRESENTATION */}
+      <div
+        className="flex-shrink-0 px-4 py-3"
+        style={{ background: 'rgba(10,10,14,0.95)', borderTop: '1px solid rgba(255,255,255,0.07)', backdropFilter: 'blur(20px)' }}
+      >
+        {/* Compteur étape PRESENTATION */}
         {conv?.etape === 'PRESENTATION' && conv.messageCount < 10 && (
           <div className="flex items-center gap-1.5 mb-2">
-            <Clock size={11} className="text-dark-500" />
-            <span className="text-[11px] text-dark-500">
+            <Clock size={11} style={{ color: 'rgba(255,255,255,0.25)' }} />
+            <span className="text-[11px]" style={{ color: 'rgba(255,255,255,0.3)' }}>
               Étape présentation : {conv.messageCount}/10 messages · 3 jours min pour progresser
             </span>
           </div>
@@ -514,27 +539,50 @@ export default function ChatPage() {
             onKeyDown={handleKeyDown}
             placeholder="Votre message…"
             rows={1}
-            className="flex-1 bg-dark-700 border border-dark-600 rounded-xl px-4 py-2.5 text-white text-sm placeholder-dark-400 resize-none outline-none focus:border-gold-500/50 transition-colors max-h-32 overflow-y-auto"
-            style={{ minHeight: '44px' }}
+            className="flex-1 rounded-xl px-4 py-2.5 text-white text-sm resize-none outline-none transition-all max-h-32 overflow-y-auto"
+            style={{
+              background: 'rgba(255,255,255,0.05)',
+              border: '1px solid rgba(255,255,255,0.1)',
+              minHeight: '44px',
+              color: '#fff',
+            }}
+            onFocus={(e) => { e.currentTarget.style.borderColor = 'rgba(212,175,55,0.4)' }}
+            onBlur={(e) => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)' }}
           />
           <button
             onClick={envoyer}
             disabled={!texte.trim() || envoi}
-            className="w-11 h-11 flex-shrink-0 rounded-xl bg-gold-500 hover:bg-gold-400 disabled:bg-dark-600 disabled:cursor-not-allowed transition-colors flex items-center justify-center"
+            className="w-11 h-11 flex-shrink-0 rounded-xl flex items-center justify-center transition-all"
+            style={{
+              background: texte.trim() && !envoi
+                ? 'linear-gradient(135deg, #D4AF37, #f0d060)'
+                : 'rgba(255,255,255,0.06)',
+              cursor: !texte.trim() || envoi ? 'not-allowed' : 'pointer',
+            }}
           >
             {envoi ? (
-              <div className="w-4 h-4 border-2 border-black/20 border-t-black rounded-full animate-spin" />
+              <div
+                className="w-4 h-4 rounded-full animate-spin"
+                style={{ border: '2px solid rgba(0,0,0,0.2)', borderTopColor: '#000' }}
+              />
             ) : (
-              <Send size={17} className="text-black" />
+              <Send size={17} style={{ color: texte.trim() ? '#000' : 'rgba(255,255,255,0.2)' }} />
             )}
           </button>
         </div>
 
         {/* Rappel supervision */}
-        <p className="text-[10px] text-dark-600 mt-2 text-center">
+        <p className="text-[10px] mt-2 text-center" style={{ color: 'rgba(255,255,255,0.2)' }}>
           🔒 Messages supervisés · Ne partagez pas vos coordonnées personnelles
         </p>
       </div>
+
+      <style jsx global>{`
+        @keyframes msgFadeIn {
+          from { opacity: 0; transform: translateY(6px); }
+          to   { opacity: 1; transform: translateY(0); }
+        }
+      `}</style>
     </div>
   )
 }
