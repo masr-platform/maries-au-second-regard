@@ -103,12 +103,18 @@ export default function AbonnementPage() {
   }, [status, router])
 
   const souscire = (planKey: string) => {
-    const url = PAYMENT_LINKS[planKey]
-    if (!url) {
+    const baseUrl = PAYMENT_LINKS[planKey]
+    if (!baseUrl) {
       toast.error('Lien de paiement introuvable')
       return
     }
     setLoadingPlan(planKey)
+    // Passe userId:plan dans client_reference_id pour que le webhook
+    // puisse activer automatiquement l'abonnement en base de données
+    const userId = (session?.user as { id?: string })?.id ?? ''
+    const url = userId
+      ? `${baseUrl}?client_reference_id=${userId}:${planKey}`
+      : baseUrl
     window.location.href = url
   }
 

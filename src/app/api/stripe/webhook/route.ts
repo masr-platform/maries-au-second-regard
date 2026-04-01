@@ -62,8 +62,26 @@ export async function POST(req: NextRequest) {
 
         if (session.mode !== 'subscription') break
 
-        const { userId, plan } = session.metadata as { userId: string; plan: PlanKey }
-        if (!userId || !plan || !PLANS[plan]) break
+        // ── Résolution userId + plan ──────────────────────────────────────────
+        // Source 1 : metadata (ancien flow via /api/stripe)
+        // Source 2 : client_reference_id (Payment Links → "userId:PLAN")
+        let userId = session.metadata?.userId ?? ''
+        let plan   = (session.metadata?.plan ?? '') as PlanKey
+
+        if ((!userId || !plan) && session.client_reference_id) {
+          const parts = session.client_reference_id.split(':')
+          if (parts.length === 2) {
+            userId = parts[0]
+            plan   = parts[1] as PlanKey
+          }
+        }
+
+        console.log(`[WEBHOOK] checkout.session.completed | userId=${userId} | plan=${plan} | client_reference_id=${session.client_reference_id}`)
+
+        if (!userId || !plan || !PLANS[plan]) {
+          console.error(`[WEBHOOK] Données manquantes — userId="${userId}" plan="${plan}" — activation impossible`)
+          break
+        }
 
         const planData    = PLANS[plan]
         const nextBilling = new Date(Date.now() + 30 * 24 * 3600 * 1000)
