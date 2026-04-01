@@ -129,15 +129,14 @@ export default function HomePage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
-      {/* Fond coloré global — dégradés ambiants fixes */}
+      {/* Fond coloré global — dégradés ambiants */}
       <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
-        <div className="absolute top-0 left-0 w-[800px] h-[800px] bg-purple-700/8 rounded-full blur-[160px]" />
-        <div className="absolute top-1/2 right-0 w-[600px] h-[600px] bg-fuchsia-600/8 rounded-full blur-[140px]" />
-        <div className="absolute bottom-0 left-1/3 w-[500px] h-[500px] bg-violet-500/6 rounded-full blur-[120px]" />
+        <div className="absolute top-0 left-0 w-1/2 h-1/2 bg-purple-700/5 rounded-full blur-3xl" />
+        <div className="absolute bottom-0 right-0 w-1/2 h-1/2 bg-fuchsia-600/5 rounded-full blur-3xl" />
       </div>
 
       {/* ── NAVIGATION ─────────────────────────────────────────── */}
-      <nav className="fixed top-0 left-0 right-0 z-50 border-b border-purple-500/10 bg-[#060412]/90 backdrop-blur-xl">
+      <nav className="fixed top-0 left-0 right-0 z-50 border-b border-purple-500/10 bg-[#060412]/95">
         <div className="max-w-7xl mx-auto px-6 py-3 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-3">
             {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -194,11 +193,8 @@ export default function HomePage() {
           <div className="absolute inset-0 bg-gradient-to-r from-[#060412]/30 via-transparent to-[#060412]/30" />
         </div>
 
-        {/* Orbs dramatiques par-dessus la photo */}
-        <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute top-1/4 left-1/4 w-[600px] h-[600px] bg-purple-700/8 rounded-full blur-[140px]" />
-          <div className="absolute bottom-1/3 right-1/4 w-[400px] h-[400px] bg-fuchsia-600/8 rounded-full blur-[100px]" />
-        </div>
+        {/* Overlay léger */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none" />
 
         <div className="relative z-10 text-center max-w-5xl mx-auto">
 
@@ -495,9 +491,7 @@ export default function HomePage() {
           PSYCHOLOGUES — Autorité et crédibilité
       ═══════════════════════════════════════════════════════════ */}
       <section className="py-28 px-6 bg-gradient-to-b from-fuchsia-950/10 via-purple-950/15 to-transparent relative">
-        <div className="absolute inset-0 pointer-events-none overflow-hidden">
-          <div className="absolute top-1/2 left-0 w-[500px] h-[400px] bg-purple-700/5 rounded-full blur-[130px]" />
-        </div>
+        <div className="absolute inset-0 pointer-events-none overflow-hidden" />
         <div className="max-w-6xl mx-auto relative z-10">
           <div className="text-center mb-16">
             <p className="text-fuchsia-400 text-sm font-semibold uppercase tracking-widest mb-3">L'équipe derrière chaque compatibilité</p>
@@ -540,9 +534,7 @@ export default function HomePage() {
       ═══════════════════════════════════════════════════════════ */}
       <section className="py-28 px-6 relative overflow-hidden">
         {/* Glow derrière la citation */}
-        <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[300px] bg-fuchsia-700/6 rounded-full blur-[120px]" />
-        </div>
+        <div className="absolute inset-0 pointer-events-none" />
         <div className="max-w-4xl mx-auto text-center relative z-10">
           <div>
             <p className="text-purple-400/60 text-sm font-semibold uppercase tracking-widest mb-8">Notre engagement</p>
@@ -567,9 +559,7 @@ export default function HomePage() {
           L'IA — Au cœur de l'expérience
       ═══════════════════════════════════════════════════════════ */}
       <section className="py-28 px-6 bg-gradient-to-b from-purple-950/15 via-fuchsia-950/8 to-transparent relative">
-        <div className="absolute inset-0 pointer-events-none overflow-hidden">
-          <div className="absolute bottom-0 right-1/4 w-[400px] h-[300px] bg-violet-600/6 rounded-full blur-[100px]" />
-        </div>
+        <div className="absolute inset-0 pointer-events-none overflow-hidden" />
         <div className="max-w-5xl mx-auto relative z-10">
           <div className="grid md:grid-cols-2 gap-16 items-center">
             <div>
@@ -986,7 +976,6 @@ export default function HomePage() {
       <section className="py-36 px-6 relative overflow-hidden">
         <div className="absolute inset-0 pointer-events-none">
           <div className="absolute inset-0 bg-gradient-to-b from-purple-950/25 via-fuchsia-950/20 to-purple-950/25" />
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[900px] h-[500px] bg-gradient-to-r from-purple-600/10 via-fuchsia-600/10 to-pink-600/10 rounded-full blur-[100px]" />
           <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-purple-500/30 to-transparent" />
           <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-fuchsia-500/20 to-transparent" />
         </div>
