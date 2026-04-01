@@ -222,8 +222,8 @@ export default function HomePage() {
             alt=""
             fill
             priority
-            quality={75}
-            sizes="100vw"
+            quality={70}
+            sizes="(max-width: 640px) 640px, (max-width: 1080px) 1080px, 1920px"
             className="object-cover"
             style={{ filter: 'brightness(0.55) saturate(1.0)', objectPosition: 'center 8%' }}
           />
