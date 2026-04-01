@@ -1,15 +1,14 @@
 'use client'
 
-import { useState } from 'react'
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { z } from 'zod'
-import { signIn } from 'next-auth/react'
-import { useRouter } from 'next/navigation'
-import Link from 'next/link'
-import { motion } from 'framer-motion'
+import { useState }      from 'react'
+import { useForm }       from 'react-hook-form'
+import { zodResolver }   from '@hookform/resolvers/zod'
+import { z }             from 'zod'
+import { signIn }        from 'next-auth/react'
+import { useRouter }     from 'next/navigation'
+import Link              from 'next/link'
 import { Eye, EyeOff, User, Mail, Lock, Calendar, MapPin, ArrowRight } from 'lucide-react'
-import toast from 'react-hot-toast'
+import toast             from 'react-hot-toast'
 
 const schema = z.object({
   prenom:        z.string().min(2, 'Prénom requis').max(50),
@@ -24,7 +23,7 @@ const schema = z.object({
     const age = (Date.now() - new Date(d).getTime()) / (365.25 * 24 * 3600 * 1000)
     return age >= 18
   }, 'Vous devez avoir au moins 18 ans'),
-  ville:    z.string().optional(),
+  ville:      z.string().optional(),
   accepteCGU: z.boolean().refine((v) => v, 'Vous devez accepter les CGU'),
 }).refine((d) => d.password === d.passwordConf, {
   message: 'Les mots de passe ne correspondent pas',
@@ -49,9 +48,9 @@ export default function InscriptionPage() {
     setLoading(true)
     try {
       const res = await fetch('/api/users', {
-        method: 'POST',
+        method:  'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
+        body:    JSON.stringify({
           prenom:        data.prenom,
           email:         data.email,
           password:      data.password,
@@ -71,14 +70,14 @@ export default function InscriptionPage() {
 
       // Connexion automatique
       const signInRes = await signIn('credentials', {
-        email: data.email,
+        email:    data.email,
         password: data.password,
         redirect: false,
       })
 
       if (signInRes?.ok) {
         toast.success('Bienvenue sur Mariés au Second Regard !')
-        router.push('/questionnaire')
+        router.push('/photos')  // → étape photos avant questionnaire
       }
     } catch {
       toast.error('Erreur réseau. Vérifiez votre connexion.')
@@ -95,12 +94,7 @@ export default function InscriptionPage() {
         <div className="absolute bottom-1/3 right-1/4 w-48 h-48 bg-gold-500/5 rounded-full blur-3xl" />
       </div>
 
-      <motion.div
-        initial={{ opacity: 0, y: 30 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-        className="w-full max-w-md relative z-10"
-      >
+      <div className="w-full max-w-md relative z-10">
         {/* Header */}
         <div className="text-center mb-8">
           <Link href="/" className="inline-flex items-center gap-2 mb-6">
@@ -293,7 +287,7 @@ export default function InscriptionPage() {
             </Link>
           </p>
         </div>
-      </motion.div>
+      </div>
     </div>
   )
 }

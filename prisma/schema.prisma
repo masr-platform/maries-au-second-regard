@@ -30,8 +30,9 @@ model User {
   pays                  String    @default("France")
   origine               String?
 
-  // Photo
-  photoUrl              String?
+  // Photos (1 à 3 — privées, visibles uniquement en cas de compatibilité)
+  photos                String[]  @default([])
+  photoUrl              String?   // Première photo (principale)
   photoApproved         Boolean   @default(false)
   photoPublique         Boolean   @default(true)
 
