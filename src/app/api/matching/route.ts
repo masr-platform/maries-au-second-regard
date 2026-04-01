@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic'
+
 // API Matching — Proposer des profils compatibles
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'

@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic'
+
 // API Messages — Chat supervisé
 import { NextRequest, NextResponse } from 'next/server'
 import { waitUntil } from '@vercel/functions'

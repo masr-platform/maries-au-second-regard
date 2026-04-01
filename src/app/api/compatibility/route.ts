@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic'
+
 // ══════════════════════════════════════════════════════════════════
 // API Compatibility — Score + Explication IA en langage humain
 // GET /api/compatibility → renvoie les matchs avec explications

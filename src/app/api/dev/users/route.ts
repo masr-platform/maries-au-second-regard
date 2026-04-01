@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic'
+
 // ⚠️ ROUTE DE DEV UNIQUEMENT — protégée par DEV_SECRET
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'

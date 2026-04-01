@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic'
+
 // ══════════════════════════════════════════════════════════════════
 // API Sessions — Mouqabalas virtuelles & sessions imam/thérapie
 // POST  /api/sessions  — Créer une session + room Daily.co

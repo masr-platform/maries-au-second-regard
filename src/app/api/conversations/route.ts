@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic'
+
 // API Conversations — Liste des conversations actives de l'utilisateur
 import { NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'

@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic'
+
 // ══════════════════════════════════════════════════════════════════
 // GET /api/sessions/[sessionId]/token
 // Génère un meeting token Daily.co personnalisé pour un participant.
