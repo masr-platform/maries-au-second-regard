@@ -1,32 +1,11 @@
-'use client'
-
-import { useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { CheckCircle2, ChevronDown, Star, ArrowRight } from 'lucide-react'
+import { CheckCircle2, Star, ArrowRight } from 'lucide-react'
+import { FAQItem } from './FAQItem'
 
-// ─── Compteur animé ───────────────────────────────────────────────
+// ─── Compteur statique ────────────────────────────────────────────
 function Counter({ end, suffix = '' }: { end: number; suffix?: string; duration?: number }) {
   return <span>{end}{suffix}</span>
-}
-
-
-// ─── FAQ ─────────────────────────────────────────────────────────
-function FAQItem({ q, a }: { q: string; a: string }) {
-  const [open, setOpen] = useState(false)
-  return (
-    <div className="border border-purple-500/15 rounded-2xl overflow-hidden bg-gradient-to-r from-purple-950/20 to-fuchsia-950/10 hover:border-purple-500/30 transition-colors">
-      <button onClick={() => setOpen(!open)} className="w-full flex justify-between items-center p-5 text-left">
-        <span className="text-white font-medium pr-4">{q}</span>
-        <ChevronDown size={18} className={`text-purple-400 flex-shrink-0 transition-transform duration-300 ${open ? 'rotate-180' : ''}`} />
-      </button>
-              {open && (
-          <div className="overflow-hidden">
-            <p className="px-5 pb-5 text-white/60 text-sm leading-relaxed">{a}</p>
-          </div>
-        )}
-    </div>
-  )
 }
 
 const psychologues = [
@@ -328,7 +307,7 @@ export default function HomePage() {
               Chaque étape a
               <span className="bg-gradient-to-r from-purple-400 to-fuchsia-400 bg-clip-text text-transparent"> un sens.</span>
             </h3>
-            <div className="grid grid-cols-5 gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
               {[
                 { emoji: '📝', label: 'Questionnaire', sub: '40 questions sur vos valeurs, votre foi, votre projet de vie' },
                 { emoji: '🤖', label: "L'IA analyse", sub: 'Compatibilité spirituelle, caractère, style de vie, vision du couple' },
@@ -641,7 +620,7 @@ export default function HomePage() {
                     <span className="text-fuchsia-300 font-bold">{dim.score}%</span>
                   </div>
                   <div className="h-1.5 bg-white/8 rounded-full overflow-hidden">
-                    <div whileInView={{ width: `${dim.score}%` }}
+                    <div style={{ width: `${dim.score}%` }}
                       className={`h-full bg-gradient-to-r ${dim.bar} rounded-full`} />
                   </div>
                 </div>
@@ -754,28 +733,30 @@ export default function HomePage() {
             </p>
           </div>
 
-          <div className="overflow-hidden rounded-3xl border border-purple-500/20">
-            <div className="grid grid-cols-3 bg-gradient-to-r from-purple-950/40 via-fuchsia-950/20 to-purple-950/40 px-6 py-4 text-xs font-bold uppercase tracking-wider border-b border-purple-500/20">
-              <div className="text-white/40">Critère</div>
-              <div className="text-center text-white/30">Les autres</div>
-              <div className="text-center text-fuchsia-300">Mariés au Second Regard</div>
-            </div>
-            {[
-              ['Psychologues cliniciens', '✗ Aucun', '✓ 5 spécialistes'],
-              ['Seuil de compatibilité garanti', '✗ Aucun seuil', '✓ Minimum +85%'],
-              ['Analyse scientifique', '✗ Filtres basiques', '✓ 7 dimensions IA'],
-              ['Cadre islamique intégré', '✗ Inexistant', '✓ À chaque étape'],
-              ['Supervision des échanges', '✗ Aucune', '✓ Temps réel'],
-              ['Vérification manuelle des profils', '✗ Automatique', '✓ Systématique'],
-              ['Valeurs avant apparence', '✗ Photo en premier', '✓ Score en premier'],
-              ['Objectif clair', '✗ Rencontres', '✓ Mariage uniquement'],
-            ].map(([crit, eux, nous], i) => (
-              <div key={i} className={`grid grid-cols-3 px-6 py-4 text-sm border-t border-white/5 ${i % 2 === 0 ? 'bg-purple-950/10' : 'bg-white/[0.01]'}`}>
-                <div className="text-white/60 font-medium">{crit}</div>
-                <div className="text-center text-red-400/50 text-sm">{eux}</div>
-                <div className="text-center text-fuchsia-300 font-semibold text-sm">{nous}</div>
+          <div className="overflow-x-auto rounded-3xl border border-purple-500/20">
+            <div className="min-w-[520px]">
+              <div className="grid grid-cols-3 bg-gradient-to-r from-purple-950/40 via-fuchsia-950/20 to-purple-950/40 px-4 py-4 text-xs font-bold uppercase tracking-wider border-b border-purple-500/20">
+                <div className="text-white/40">Critère</div>
+                <div className="text-center text-white/30">Les autres</div>
+                <div className="text-center text-fuchsia-300">Nous</div>
               </div>
-            ))}
+              {[
+                ['Psychologues cliniciens', '✗ Aucun', '✓ 5 spécialistes'],
+                ['Seuil de compatibilité garanti', '✗ Aucun seuil', '✓ Minimum +85%'],
+                ['Analyse scientifique', '✗ Filtres basiques', '✓ 7 dimensions IA'],
+                ['Cadre islamique intégré', '✗ Inexistant', '✓ À chaque étape'],
+                ['Supervision des échanges', '✗ Aucune', '✓ Temps réel'],
+                ['Vérification manuelle des profils', '✗ Automatique', '✓ Systématique'],
+                ['Valeurs avant apparence', '✗ Photo en premier', '✓ Score en premier'],
+                ['Objectif clair', '✗ Rencontres', '✓ Mariage uniquement'],
+              ].map(([crit, eux, nous], i) => (
+                <div key={i} className={`grid grid-cols-3 px-4 py-4 text-sm border-t border-white/5 ${i % 2 === 0 ? 'bg-purple-950/10' : 'bg-white/[0.01]'}`}>
+                  <div className="text-white/60 font-medium text-xs">{crit}</div>
+                  <div className="text-center text-red-400/50 text-xs">{eux}</div>
+                  <div className="text-center text-fuchsia-300 font-semibold text-xs">{nous}</div>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </section>
