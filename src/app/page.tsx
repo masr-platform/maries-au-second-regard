@@ -2,6 +2,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { CheckCircle2, Star, ArrowRight } from 'lucide-react'
 import { FAQItem } from './FAQItem'
+import { MobileMenu } from './MobileMenu'
 
 // ─── Compteur statique ────────────────────────────────────────────
 function Counter({ end, suffix = '' }: { end: number; suffix?: string; duration?: number }) {
@@ -136,7 +137,7 @@ export default function HomePage() {
       </div>
 
       {/* ── NAVIGATION ─────────────────────────────────────────── */}
-      <nav className="fixed top-0 left-0 right-0 z-50 border-b border-purple-500/10 bg-[#060412]/95">
+      <nav className="fixed top-0 left-0 right-0 z-50 border-b border-purple-500/10 bg-[#060412]/95 relative">
         <div className="max-w-7xl mx-auto px-6 py-3 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-3">
             {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -165,9 +166,10 @@ export default function HomePage() {
               Connexion
             </Link>
             <Link href="/inscription"
-              className="bg-purple-600 hover:bg-purple-500 text-white px-5 py-2.5 rounded-full text-sm font-bold transition-all hover:shadow-lg hover:shadow-purple-500/25">
+              className="bg-purple-600 hover:bg-purple-500 text-white px-5 py-2.5 rounded-full text-sm font-bold transition-all hover:shadow-lg hover:shadow-purple-500/25 hidden md:inline-flex">
               Commencer gratuitement →
             </Link>
+            <MobileMenu />
           </div>
         </div>
       </nav>
