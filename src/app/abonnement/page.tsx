@@ -3,21 +3,28 @@
 import { useSession, signOut } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
-import { motion } from 'framer-motion'
 import Link from 'next/link'
 import {
   Heart, MessageCircle, Bell, User, Settings, LogOut,
   TrendingUp, Check, Zap, Star, Shield, ArrowRight,
-  CreditCard, RefreshCw, AlertCircle,
+  CreditCard, RefreshCw, AlertCircle, Crown, Sparkles, Flame,
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 
 const planLabel: Record<string, string> = {
   GRATUIT:  'Accès limité',
-  STANDARD: 'Accès limité',
+  STANDARD: 'Essentiel — 1 profil qualifié/semaine',
   BASIQUE:  'Essentiel — 1 profil qualifié/semaine',
   PREMIUM:  'Premium — 1 profil qualifié/jour',
   ULTRA:    'Élite — 3 profils qualifiés/jour',
+}
+
+const planNom: Record<string, string> = {
+  GRATUIT:  'Gratuit',
+  STANDARD: 'Essentiel',
+  BASIQUE:  'Essentiel',
+  PREMIUM:  'Premium',
+  ULTRA:    'Élite',
 }
 
 const PLANS = [
@@ -26,26 +33,33 @@ const PLANS = [
     nom: 'Essentiel',
     prix: '19,90',
     desc: 'Pour une démarche posée et sérieuse',
-    color: 'border-white/15',
+    icon: Heart,
     badge: null,
+    gradient: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 100%)',
+    borderColor: 'rgba(255,255,255,0.1)',
+    accentColor: '#D4AF37',
     note: 'Une formule rythmée pour prendre le temps de vraiment connaître chaque profil proposé.',
     items: [
       '1 profil compatible proposé chaque semaine',
       'Profils 100% vérifiés et sélectionnés par notre IA',
-      'Chat encadré avec 1 personne à la fois (pas de mélange)',
+      'Chat encadré avec 1 personne à la fois',
       '1 Mouqabala virtuelle par mois avec un imam',
       'Score de compatibilité détaillé sur 7 dimensions',
       'Support par email',
     ],
-    ctaCls: 'border border-white/25 text-white hover:bg-white/5',
+    cta: 'Commencer',
+    ctaStyle: { background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.15)', color: '#fff' },
   },
   {
     key: 'PREMIUM',
     nom: 'Premium',
     prix: '29,90',
-    desc: 'Le plus choisi — Recommandé',
-    color: 'border-gold-500/50',
-    badge: '⭐ Le plus choisi',
+    desc: 'Le choix de ceux qui veulent avancer',
+    icon: Star,
+    badge: { text: '⭐ RECOMMANDÉ', bg: 'linear-gradient(90deg, #D4AF37, #f0d060)', color: '#000' },
+    gradient: 'linear-gradient(135deg, #1c1610 0%, #2a1f0a 50%, #1c1610 100%)',
+    borderColor: 'rgba(212,175,55,0.5)',
+    accentColor: '#D4AF37',
     note: 'Tout ce qu\'inclut l\'Essentiel, avec plus de profils et plus de liberté d\'échange.',
     items: [
       '1 profil compatible proposé chaque jour (×4 vs Essentiel)',
@@ -56,28 +70,32 @@ const PLANS = [
       'Score de compatibilité détaillé sur 7 dimensions',
       'Support prioritaire',
     ],
-    ctaCls: 'bg-gold-500 text-black font-bold hover:bg-gold-400',
+    cta: 'Passer Premium',
+    ctaStyle: { background: 'linear-gradient(90deg, #D4AF37, #f0d060)', color: '#000', fontWeight: 700 },
   },
   {
     key: 'ULTRA',
     nom: 'Élite',
     prix: '49,90',
-    desc: 'Pour accélérer sérieusement',
-    color: 'border-purple-500/40',
-    badge: '💍 Maximum',
+    desc: 'Pour ceux qui visent le meilleur',
+    icon: Crown,
+    badge: { text: '👑 EXCLUSIF', bg: 'linear-gradient(90deg, #7c3aed, #a855f7)', color: '#fff' },
+    gradient: 'linear-gradient(135deg, #0f0a1a 0%, #1a0f2e 50%, #0f0a1a 100%)',
+    borderColor: 'rgba(168,85,247,0.45)',
+    accentColor: '#a855f7',
     note: 'Tout ce qu\'inclut le Premium, avec le maximum de visibilité et d\'accompagnement.',
     items: [
       '3 profils compatibles proposés chaque jour (×3 vs Premium)',
       'Profils 100% vérifiés et sélectionnés par notre IA',
       'Chat encadré avec plusieurs matchs en même temps',
       'Mouqabalas virtuelles illimitées avec un imam',
-      'Votre profil mis en avant — vu en priorité par les autres membres',
+      'Votre profil mis en avant — vu en priorité',
       'Accès en avant-première aux nouveaux inscrits',
       'Score de compatibilité détaillé sur 7 dimensions',
       'Accompagnement personnalisé par notre équipe',
-      'Support prioritaire',
     ],
-    ctaCls: 'bg-purple-600 text-white font-bold hover:bg-purple-500',
+    cta: 'Accéder à l\'Élite',
+    ctaStyle: { background: 'linear-gradient(90deg, #7c3aed, #a855f7)', color: '#fff', fontWeight: 700 },
   },
 ]
 
@@ -109,8 +127,6 @@ export default function AbonnementPage() {
       return
     }
     setLoadingPlan(planKey)
-    // Passe userId:plan dans client_reference_id pour que le webhook
-    // puisse activer automatiquement l'abonnement en base de données
     const userId = (session?.user as { id?: string })?.id ?? ''
     const url = userId
       ? `${baseUrl}?client_reference_id=${userId}:${planKey}`
@@ -216,186 +232,262 @@ export default function AbonnementPage() {
       </aside>
 
       {/* ── Contenu ─────────────────────────────────────────────── */}
-      <main className="md:ml-64 p-6 md:p-8 max-w-3xl">
+      <main className="md:ml-64 p-6 md:p-8 max-w-4xl">
+
+        {/* Header */}
         <div className="mb-8">
           <h1 className="text-2xl font-serif font-bold text-white">Mon abonnement</h1>
-          <p className="text-dark-300 text-sm mt-1">Gérez votre plan et vos crédits de profils</p>
+          <p className="text-dark-300 text-sm mt-1">Choisissez le plan qui correspond à votre démarche</p>
         </div>
 
-        {/* Plan actuel */}
-        <motion.div
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="bg-dark-800 border border-dark-700 rounded-2xl p-6 mb-8"
+        {/* ── Plan actuel ─────────────────────────────────────── */}
+        <div
+          className="rounded-2xl p-6 mb-10 relative overflow-hidden"
+          style={{
+            background: isPaid
+              ? 'linear-gradient(135deg, #1c1610 0%, #2a1f0a 100%)'
+              : 'linear-gradient(135deg, #111827 0%, #1f2937 100%)',
+            border: isPaid ? '1px solid rgba(212,175,55,0.35)' : '1px solid rgba(255,255,255,0.08)',
+          }}
         >
-          <div className="flex items-center justify-between mb-3">
-            <h2 className="text-white font-semibold text-sm">Plan actuel</h2>
+          {/* Glow subtil */}
+          {isPaid && (
+            <div
+              className="absolute top-0 right-0 w-32 h-32 rounded-full pointer-events-none"
+              style={{ background: 'radial-gradient(circle, rgba(212,175,55,0.15) 0%, transparent 70%)', transform: 'translate(30%, -30%)' }}
+            />
+          )}
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-white font-semibold text-sm uppercase tracking-wider opacity-60">Plan actuel</h2>
             {isPaid && (
-              <span className="text-xs text-green-400 flex items-center gap-1">
-                <Check size={12} /> Actif
+              <span className="text-xs text-green-400 flex items-center gap-1.5 bg-green-400/10 px-2.5 py-1 rounded-full border border-green-400/20">
+                <Check size={11} /> Actif
               </span>
             )}
           </div>
 
           <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-xl bg-gold-500/10 flex items-center justify-center">
-              <Star size={22} className="text-gold-400" />
+            <div
+              className="w-14 h-14 rounded-2xl flex items-center justify-center flex-shrink-0"
+              style={{ background: isPaid ? 'rgba(212,175,55,0.15)' : 'rgba(255,255,255,0.05)', border: isPaid ? '1px solid rgba(212,175,55,0.25)' : '1px solid rgba(255,255,255,0.08)' }}
+            >
+              <Star size={24} style={{ color: isPaid ? '#D4AF37' : '#6b7280' }} />
             </div>
             <div>
-              <p className="text-white font-bold text-lg capitalize">
-                {currentPlan === 'STANDARD' ? 'Basique' : currentPlan.charAt(0) + currentPlan.slice(1).toLowerCase()}
+              <p className="text-white font-bold text-xl font-serif">
+                {planNom[currentPlan] ?? currentPlan.charAt(0) + currentPlan.slice(1).toLowerCase()}
               </p>
-              <p className="text-dark-400 text-sm">{planLabel[currentPlan]}</p>
+              <p className="text-sm mt-0.5" style={{ color: isPaid ? 'rgba(212,175,55,0.7)' : '#6b7280' }}>
+                {planLabel[currentPlan]}
+              </p>
             </div>
           </div>
 
           {!isPaid && (
-            <div className="mt-4 p-3 bg-gold-500/5 border border-gold-500/20 rounded-xl">
-              <p className="text-gold-400 text-xs flex items-center gap-2">
-                <AlertCircle size={13} />
-                Passez Premium pour recevoir 2× plus de matchs et débloquer toutes les fonctionnalités.
+            <div className="mt-5 p-3.5 rounded-xl flex items-start gap-2.5" style={{ background: 'rgba(212,175,55,0.06)', border: '1px solid rgba(212,175,55,0.15)' }}>
+              <Sparkles size={14} style={{ color: '#D4AF37', marginTop: 1, flexShrink: 0 }} />
+              <p className="text-xs" style={{ color: 'rgba(212,175,55,0.8)' }}>
+                Passez à un plan payant pour recevoir vos premiers profils compatibles et débloquer toutes les fonctionnalités.
               </p>
             </div>
           )}
-        </motion.div>
+        </div>
 
-        {/* Plans */}
-        <h2 className="text-white font-semibold text-sm mb-4">Changer de plan</h2>
-        <div className="grid sm:grid-cols-3 gap-4 mb-10">
-          {PLANS.map((plan, i) => {
+        {/* ── Titre section plans ─────────────────────────────── */}
+        <div className="flex items-center gap-3 mb-6">
+          <h2 className="text-white font-semibold text-lg">Choisir un plan</h2>
+          <div className="flex-1 h-px" style={{ background: 'linear-gradient(90deg, rgba(212,175,55,0.3), transparent)' }} />
+        </div>
+
+        {/* ── Cards plans ─────────────────────────────────────── */}
+        <div className="grid sm:grid-cols-3 gap-5 mb-12">
+          {PLANS.map((plan) => {
             const isActive = currentPlan === plan.key || (plan.key === 'BASIQUE' && currentPlan === 'STANDARD')
+            const Icon = plan.icon
+            const isPremium = plan.key === 'PREMIUM'
+
             return (
-              <motion.div
+              <div
                 key={plan.key}
-                initial={{ opacity: 0, y: 16 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: i * 0.08 }}
-                className={`relative bg-dark-800 border-2 ${plan.color} rounded-2xl p-5 flex flex-col ${isActive ? 'ring-1 ring-gold-500/40' : ''}`}
+                className="relative rounded-2xl flex flex-col transition-transform duration-200 hover:-translate-y-0.5"
+                style={{
+                  background: plan.gradient,
+                  border: `1.5px solid ${isActive ? 'rgba(212,175,55,0.6)' : plan.borderColor}`,
+                  boxShadow: isPremium && !isActive
+                    ? '0 0 30px rgba(212,175,55,0.12), 0 4px 24px rgba(0,0,0,0.4)'
+                    : plan.key === 'ULTRA' && !isActive
+                    ? '0 0 30px rgba(168,85,247,0.1), 0 4px 24px rgba(0,0,0,0.4)'
+                    : '0 4px 16px rgba(0,0,0,0.3)',
+                  padding: isPremium ? '1.5px' : '0',
+                }}
               >
-                {plan.badge && (
-                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-gold-500 text-black text-[10px] font-bold px-2.5 py-0.5 rounded-full whitespace-nowrap">
-                    {plan.badge}
-                  </div>
-                )}
-                {isActive && (
-                  <div className="absolute -top-3 right-3 bg-green-500 text-white text-[10px] font-bold px-2.5 py-0.5 rounded-full">
-                    Actif
-                  </div>
+                {/* Bordure gradient pour Premium */}
+                {isPremium && !isActive && (
+                  <div
+                    className="absolute inset-0 rounded-2xl pointer-events-none"
+                    style={{ background: 'linear-gradient(135deg, rgba(212,175,55,0.4), rgba(240,208,96,0.1), rgba(212,175,55,0.4))', zIndex: 0, borderRadius: 'inherit' }}
+                  />
                 )}
 
-                <div className="mb-4">
-                  <p className="text-white font-serif font-bold text-lg">{plan.nom}</p>
-                  <p className="text-dark-500 text-xs mb-2">{plan.desc}</p>
-                  <div className="flex items-end gap-0.5">
-                    <span className="text-2xl font-bold text-white">{plan.prix}€</span>
-                    <span className="text-dark-500 text-xs mb-0.5">/mois</span>
-                  </div>
-                </div>
+                <div className="relative z-10 p-5 flex flex-col h-full" style={{ background: plan.gradient, borderRadius: 'calc(1rem - 1.5px)' }}>
 
-                <ul className="space-y-2 mb-3">
-                  {plan.items.map((item, j) => (
-                    <li key={j} className="flex items-start gap-2 text-xs text-dark-300">
-                      <Check size={12} className="text-gold-400 mt-0.5 flex-shrink-0" />
-                      {item}
-                    </li>
-                  ))}
-                </ul>
-                {plan.note && (
-                  <p className="text-dark-500 text-[11px] italic mb-4 leading-relaxed flex-1">{plan.note}</p>
-                )}
-
-                <button
-                  onClick={() => !isActive && souscire(plan.key)}
-                  disabled={isActive || loadingPlan === plan.key}
-                  className={`w-full py-2.5 rounded-xl text-sm transition-all ${
-                    isActive
-                      ? 'bg-dark-700 text-dark-500 cursor-default'
-                      : plan.ctaCls
-                  } disabled:opacity-60`}
-                >
-                  {loadingPlan === plan.key ? (
-                    <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin mx-auto" />
-                  ) : isActive ? (
-                    'Plan actuel'
-                  ) : (
-                    `Passer ${plan.nom}`
+                  {/* Badge */}
+                  {plan.badge && !isActive && (
+                    <div
+                      className="absolute -top-3.5 left-1/2 -translate-x-1/2 text-[10px] font-bold px-3 py-1 rounded-full whitespace-nowrap"
+                      style={{ background: plan.badge.bg, color: plan.badge.color, boxShadow: '0 2px 8px rgba(0,0,0,0.3)' }}
+                    >
+                      {plan.badge.text}
+                    </div>
                   )}
-                </button>
-              </motion.div>
+                  {isActive && (
+                    <div
+                      className="absolute -top-3.5 left-1/2 -translate-x-1/2 text-[10px] font-bold px-3 py-1 rounded-full whitespace-nowrap"
+                      style={{ background: 'linear-gradient(90deg, #22c55e, #16a34a)', color: '#fff', boxShadow: '0 2px 8px rgba(0,0,0,0.3)' }}
+                    >
+                      ✓ Plan actuel
+                    </div>
+                  )}
+
+                  {/* Header carte */}
+                  <div className="mb-5 mt-2">
+                    <div
+                      className="w-10 h-10 rounded-xl flex items-center justify-center mb-3"
+                      style={{ background: `${plan.accentColor}18`, border: `1px solid ${plan.accentColor}30` }}
+                    >
+                      <Icon size={18} style={{ color: plan.accentColor }} />
+                    </div>
+                    <p className="text-white font-serif font-bold text-xl leading-tight">{plan.nom}</p>
+                    <p className="text-xs mt-0.5 mb-3" style={{ color: 'rgba(255,255,255,0.4)' }}>{plan.desc}</p>
+                    <div className="flex items-end gap-1">
+                      <span className="text-3xl font-bold text-white leading-none">{plan.prix}€</span>
+                      <span className="text-xs mb-0.5" style={{ color: 'rgba(255,255,255,0.35)' }}>/mois</span>
+                    </div>
+                  </div>
+
+                  {/* Features */}
+                  <ul className="space-y-2.5 mb-4 flex-1">
+                    {plan.items.map((item, j) => (
+                      <li key={j} className="flex items-start gap-2 text-xs" style={{ color: 'rgba(255,255,255,0.65)' }}>
+                        <Check size={11} className="mt-0.5 flex-shrink-0" style={{ color: plan.accentColor }} />
+                        {item}
+                      </li>
+                    ))}
+                  </ul>
+
+                  {plan.note && (
+                    <p className="text-[10px] italic mb-4 leading-relaxed" style={{ color: 'rgba(255,255,255,0.3)' }}>{plan.note}</p>
+                  )}
+
+                  {/* CTA */}
+                  <button
+                    onClick={() => !isActive && souscire(plan.key)}
+                    disabled={isActive || loadingPlan === plan.key}
+                    className="w-full py-2.5 rounded-xl text-sm transition-all duration-200 disabled:opacity-60"
+                    style={isActive
+                      ? { background: 'rgba(255,255,255,0.06)', color: 'rgba(255,255,255,0.35)', cursor: 'default' }
+                      : plan.ctaStyle
+                    }
+                  >
+                    {loadingPlan === plan.key ? (
+                      <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin mx-auto" />
+                    ) : isActive ? (
+                      'Plan actuel'
+                    ) : (
+                      plan.cta
+                    )}
+                  </button>
+                </div>
+              </div>
             )
           })}
         </div>
 
-        {/* Crédits one-shot */}
-        <h2 className="text-white font-semibold text-sm mb-1">Crédits supplémentaires</h2>
-        <p className="text-dark-500 text-xs mb-4">Achetez des profils en plus, sans changer d&apos;abonnement</p>
-        <div className="grid sm:grid-cols-2 gap-4 mb-10 max-w-sm">
-          {PACKS.map((pack, i) => (
-            <motion.div
-              key={pack.key}
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2 + i * 0.06 }}
-              className="bg-dark-800 border border-dark-700 hover:border-gold-500/30 rounded-2xl p-5 transition-colors"
-            >
-              <div className="text-2xl mb-2">{pack.emoji}</div>
-              <p className="text-white text-sm font-medium mb-0.5">{pack.label}</p>
-              <p className="text-gold-400 font-bold text-xl mb-4">{pack.prix}€</p>
-              <button
-                onClick={() => acheterPack(pack.key)}
-                disabled={loadingPack === pack.key}
-                className="w-full py-2 text-sm border border-gold-500/40 text-gold-400 hover:bg-gold-500/10 rounded-xl transition-all disabled:opacity-60"
+        {/* ── Crédits supplémentaires ─────────────────────────── */}
+        <div className="mb-10">
+          <div className="flex items-center gap-3 mb-2">
+            <Flame size={16} style={{ color: '#f97316' }} />
+            <h2 className="text-white font-semibold">Crédits supplémentaires</h2>
+          </div>
+          <p className="text-xs mb-4" style={{ color: 'rgba(255,255,255,0.35)' }}>
+            Achetez des profils en plus, sans changer d&apos;abonnement
+          </p>
+          <div className="grid sm:grid-cols-2 gap-4 max-w-xs">
+            {PACKS.map((pack) => (
+              <div
+                key={pack.key}
+                className="rounded-2xl p-5 transition-all duration-200"
+                style={{
+                  background: 'linear-gradient(135deg, #1a1a1a 0%, #1f1f1f 100%)',
+                  border: '1px solid rgba(255,255,255,0.08)',
+                }}
               >
-                {loadingPack === pack.key ? (
-                  <div className="w-4 h-4 border-2 border-gold-400 border-t-transparent rounded-full animate-spin mx-auto" />
-                ) : (
-                  <>Acheter <ArrowRight size={13} className="inline ml-1" /></>
-                )}
-              </button>
-            </motion.div>
-          ))}
+                <div className="text-2xl mb-2">{pack.emoji}</div>
+                <p className="text-white text-sm font-medium mb-0.5">{pack.label}</p>
+                <p className="font-bold text-xl mb-4" style={{ color: '#D4AF37' }}>{pack.prix}€</p>
+                <button
+                  onClick={() => acheterPack(pack.key)}
+                  disabled={loadingPack === pack.key}
+                  className="w-full py-2 text-sm rounded-xl transition-all duration-200 disabled:opacity-60"
+                  style={{ border: '1px solid rgba(212,175,55,0.35)', color: '#D4AF37', background: 'rgba(212,175,55,0.05)' }}
+                >
+                  {loadingPack === pack.key ? (
+                    <div className="w-4 h-4 border-2 border-gold-400 border-t-transparent rounded-full animate-spin mx-auto" />
+                  ) : (
+                    <>Acheter <ArrowRight size={13} className="inline ml-1" /></>
+                  )}
+                </button>
+              </div>
+            ))}
+          </div>
         </div>
 
-        {/* Pourquoi ces limites */}
-        <div className="bg-dark-800 border border-dark-700 rounded-2xl p-5 mb-4">
+        {/* ── Pourquoi ces limites ─────────────────────────────── */}
+        <div
+          className="rounded-2xl p-5 mb-4"
+          style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)' }}
+        >
           <h3 className="text-white font-semibold text-sm mb-2">Pourquoi ces limites ?</h3>
-          <p className="text-dark-400 text-xs leading-relaxed">
+          <p className="text-xs leading-relaxed" style={{ color: 'rgba(255,255,255,0.4)' }}>
             Parce que la qualité passe avant la quantité. Nous faisons le choix de proposer des profils pertinents, plutôt qu&apos;une infinité de rencontres sans sens.
           </p>
-          <p className="text-amber-400/60 text-xs mt-3 leading-relaxed">
+          <p className="text-xs mt-3 leading-relaxed" style={{ color: 'rgba(245,158,11,0.6)' }}>
             ⚠️ Les places sont volontairement limitées pour garantir un niveau de qualité élevé et des profils réellement engagés.
           </p>
         </div>
 
-        {/* Notre engagement */}
-        <div className="bg-dark-800 border border-dark-700 rounded-2xl p-5">
+        {/* ── Notre engagement ─────────────────────────────────── */}
+        <div
+          className="rounded-2xl p-5 mb-4"
+          style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)' }}
+        >
           <h3 className="text-white font-semibold text-sm mb-4">Notre engagement</h3>
           <div className="grid grid-cols-2 gap-3 mb-5">
             {[
-              { icon: Shield,     text: 'Profils vérifiés' },
-              { icon: Heart,      text: 'Respect des valeurs' },
-              { icon: Star,       text: 'Rencontres encadrées' },
-              { icon: Check,      text: 'Démarche sérieuse uniquement' },
+              { icon: Shield,  text: 'Profils vérifiés' },
+              { icon: Heart,   text: 'Respect des valeurs' },
+              { icon: Star,    text: 'Rencontres encadrées' },
+              { icon: Check,   text: 'Démarche sérieuse uniquement' },
             ].map((item, i) => {
               const Icon = item.icon
               return (
-                <div key={i} className="flex items-center gap-2 text-xs text-dark-300">
-                  <Icon size={13} className="text-gold-500 flex-shrink-0" />
+                <div key={i} className="flex items-center gap-2 text-xs" style={{ color: 'rgba(255,255,255,0.5)' }}>
+                  <Icon size={13} style={{ color: '#D4AF37', flexShrink: 0 }} />
                   {item.text}
                 </div>
               )
             })}
           </div>
-          <div className="space-y-2 border-t border-dark-700 pt-4">
+          <div className="space-y-2.5 border-t pt-4" style={{ borderColor: 'rgba(255,255,255,0.06)' }}>
             {[
-              { icon: RefreshCw, text: 'Sans engagement — résiliation en 1 clic' },
+              { icon: RefreshCw,  text: 'Sans engagement — résiliation en 1 clic' },
               { icon: CreditCard, text: 'Paiement sécurisé par Stripe' },
-              { icon: Zap, text: 'Plan activé instantanément après paiement' },
+              { icon: Zap,        text: 'Plan activé instantanément après paiement' },
             ].map((item, i) => {
               const Icon = item.icon
               return (
-                <div key={i} className="flex items-start gap-3 text-xs text-dark-400">
-                  <Icon size={13} className="text-gold-500 mt-0.5 flex-shrink-0" />
+                <div key={i} className="flex items-start gap-3 text-xs" style={{ color: 'rgba(255,255,255,0.4)' }}>
+                  <Icon size={13} style={{ color: '#D4AF37', marginTop: 1, flexShrink: 0 }} />
                   {item.text}
                 </div>
               )
