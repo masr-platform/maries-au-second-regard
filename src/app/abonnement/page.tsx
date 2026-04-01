@@ -85,6 +85,13 @@ const PACKS = [
   { key: 'PACK_3', label: '+ 3 profils supplémentaires', prix: '9,90', emoji: '🔥' },
 ]
 
+// ─── Stripe Payment Links ─────────────────────────────────────────────────────
+const PAYMENT_LINKS: Record<string, string> = {
+  BASIQUE: 'https://buy.stripe.com/test_3cIbJ06Tz7To9K905sgnK02',
+  PREMIUM: 'https://buy.stripe.com/test_3cI14m7XDa1w2hH6tQgnK01',
+  ULTRA:   'https://buy.stripe.com/test_5kQ28qcdTgpU5tTdWignK00',
+}
+
 export default function AbonnementPage() {
   const { data: session, status } = useSession()
   const router = useRouter()
@@ -95,30 +102,14 @@ export default function AbonnementPage() {
     if (status === 'unauthenticated') router.replace('/connexion')
   }, [status, router])
 
-  const souscire = async (planKey: string) => {
-    setLoadingPlan(planKey)
-    console.log(`[STRIPE] Clic bouton plan: "${planKey}"`)
-    try {
-      const res = await fetch('/api/stripe', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ plan: planKey }),
-      })
-      const data = await res.json()
-      console.log(`[STRIPE] Réponse serveur:`, data)
-      if (data.url) {
-        console.log(`[STRIPE] Redirection checkout OK`)
-        window.location.href = data.url
-      } else {
-        console.error(`[STRIPE] Erreur:`, data.error, data.detail)
-        toast.error(data.error || data.detail || 'Erreur lors de la création du paiement')
-      }
-    } catch (err) {
-      console.error(`[STRIPE] Erreur réseau:`, err)
-      toast.error('Erreur réseau')
-    } finally {
-      setLoadingPlan(null)
+  const souscire = (planKey: string) => {
+    const url = PAYMENT_LINKS[planKey]
+    if (!url) {
+      toast.error('Lien de paiement introuvable')
+      return
     }
+    setLoadingPlan(planKey)
+    window.location.href = url
   }
 
   const acheterPack = async (packKey: string) => {
