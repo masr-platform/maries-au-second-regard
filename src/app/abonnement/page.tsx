@@ -121,16 +121,23 @@ export default function AbonnementPage() {
   }, [status, router])
 
   const souscire = (planKey: string) => {
+    if (status === 'loading') {
+      toast.error('Veuillez patienter…')
+      return
+    }
+    if (!session?.user?.id) {
+      toast.error('Connexion requise pour souscrire')
+      router.replace('/connexion')
+      return
+    }
     const baseUrl = PAYMENT_LINKS[planKey]
     if (!baseUrl) {
       toast.error('Lien de paiement introuvable')
       return
     }
     setLoadingPlan(planKey)
-    const userId = (session?.user as { id?: string })?.id ?? ''
-    const url = userId
-      ? `${baseUrl}?client_reference_id=${userId}:${planKey}`
-      : baseUrl
+    const userId = (session.user as { id?: string }).id!
+    const url = `${baseUrl}?client_reference_id=${userId}:${planKey}`
     window.location.href = url
   }
 
