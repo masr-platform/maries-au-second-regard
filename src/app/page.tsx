@@ -1,6 +1,6 @@
 import Image from 'next/image'
 import Link from 'next/link'
-import { CheckCircle2, Star, ArrowRight } from 'lucide-react'
+import { CheckCircle2, Star, ArrowRight, Shield, Crown } from 'lucide-react'
 import { FAQItem } from './FAQItem'
 import { MobileMenu } from './MobileMenu'
 
@@ -156,7 +156,7 @@ export default function HomePage() {
             </div>
           </Link>
           <div className="flex items-center gap-4">
-            <Link href="/tarifs" className="text-white/50 hover:text-white text-sm transition-colors hidden md:block">
+            <Link href="#tarifs" className="text-white/50 hover:text-white text-sm transition-colors hidden md:block">
               Tarifs
             </Link>
             <Link href="/faq" className="text-white/50 hover:text-white text-sm transition-colors hidden md:block">
@@ -166,13 +166,24 @@ export default function HomePage() {
               Connexion
             </Link>
             <Link href="/inscription"
-              className="bg-purple-600 hover:bg-purple-500 text-white px-5 py-2.5 rounded-full text-sm font-bold transition-all hover:shadow-lg hover:shadow-purple-500/25 hidden md:inline-flex">
-              Commencer gratuitement →
+              className="bg-gradient-to-r from-purple-600 to-fuchsia-600 hover:from-purple-500 hover:to-fuchsia-500 text-white px-5 py-2.5 rounded-full text-sm font-bold transition-all hover:shadow-lg hover:shadow-purple-500/25 hidden md:inline-flex items-center gap-1.5">
+              Commencer gratuitement <ArrowRight size={13} />
             </Link>
             <MobileMenu />
           </div>
         </div>
       </nav>
+
+      {/* ── Bandeau d'urgence — preuve sociale dynamique ── */}
+      <div className="relative z-40 bg-gradient-to-r from-purple-900/80 via-fuchsia-900/70 to-purple-900/80 border-b border-fuchsia-500/20 text-center py-2.5 px-4">
+        <p className="text-white/70 text-xs font-medium">
+          🌙 <strong className="text-fuchsia-300">47 nouveaux membres</strong> cette semaine ·
+          <span className="text-white/50"> Compatibilités validées sous 48h · </span>
+          <Link href="/inscription" className="text-fuchsia-300 font-bold hover:text-white transition-colors underline underline-offset-2">
+            Inscription gratuite →
+          </Link>
+        </p>
+      </div>
 
       {/* ═══════════════════════════════════════════════════════════
           HERO — Cinématique, inattendu, émotionnel
@@ -826,6 +837,149 @@ export default function HomePage() {
               </div>
             ))}
           </div>
+        </div>
+      </section>
+
+      {/* ═══════════════════════════════════════════════════════════
+          TARIFS — Section conversion directe
+      ═══════════════════════════════════════════════════════════ */}
+      <section id="tarifs" className="py-28 px-6 bg-gradient-to-b from-transparent via-purple-950/15 to-transparent">
+        <div className="max-w-5xl mx-auto">
+          <div className="text-center mb-14">
+            <p className="text-purple-400 text-sm font-semibold uppercase tracking-widest mb-3">Tarifs</p>
+            <h2 className="text-3xl md:text-5xl font-black text-white mb-4">
+              Simple. Transparent.
+              <br />
+              <span className="bg-gradient-to-r from-purple-400 to-fuchsia-400 bg-clip-text text-transparent">Inscription toujours gratuite.</span>
+            </h2>
+            <p className="text-white/40 max-w-md mx-auto text-sm">
+              Commencez gratuitement — questionnaire, profil, analyse IA. Un abonnement est requis uniquement pour recevoir vos compatibilités validées.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {/* ── Essentiel ── */}
+            <div className="relative flex flex-col bg-gradient-to-b from-purple-600/10 to-violet-800/10 border border-white/15 rounded-3xl p-7 hover:border-white/25 transition-all">
+              <div className="flex items-center gap-3 mb-5">
+                <div className="p-2.5 rounded-xl bg-purple-500/15 border border-purple-500/20">
+                  <Shield size={18} className="text-purple-400" />
+                </div>
+                <div>
+                  <p className="text-white font-black text-lg">Essentiel</p>
+                  <p className="text-white/40 text-xs">Pour une démarche posée</p>
+                </div>
+              </div>
+              <div className="mb-6">
+                <span className="text-4xl font-black text-white">19,90</span>
+                <span className="text-white/40 text-sm">€/mois</span>
+              </div>
+              <ul className="space-y-3 flex-1 mb-7">
+                {[
+                  '1 profil compatible par semaine',
+                  'Analyse IA sur 7 dimensions',
+                  'Validation psychologue clinicien',
+                  'Chat encadré supervisé',
+                  '1 mouqabala virtuelle / mois',
+                  'Score de compatibilité détaillé',
+                ].map((f, i) => (
+                  <li key={i} className="flex items-start gap-2.5 text-sm text-white/65">
+                    <CheckCircle2 size={14} className="text-purple-400 mt-0.5 shrink-0" />
+                    {f}
+                  </li>
+                ))}
+              </ul>
+              <Link href="/inscription"
+                className="w-full py-3.5 rounded-2xl text-center text-sm font-bold border border-white/25 text-white hover:bg-white/8 hover:border-white/40 transition-all block">
+                Commencer avec Essentiel
+              </Link>
+            </div>
+
+            {/* ── Premium ── FEATURED */}
+            <div className="relative flex flex-col bg-gradient-to-b from-fuchsia-600/20 to-pink-800/15 border-2 border-fuchsia-500/50 rounded-3xl p-7 shadow-2xl shadow-fuchsia-500/15 scale-[1.02] md:scale-105">
+              <div className="absolute -top-4 left-1/2 -translate-x-1/2">
+                <span className="bg-gradient-to-r from-fuchsia-500 to-pink-500 text-white text-xs font-black px-4 py-1.5 rounded-full shadow-lg shadow-fuchsia-500/30 whitespace-nowrap">
+                  ⭐ Le plus choisi
+                </span>
+              </div>
+              <div className="flex items-center gap-3 mb-5 mt-2">
+                <div className="p-2.5 rounded-xl bg-fuchsia-500/15 border border-fuchsia-500/20">
+                  <Star size={18} className="text-fuchsia-400" />
+                </div>
+                <div>
+                  <p className="text-white font-black text-lg">Premium</p>
+                  <p className="text-white/40 text-xs">Pour aller plus vite</p>
+                </div>
+              </div>
+              <div className="mb-6">
+                <span className="text-4xl font-black text-white">29,90</span>
+                <span className="text-white/40 text-sm">€/mois</span>
+              </div>
+              <ul className="space-y-3 flex-1 mb-7">
+                {[
+                  '1 profil compatible par jour (×4)',
+                  'Analyse IA sur 7 dimensions',
+                  'Validation psychologue clinicien',
+                  'Chat encadré (plusieurs profils)',
+                  '3 mouqabalas virtuelles / mois',
+                  'Accès prioritaire aux nouveaux profils',
+                  'Support prioritaire',
+                ].map((f, i) => (
+                  <li key={i} className="flex items-start gap-2.5 text-sm text-white/75">
+                    <CheckCircle2 size={14} className="text-fuchsia-400 mt-0.5 shrink-0" />
+                    {f}
+                  </li>
+                ))}
+              </ul>
+              <Link href="/inscription"
+                className="w-full py-3.5 rounded-2xl text-center text-sm font-black bg-gradient-to-r from-purple-600 via-fuchsia-600 to-pink-600 text-white hover:from-purple-500 hover:via-fuchsia-500 hover:to-pink-500 shadow-lg shadow-fuchsia-500/25 transition-all block hover:scale-[1.02]">
+                Commencer avec Premium
+              </Link>
+            </div>
+
+            {/* ── Élite ── */}
+            <div className="relative flex flex-col bg-gradient-to-b from-amber-600/10 to-orange-800/10 border border-amber-500/25 rounded-3xl p-7 hover:border-amber-400/40 transition-all">
+              <div className="flex items-center gap-3 mb-5">
+                <div className="p-2.5 rounded-xl bg-amber-500/15 border border-amber-500/20">
+                  <Crown size={18} className="text-amber-400" />
+                </div>
+                <div>
+                  <p className="text-white font-black text-lg">Élite</p>
+                  <p className="text-white/40 text-xs">Le meilleur accompagnement</p>
+                </div>
+              </div>
+              <div className="mb-6">
+                <span className="text-4xl font-black text-white">49,90</span>
+                <span className="text-white/40 text-sm">€/mois</span>
+              </div>
+              <ul className="space-y-3 flex-1 mb-7">
+                {[
+                  '3 profils compatibles par jour',
+                  'Analyse IA sur 7 dimensions',
+                  'Validation psychologue clinicien',
+                  'Chat encadré illimité',
+                  'Mouqabalas virtuelles illimitées',
+                  'Accès prioritaire absolu',
+                  'Coach mariage dédié',
+                  'Support VIP 7j/7',
+                ].map((f, i) => (
+                  <li key={i} className="flex items-start gap-2.5 text-sm text-white/65">
+                    <CheckCircle2 size={14} className="text-amber-400 mt-0.5 shrink-0" />
+                    {f}
+                  </li>
+                ))}
+              </ul>
+              <Link href="/inscription"
+                className="w-full py-3.5 rounded-2xl text-center text-sm font-bold border border-amber-500/40 text-amber-300 hover:bg-amber-500/10 hover:border-amber-400/60 transition-all block">
+                Commencer avec Élite
+              </Link>
+            </div>
+          </div>
+
+          {/* Note gratuite */}
+          <p className="text-center text-white/25 text-xs mt-8 flex items-center justify-center gap-2">
+            <CheckCircle2 size={12} className="text-fuchsia-400" />
+            Inscription & questionnaire gratuits · Résiliez à tout moment · Aucun engagement
+          </p>
         </div>
       </section>
 
