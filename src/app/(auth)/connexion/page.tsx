@@ -6,7 +6,6 @@ import { useState } from 'react'
 import { signIn } from 'next-auth/react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
-import { motion } from 'framer-motion'
 import { Mail, Lock, Eye, EyeOff, ArrowRight } from 'lucide-react'
 import toast from 'react-hot-toast'
 
@@ -53,12 +52,7 @@ export default function ConnexionPage() {
         <div className="absolute top-1/3 right-1/3 w-64 h-64 bg-gold-500/5 rounded-full blur-3xl" />
       </div>
 
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4 }}
-        className="w-full max-w-sm relative z-10"
-      >
+      <div className="w-full max-w-sm relative z-10" style={{ animation: 'fadeInUp 0.4s ease both' }}>
         <div className="text-center mb-8">
           <Link href="/" className="inline-flex items-center gap-2 mb-6">
             <div className="w-8 h-8 rounded-full border border-gold-500 flex items-center justify-center">
@@ -140,7 +134,14 @@ export default function ConnexionPage() {
             </Link>
           </p>
         </div>
-      </motion.div>
+      </div>
+
+      <style jsx global>{`
+        @keyframes fadeInUp {
+          from { opacity: 0; transform: translateY(20px); }
+          to   { opacity: 1; transform: translateY(0); }
+        }
+      `}</style>
     </div>
   )
 }

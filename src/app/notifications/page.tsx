@@ -3,7 +3,6 @@
 import { useEffect, useState } from 'react'
 import { useSession, signOut } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
-import { motion, AnimatePresence } from 'framer-motion'
 import Link from 'next/link'
 import {
   Bell, Heart, MessageCircle, User, Settings, LogOut,
@@ -200,10 +199,9 @@ export default function NotificationsPage() {
         </div>
 
         {notifications.length === 0 ? (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
+          <div
             className="text-center py-20"
+            style={{ animation: 'fadeInUp 0.35s ease both' }}
           >
             <div className="w-16 h-16 rounded-full bg-gold-500/10 flex items-center justify-center mx-auto mb-4">
               <Bell size={28} className="text-gold-500" />
@@ -212,10 +210,9 @@ export default function NotificationsPage() {
             <p className="text-dark-300 text-sm max-w-sm mx-auto">
               Vous recevrez ici vos matchs, messages et mises à jour de votre compte.
             </p>
-          </motion.div>
+          </div>
         ) : (
           <div className="space-y-2">
-            <AnimatePresence initial={false}>
               {notifications.map((notif, i) => {
                 const cfg = TYPE_CONFIG[notif.type] ?? TYPE_CONFIG.SYSTEME
                 const Icon = cfg.icon
@@ -225,11 +222,9 @@ export default function NotificationsPage() {
                 })
 
                 return (
-                  <motion.div
+                  <div
                     key={notif.id}
-                    initial={{ opacity: 0, x: -10 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: i * 0.03 }}
+                    style={{ animation: `fadeInLeft 0.3s ease ${i * 0.03}s both` }}
                     onClick={() => !notif.isRead && marquerLue(notif.id)}
                     className={`flex items-start gap-4 p-4 rounded-xl border transition-all cursor-pointer ${
                       notif.isRead
@@ -262,12 +257,22 @@ export default function NotificationsPage() {
                     {notif.isRead && (
                       <CheckCircle2 size={14} className="text-dark-600 flex-shrink-0 mt-1" />
                     )}
-                  </motion.div>
+                  </div>
                 )
               })}
-            </AnimatePresence>
           </div>
         )}
+
+        <style jsx global>{`
+          @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(16px); }
+            to   { opacity: 1; transform: translateY(0); }
+          }
+          @keyframes fadeInLeft {
+            from { opacity: 0; transform: translateX(-8px); }
+            to   { opacity: 1; transform: translateX(0); }
+          }
+        `}</style>
 
         {/* ── Mobile bottom nav ────────────────────────────────── */}
         <nav className="fixed bottom-0 left-0 right-0 bg-dark-800 border-t border-dark-700 flex md:hidden z-50">

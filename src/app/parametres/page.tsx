@@ -3,7 +3,6 @@
 import { useSession, signOut } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
-import { motion } from 'framer-motion'
 import Link from 'next/link'
 import {
   Heart, MessageCircle, Bell, User, Settings, LogOut,
@@ -157,10 +156,9 @@ export default function ParametresPage() {
         </div>
 
         {/* ── Confidentialité ─────────────────────────────────── */}
-        <motion.div
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
+        <div
           className="bg-dark-800 border border-dark-700 rounded-2xl p-6 mb-5"
+          style={{ animation: 'fadeInUp 0.35s ease both' }}
         >
           <h2 className="text-white font-semibold text-sm mb-5 flex items-center gap-2">
             <Eye size={15} className="text-gold-400" />
@@ -212,14 +210,12 @@ export default function ParametresPage() {
               }
             </button>
           </div>
-        </motion.div>
+        </div>
 
         {/* ── Sécurité ─────────────────────────────────────────── */}
-        <motion.div
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
+        <div
           className="bg-dark-800 border border-dark-700 rounded-2xl p-6 mb-5"
+          style={{ animation: 'fadeInUp 0.35s ease 0.08s both' }}
         >
           <h2 className="text-white font-semibold text-sm mb-5 flex items-center gap-2">
             <Lock size={15} className="text-gold-400" />
@@ -301,14 +297,12 @@ export default function ParametresPage() {
               </div>
             )}
           </div>
-        </motion.div>
+        </div>
 
         {/* ── Légal ────────────────────────────────────────────── */}
-        <motion.div
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.15 }}
+        <div
           className="bg-dark-800 border border-dark-700 rounded-2xl p-6 mb-5"
+          style={{ animation: 'fadeInUp 0.35s ease 0.15s both' }}
         >
           <h2 className="text-white font-semibold text-sm mb-4 flex items-center gap-2">
             <Shield size={15} className="text-gold-400" />
@@ -331,14 +325,12 @@ export default function ParametresPage() {
               </Link>
             ))}
           </div>
-        </motion.div>
+        </div>
 
         {/* ── Zone danger ──────────────────────────────────────── */}
-        <motion.div
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
+        <div
           className="bg-red-500/5 border border-red-500/20 rounded-2xl p-6"
+          style={{ animation: 'fadeInUp 0.35s ease 0.2s both' }}
         >
           <h2 className="text-red-400 font-semibold text-sm mb-4 flex items-center gap-2">
             <AlertTriangle size={15} />
@@ -356,7 +348,14 @@ export default function ParametresPage() {
               Supprimer mon compte
             </button>
           </div>
-        </motion.div>
+        </div>
+
+        <style jsx global>{`
+          @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(16px); }
+            to   { opacity: 1; transform: translateY(0); }
+          }
+        `}</style>
 
         {/* Mobile bottom nav */}
         <nav className="fixed bottom-0 left-0 right-0 bg-dark-800 border-t border-dark-700 flex md:hidden z-50">

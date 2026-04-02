@@ -2,7 +2,6 @@
 
 import { useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
-import { motion, AnimatePresence } from 'framer-motion'
 import { useSession } from 'next-auth/react'
 import toast from 'react-hot-toast'
 import {
@@ -594,11 +593,12 @@ export default function QuestionnairePage() {
 
           {/* Barre de progression */}
           <div className="h-1.5 bg-dark-700 rounded-full overflow-hidden">
-            <motion.div
+            <div
               className="h-full bg-gradient-to-r from-gold-500 to-gold-400 rounded-full"
-              initial={{ width: 0 }}
-              animate={{ width: `${((sectionIndex + 1) / SECTIONS.length) * 100}%` }}
-              transition={{ duration: 0.4 }}
+              style={{
+                width: `${((sectionIndex + 1) / SECTIONS.length) * 100}%`,
+                transition: 'width 0.4s ease',
+              }}
             />
           </div>
 
@@ -620,14 +620,10 @@ export default function QuestionnairePage() {
         </div>
 
         {/* ── Section ───────────────────────────────────────────── */}
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={section.id}
-            initial={{ opacity: 0, x: 30 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -30 }}
-            transition={{ duration: 0.25, ease: 'easeOut' }}
-          >
+        <div
+          key={section.id}
+          style={{ animation: 'sectionSlideIn 0.25s ease both' }}
+        >
             {/* Titre de section */}
             <div className="flex items-center gap-3 mb-6">
               <div className="w-11 h-11 rounded-2xl bg-gold-500/10 border border-gold-500/20 flex items-center justify-center flex-shrink-0">
@@ -734,10 +730,15 @@ export default function QuestionnairePage() {
                 )
               })}
             </div>
-          </motion.div>
-        </AnimatePresence>
+        </div>
 
         {/* ── Navigation ───────────────────────────────────────── */}
+        <style jsx global>{`
+          @keyframes sectionSlideIn {
+            from { opacity: 0; transform: translateX(20px); }
+            to   { opacity: 1; transform: translateX(0); }
+          }
+        `}</style>
         <div className="fixed bottom-0 left-0 right-0 bg-dark-900/95 backdrop-blur-sm border-t border-dark-700 px-4 py-4">
           <div className="max-w-xl mx-auto flex gap-3">
             {sectionIndex > 0 && (

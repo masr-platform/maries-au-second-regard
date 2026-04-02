@@ -3,7 +3,6 @@
 import { useEffect, useState } from 'react'
 import { useSession, signOut } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
-import { motion } from 'framer-motion'
 import Link from 'next/link'
 import {
   User, Heart, MessageCircle, Bell, Settings, LogOut,
@@ -250,10 +249,9 @@ export default function ProfilPage() {
       <main className="md:ml-64 p-5 md:p-8 max-w-2xl">
 
         {/* ── Hero profil ───────────────────────────────────────────── */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
+        <div
           className={`relative rounded-3xl overflow-hidden mb-5 border ${theme.heroBorder}`}
+          style={{ animation: 'fadeInUp 0.35s ease both' }}
         >
           {/* gradient bg */}
           <div className={`absolute inset-0 bg-gradient-to-br ${theme.heroBg}`} />
@@ -353,14 +351,12 @@ export default function ProfilPage() {
               </div>
             </div>
           </div>
-        </motion.div>
+        </div>
 
         {/* ── Abonnement ───────────────────────────────────────────── */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.05 }}
+        <div
           className="bg-[#0d0a1f] border border-white/8 rounded-2xl p-5 mb-5"
+          style={{ animation: 'fadeInUp 0.35s ease 0.05s both' }}
         >
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
@@ -389,14 +385,12 @@ export default function ProfilPage() {
               Passer Premium — 2× plus de matchs
             </Link>
           )}
-        </motion.div>
+        </div>
 
         {/* ── Avancement ───────────────────────────────────────────── */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
+        <div
           className="bg-[#0d0a1f] border border-white/8 rounded-2xl p-5 mb-5"
+          style={{ animation: 'fadeInUp 0.35s ease 0.1s both' }}
         >
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-white font-semibold text-sm flex items-center gap-2">
@@ -408,11 +402,9 @@ export default function ProfilPage() {
 
           {/* Barre de progression */}
           <div className="h-2 bg-white/8 rounded-full mb-5 overflow-hidden">
-            <motion.div
-              initial={{ width: 0 }}
-              animate={{ width: `${progression}%` }}
-              transition={{ delay: 0.3, duration: 0.8, ease: 'easeOut' }}
+            <div
               className={`h-full rounded-full ${theme.progressBar} shadow-sm`}
+              style={{ width: `${progression}%`, transition: 'width 0.8s ease 0.3s' }}
             />
           </div>
 
@@ -460,14 +452,12 @@ export default function ProfilPage() {
               </Link>
             </div>
           )}
-        </motion.div>
+        </div>
 
         {/* ── Compte & sécurité ─────────────────────────────────────── */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.15 }}
+        <div
           className="bg-[#0d0a1f] border border-white/8 rounded-2xl p-5 mb-5"
+          style={{ animation: 'fadeInUp 0.35s ease 0.15s both' }}
         >
           <h3 className="text-white font-semibold text-sm mb-4 flex items-center gap-2">
             <Lock size={14} className="text-violet-400" />
@@ -491,7 +481,14 @@ export default function ProfilPage() {
               )
             })}
           </div>
-        </motion.div>
+        </div>
+
+        <style jsx global>{`
+          @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to   { opacity: 1; transform: translateY(0); }
+          }
+        `}</style>
 
         {/* ── Mobile bottom nav ─────────────────────────────────────── */}
         <nav className="fixed bottom-0 left-0 right-0 bg-[#0d0a1f] border-t border-white/8 flex md:hidden z-50 pb-safe">
