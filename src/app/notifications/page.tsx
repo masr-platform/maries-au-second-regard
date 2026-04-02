@@ -7,7 +7,7 @@ import Link from 'next/link'
 import {
   Bell, Heart, MessageCircle, User, Settings, LogOut,
   TrendingUp, Sparkles, CheckCircle2, Check,
-  Star, Shield, Calendar,
+  Star, Shield, Calendar, Video,
 } from 'lucide-react'
 import { formatDistanceToNow } from 'date-fns'
 import { fr } from 'date-fns/locale'
@@ -126,8 +126,9 @@ export default function NotificationsPage() {
         <nav className="flex-1 p-4 space-y-1">
           {[
             { href: '/tableau-de-bord', icon: Heart, label: 'Mes matchs' },
-            { href: '/messages', icon: MessageCircle, label: 'Messages' },
-            { href: '/notifications', icon: Bell, label: 'Notifications', active: true },
+            { href: '/messages',      icon: MessageCircle, label: 'Messages' },
+            { href: '/sessions',      icon: Video,         label: 'Mouqabalas' },
+            { href: '/notifications', icon: Bell,          label: 'Notifications', active: true },
             { href: '/profil', icon: User, label: 'Mon profil' },
             { href: '/abonnement', icon: TrendingUp, label: 'Abonnement' },
             { href: '/parametres', icon: Settings, label: 'Paramètres' },

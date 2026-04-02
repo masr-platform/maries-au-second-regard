@@ -9,7 +9,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import {
   MessageCircle, Heart, Bell, User, Settings, LogOut,
-  TrendingUp, ChevronRight, Clock, ShieldCheck, Lock,
+  TrendingUp, ChevronRight, Clock, ShieldCheck, Lock, Video,
 } from 'lucide-react'
 import { signOut } from 'next-auth/react'
 import { formatDistanceToNow } from 'date-fns'
@@ -115,8 +115,9 @@ export default function MessagesPage() {
         <nav className="flex-1 p-4 space-y-1">
           {[
             { href: '/tableau-de-bord', icon: Heart, label: 'Mes matchs' },
-            { href: '/messages', icon: MessageCircle, label: 'Messages', active: true },
-            { href: '/notifications', icon: Bell, label: 'Notifications' },
+            { href: '/messages',      icon: MessageCircle, label: 'Messages',    active: true },
+            { href: '/sessions',      icon: Video,         label: 'Mouqabalas' },
+            { href: '/notifications', icon: Bell,          label: 'Notifications' },
             { href: '/profil', icon: User, label: 'Mon profil' },
             { href: '/abonnement', icon: TrendingUp, label: 'Abonnement' },
             { href: '/parametres', icon: Settings, label: 'Paramètres' },

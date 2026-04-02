@@ -9,7 +9,7 @@ import {
   Sparkles, ChevronRight, Clock, Star, TrendingUp,
   CheckCircle2, BookOpen, Home, Briefcase, Activity,
   MapPin, ChevronDown, ChevronUp, AlertCircle, Crown,
-  Zap, Trophy, Users,
+  Zap, Trophy, Users, Video,
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 
@@ -363,6 +363,7 @@ export default function TableauDeBordPage() {
           {[
             { href: '/tableau-de-bord', icon: Heart,         label: 'Mes compatibilités', active: true },
             { href: '/messages',        icon: MessageCircle, label: 'Messages',           badge: conversations > 0 ? conversations : null },
+            { href: '/sessions',        icon: Video,         label: 'Mouqabalas' },
             { href: '/notifications',   icon: Bell,          label: 'Notifications' },
             { href: '/profil',          icon: User,          label: 'Mon profil' },
             { href: '/abonnement',      icon: TrendingUp,    label: 'Abonnement' },

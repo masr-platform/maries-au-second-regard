@@ -6,6 +6,7 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { trouverMeilleursMatchs } from '@/lib/ai-matching'
+import { emailService } from '@/lib/email'
 
 // GET — Obtenir les propositions de la semaine
 export async function GET(req: NextRequest) {
@@ -182,11 +183,19 @@ export async function POST(req: NextRequest) {
       })
     )
 
-    // Notifier les utilisateurs
+    // Notifier les utilisateurs + email
     await Promise.all(
-      matchesCrees.map((match) => {
+      matchesCrees.map(async (match) => {
         const autreUserId = match.user1Id === userId ? match.user2Id : match.user1Id
-        return prisma.notification.createMany({
+
+        // Récupérer les infos des deux utilisateurs pour l'email
+        const [user1Data, user2Data] = await Promise.all([
+          prisma.user.findUnique({ where: { id: userId },       select: { email: true, prenom: true, ville: true } }),
+          prisma.user.findUnique({ where: { id: autreUserId }, select: { email: true, prenom: true, ville: true } }),
+        ])
+
+        // In-app notifications
+        await prisma.notification.createMany({
           data: [
             {
               userId,
@@ -204,6 +213,26 @@ export async function POST(req: NextRequest) {
             },
           ],
         })
+
+        // Emails transactionnels (non bloquants)
+        if (user1Data && user2Data) {
+          await Promise.all([
+            emailService.sendNewMatch({
+              email:       user1Data.email,
+              prenom:      user1Data.prenom,
+              matchPrenom: user2Data.prenom,
+              score:       Math.round(match.scoreGlobal),
+              ville:       user2Data.ville ?? undefined,
+            }),
+            emailService.sendNewMatch({
+              email:       user2Data.email,
+              prenom:      user2Data.prenom,
+              matchPrenom: user1Data.prenom,
+              score:       Math.round(match.scoreGlobal),
+              ville:       user1Data.ville ?? undefined,
+            }),
+          ])
+        }
       })
     )
 
