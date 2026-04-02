@@ -9,7 +9,7 @@ import {
   Sparkles, ChevronRight, Clock, Star, TrendingUp,
   CheckCircle2, BookOpen, Home, Briefcase, Activity,
   MapPin, ChevronDown, ChevronUp, AlertCircle, Crown,
-  Zap, Trophy, Users, Video,
+  Zap, Trophy, Users, Video, SlidersHorizontal, X,
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 
@@ -315,12 +315,37 @@ function CarteCompatibilite({ r, onRepondre }: { r: Resultat; onRepondre: (id: s
   )
 }
 
+// ─── Filtres ──────────────────────────────────────────────────────
+interface Filtres {
+  pratique:  string   // '' | 'debutant' | 'pratiquant' | 'tres_pratiquant' | 'savant'
+  objectif:  string   // '' | 'mariage_uniquement' | 'mariage_apres' | 'engagement_progressif'
+  ville:     string   // texte libre
+  ageMin:    string
+  ageMax:    string
+  scoreMin:  number   // 0 | 60 | 70 | 75
+}
+const FILTRES_VIDES: Filtres = { pratique: '', objectif: '', ville: '', ageMin: '', ageMax: '', scoreMin: 0 }
+
+function appliquerFiltres(resultats: Resultat[], f: Filtres): Resultat[] {
+  return resultats.filter(r => {
+    if (f.scoreMin && r.scoreGlobal < f.scoreMin) return false
+    if (f.pratique && r.profil.infos?.niveauPratique !== f.pratique) return false
+    if (f.objectif && r.profil.infos?.objectifMariage !== f.objectif) return false
+    if (f.ville && !r.profil.ville?.toLowerCase().includes(f.ville.toLowerCase())) return false
+    if (f.ageMin && r.profil.age != null && r.profil.age < parseInt(f.ageMin)) return false
+    if (f.ageMax && r.profil.age != null && r.profil.age > parseInt(f.ageMax)) return false
+    return true
+  })
+}
+
 // ─── Page principale ──────────────────────────────────────────────
 export default function TableauDeBordPage() {
   const { data: session } = useSession()
-  const [resultats, setResultats] = useState<Resultat[]>([])
-  const [loading,   setLoading]   = useState(true)
-  const [calculant, setCalculant] = useState(false)
+  const [resultats,    setResultats]    = useState<Resultat[]>([])
+  const [loading,      setLoading]      = useState(true)
+  const [calculant,    setCalculant]    = useState(false)
+  const [filtres,      setFiltres]      = useState<Filtres>(FILTRES_VIDES)
+  const [showFiltres,  setShowFiltres]  = useState(false)
 
   const charger = useCallback(async () => {
     try {
@@ -354,11 +379,13 @@ export default function TableauDeBordPage() {
     } catch { toast.error('Erreur') }
   }
 
-  const plan         = (session?.user?.plan as string) ?? 'GRATUIT'
-  const enAttente    = resultats.filter(r => r.maReponse === 'EN_ATTENTE').length
-  const conversations = resultats.filter(r => r.status === 'CHAT_OUVERT').length
-  const topScore     = resultats[0]?.scoreGlobal ?? null
-  const isPaid       = plan !== 'GRATUIT'
+  const plan          = (session?.user?.plan as string) ?? 'GRATUIT'
+  const enAttente     = resultats.filter(r => r.maReponse === 'EN_ATTENTE').length
+  const conversations  = resultats.filter(r => r.status === 'CHAT_OUVERT').length
+  const topScore      = resultats[0]?.scoreGlobal ?? null
+  const isPaid        = plan !== 'GRATUIT'
+  const resultatsAffiches = appliquerFiltres(resultats, filtres)
+  const nbFiltresActifs = Object.entries(filtres).filter(([k, v]) => k !== 'scoreMin' ? !!v : v > 0).length
 
   const planLbl: Record<string, string> = {
     GRATUIT: 'Accès limité', STANDARD: 'Essentiel', BASIQUE: 'Essentiel',
@@ -462,6 +489,153 @@ export default function TableauDeBordPage() {
           </button>
         </div>
 
+        {/* ── Barre de filtres ─────────────────────────────────── */}
+        {!loading && resultats.length > 0 && isPaid && (
+          <div className="mb-6">
+            <button
+              onClick={() => setShowFiltres(v => !v)}
+              className="flex items-center gap-2 text-sm font-medium transition-all duration-200"
+              style={{ color: nbFiltresActifs > 0 ? '#D4AF37' : 'rgba(255,255,255,0.4)' }}
+            >
+              <SlidersHorizontal size={15} />
+              Filtrer les profils
+              {nbFiltresActifs > 0 && (
+                <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full"
+                  style={{ background: '#D4AF37', color: '#000' }}>
+                  {nbFiltresActifs}
+                </span>
+              )}
+            </button>
+
+            {showFiltres && (
+              <div className="mt-3 p-4 rounded-2xl space-y-4"
+                style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)' }}>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+
+                  {/* Score minimum */}
+                  <div>
+                    <label className="text-[10px] uppercase tracking-wider block mb-1.5" style={{ color: 'rgba(255,255,255,0.3)' }}>
+                      Score minimum
+                    </label>
+                    <select
+                      value={filtres.scoreMin}
+                      onChange={e => setFiltres(f => ({ ...f, scoreMin: parseInt(e.target.value) }))}
+                      className="w-full text-xs rounded-lg px-3 py-2 focus:outline-none"
+                      style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', color: 'white' }}
+                    >
+                      <option value={0}>Tous les scores</option>
+                      <option value={60}>≥ 60%</option>
+                      <option value={70}>≥ 70%</option>
+                      <option value={75}>≥ 75% (forte compat.)</option>
+                      <option value={85}>≥ 85%</option>
+                    </select>
+                  </div>
+
+                  {/* Niveau de pratique */}
+                  <div>
+                    <label className="text-[10px] uppercase tracking-wider block mb-1.5" style={{ color: 'rgba(255,255,255,0.3)' }}>
+                      Niveau de pratique
+                    </label>
+                    <select
+                      value={filtres.pratique}
+                      onChange={e => setFiltres(f => ({ ...f, pratique: e.target.value }))}
+                      className="w-full text-xs rounded-lg px-3 py-2 focus:outline-none"
+                      style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', color: 'white' }}
+                    >
+                      <option value="">Tous niveaux</option>
+                      <option value="debutant">Débutant(e)</option>
+                      <option value="pratiquant">Pratiquant(e)</option>
+                      <option value="tres_pratiquant">Très pratiquant(e)</option>
+                      <option value="savant">Savant(e)</option>
+                    </select>
+                  </div>
+
+                  {/* Objectif mariage */}
+                  <div>
+                    <label className="text-[10px] uppercase tracking-wider block mb-1.5" style={{ color: 'rgba(255,255,255,0.3)' }}>
+                      Objectif
+                    </label>
+                    <select
+                      value={filtres.objectif}
+                      onChange={e => setFiltres(f => ({ ...f, objectif: e.target.value }))}
+                      className="w-full text-xs rounded-lg px-3 py-2 focus:outline-none"
+                      style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', color: 'white' }}
+                    >
+                      <option value="">Tous objectifs</option>
+                      <option value="mariage_uniquement">Mariage direct</option>
+                      <option value="mariage_apres">Après connaissance</option>
+                      <option value="engagement_progressif">Engagement progressif</option>
+                    </select>
+                  </div>
+
+                  {/* Ville */}
+                  <div>
+                    <label className="text-[10px] uppercase tracking-wider block mb-1.5" style={{ color: 'rgba(255,255,255,0.3)' }}>
+                      Ville
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="Paris, Lyon…"
+                      value={filtres.ville}
+                      onChange={e => setFiltres(f => ({ ...f, ville: e.target.value }))}
+                      className="w-full text-xs rounded-lg px-3 py-2 focus:outline-none placeholder-opacity-40"
+                      style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', color: 'white' }}
+                    />
+                  </div>
+
+                  {/* Âge min/max */}
+                  <div>
+                    <label className="text-[10px] uppercase tracking-wider block mb-1.5" style={{ color: 'rgba(255,255,255,0.3)' }}>
+                      Âge minimum
+                    </label>
+                    <input
+                      type="number"
+                      placeholder="18"
+                      min={18} max={70}
+                      value={filtres.ageMin}
+                      onChange={e => setFiltres(f => ({ ...f, ageMin: e.target.value }))}
+                      className="w-full text-xs rounded-lg px-3 py-2 focus:outline-none"
+                      style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', color: 'white' }}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-[10px] uppercase tracking-wider block mb-1.5" style={{ color: 'rgba(255,255,255,0.3)' }}>
+                      Âge maximum
+                    </label>
+                    <input
+                      type="number"
+                      placeholder="50"
+                      min={18} max={70}
+                      value={filtres.ageMax}
+                      onChange={e => setFiltres(f => ({ ...f, ageMax: e.target.value }))}
+                      className="w-full text-xs rounded-lg px-3 py-2 focus:outline-none"
+                      style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', color: 'white' }}
+                    />
+                  </div>
+                </div>
+
+                {nbFiltresActifs > 0 && (
+                  <button
+                    onClick={() => setFiltres(FILTRES_VIDES)}
+                    className="flex items-center gap-1.5 text-xs transition-all"
+                    style={{ color: 'rgba(255,255,255,0.35)' }}
+                  >
+                    <X size={12} /> Réinitialiser les filtres
+                  </button>
+                )}
+              </div>
+            )}
+
+            {/* Résumé des résultats filtrés */}
+            {nbFiltresActifs > 0 && (
+              <p className="text-xs mt-2" style={{ color: 'rgba(255,255,255,0.3)' }}>
+                {resultatsAffiches.length} profil{resultatsAffiches.length !== 1 ? 's' : ''} correspondent à vos critères
+              </p>
+            )}
+          </div>
+        )}
+
         {/* Stats */}
         {!loading && resultats.length > 0 && (
           <div className="grid grid-cols-3 gap-4 mb-8">
@@ -548,11 +722,35 @@ export default function TableauDeBordPage() {
           </div>
         ) : (
           /* ── GRILLE PROFILS ── */
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
-            {resultats.map(r => (
-              <CarteCompatibilite key={r.matchId} r={r} onRepondre={repondre} />
-            ))}
-          </div>
+          resultatsAffiches.length === 0 ? (
+            <div className="text-center py-16" style={{ color: 'rgba(255,255,255,0.35)' }}>
+              <SlidersHorizontal size={28} className="mx-auto mb-3 opacity-30" />
+              <p className="text-sm">Aucun profil ne correspond à ces filtres.</p>
+              <button onClick={() => setFiltres(FILTRES_VIDES)} className="text-xs mt-2 underline" style={{ color: '#D4AF37' }}>
+                Réinitialiser
+              </button>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+              {resultatsAffiches.map(r => (
+                <div key={r.matchId}>
+                  <CarteCompatibilite r={r} onRepondre={repondre} />
+                  {/* Lien profil complet — visible dès que match mutuel */}
+                  {(r.status === 'ACCEPTE_MUTUEL' || r.status === 'CHAT_OUVERT' || r.status === 'IMAM_SESSION') && (
+                    <Link
+                      href={`/match/${r.matchId}`}
+                      className="mt-2 flex items-center justify-center gap-1.5 w-full py-2 rounded-xl text-xs font-medium transition-all duration-200"
+                      style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)', color: 'rgba(255,255,255,0.4)' }}
+                    >
+                      <User size={12} />
+                      Voir le profil complet
+                      <ChevronRight size={11} />
+                    </Link>
+                  )}
+                </div>
+              ))}
+            </div>
+          )
         )}
 
         {/* Upgrade banner (plan gratuit avec résultats) */}
