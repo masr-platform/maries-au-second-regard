@@ -122,8 +122,9 @@ function CarteCompatibilite({ r, onRepondre }: { r: Resultat; onRepondre: (id: s
     engagement_progressif: 'Engagement progressif',
   }
 
-  const isForte = r.forteCompatibilite
-  const isChat  = r.status === 'CHAT_OUVERT'
+  const isForte   = r.forteCompatibilite
+  const isChat    = r.status === 'CHAT_OUVERT'
+  const isVisio   = r.status === 'VISIO_PLANIFIEE' || r.status === 'IMAM_SESSION'
 
   return (
     <article
@@ -264,14 +265,40 @@ function CarteCompatibilite({ r, onRepondre }: { r: Resultat; onRepondre: (id: s
               Accepter <ChevronRight size={12} />
             </button>
           </div>
+        ) : r.maReponse === 'ACCEPTE' && isVisio ? (
+          <div className="flex flex-col gap-2">
+            <Link
+              href={`/messages?matchId=${r.matchId}`}
+              className="flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-medium transition-all duration-200"
+              style={{ background: 'rgba(34,197,94,0.1)', color: '#22c55e', border: '1px solid rgba(34,197,94,0.25)' }}
+            >
+              <MessageCircle size={13} /> Conversation
+            </Link>
+            <Link
+              href={`/mouqabala/reserver/${r.matchId}`}
+              className="flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-bold transition-all duration-200"
+              style={{ background: 'linear-gradient(135deg, rgba(212,175,55,0.15), rgba(212,175,55,0.08))', color: '#D4AF37', border: '1px solid rgba(212,175,55,0.35)' }}
+            >
+              <Video size={13} /> Planifier la mouqabala
+            </Link>
+          </div>
         ) : r.maReponse === 'ACCEPTE' && isChat ? (
-          <Link
-            href={`/messages?matchId=${r.matchId}`}
-            className="flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-medium transition-all duration-200"
-            style={{ background: 'rgba(34,197,94,0.1)', color: '#22c55e', border: '1px solid rgba(34,197,94,0.25)' }}
-          >
-            <MessageCircle size={13} /> Ouvrir la conversation
-          </Link>
+          <div className="flex flex-col gap-2">
+            <Link
+              href={`/messages?matchId=${r.matchId}`}
+              className="flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-medium transition-all duration-200"
+              style={{ background: 'rgba(34,197,94,0.1)', color: '#22c55e', border: '1px solid rgba(34,197,94,0.25)' }}
+            >
+              <MessageCircle size={13} /> Ouvrir la conversation
+            </Link>
+            <Link
+              href={`/mouqabala/reserver/${r.matchId}`}
+              className="flex items-center justify-center gap-2 py-2 rounded-xl text-xs font-medium transition-all duration-200"
+              style={{ background: 'rgba(212,175,55,0.05)', color: 'rgba(212,175,55,0.6)', border: '1px solid rgba(212,175,55,0.15)' }}
+            >
+              <Video size={12} /> Planifier une mouqabala
+            </Link>
+          </div>
         ) : r.maReponse === 'ACCEPTE' ? (
           <div className="flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs"
             style={{ background: 'rgba(212,175,55,0.06)', color: 'rgba(212,175,55,0.6)', border: '1px solid rgba(212,175,55,0.15)' }}>

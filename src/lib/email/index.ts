@@ -163,4 +163,21 @@ export const emailService = {
     const { subject, html } = T.mouquabalaAcceptedEmail({ prenom, matchPrenom })
     await send(email, subject, html)
   },
+
+  /** Demande de conversation — user A a accepté, user B est notifié */
+  async sendChatRequest({ email, prenom, matchPrenom, matchId }: {
+    email: string; prenom: string; matchPrenom: string; matchId: string
+  }) {
+    const { subject, html } = T.chatRequestEmail({ prenom, matchPrenom, matchId })
+    await send(email, subject, html)
+  },
+
+  /** Demande de mouqabala — user A a planifié, user B est invité */
+  async sendMouquabalaRequest({ email, prenom, matchPrenom, sessionId, dateHeure, dureeMinutes, superviseur }: {
+    email: string; prenom: string; matchPrenom: string; sessionId: string
+    dateHeure: string; dureeMinutes: number; superviseur: string
+  }) {
+    const { subject, html } = T.mouquabalaRequestEmail({ prenom, matchPrenom, sessionId, dateHeure, dureeMinutes, superviseur })
+    await send(email, subject, html)
+  },
 }

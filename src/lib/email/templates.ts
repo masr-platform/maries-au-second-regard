@@ -431,3 +431,83 @@ export function mouquabalaAcceptedEmail({ prenom, matchPrenom }: { prenom: strin
     `, `${matchPrenom} a accepté la mouquabala — la rencontre encadrée peut commencer.`)
   }
 }
+
+// ════════════════════════════════════════════════════════════════
+// 18. DEMANDE DE CHAT
+// Envoyé à user B quand user A accepte le match et souhaite
+// ouvrir une conversation.
+// ════════════════════════════════════════════════════════════════
+export function chatRequestEmail({ prenom, matchPrenom, matchId }: {
+  prenom: string; matchPrenom: string; matchId: string
+}) {
+  const acceptUrl  = `${BASE_URL}/api/matching/${matchId}/repondre-email?reponse=ACCEPTE`
+  const declineUrl = `${BASE_URL}/api/matching/${matchId}/repondre-email?reponse=REJETE`
+
+  return {
+    subject: `💬 ${matchPrenom} souhaite démarrer une conversation avec vous`,
+    html: baseLayout(`
+      ${h1(`${matchPrenom} veut vous connaître`)}
+      ${p(`Bonjour ${prenom}, ${gold(matchPrenom)} a manifesté son intérêt pour votre profil et souhaite ouvrir une conversation encadrée sur Mariés au Second Regard.`)}
+      <div style="background:linear-gradient(135deg,#1a1a1a 0%,#111 100%);border-radius:12px;padding:24px;margin:24px 0;text-align:center;border:1px solid rgba(212,168,83,0.2);">
+        <div style="font-size:36px;margin-bottom:12px;">💬</div>
+        <div style="font-size:18px;font-weight:700;color:#ffffff;margin-bottom:8px;">${matchPrenom} aimerait vous parler</div>
+        <div style="font-size:13px;color:#9ca3af;">Chat supervisé · Cadre islamique · Aucune donnée personnelle partagée</div>
+      </div>
+      ${p(`Vous pouvez accepter pour ouvrir la conversation, ou décliner si ce profil ne vous correspond pas. Dans tous les cas, votre décision reste confidentielle.`)}
+      <div style="text-align:center;margin:32px 0;display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
+        <a href="${acceptUrl}" style="display:inline-block;background:${BRAND_COLOR};color:#000000;font-size:15px;font-weight:700;text-decoration:none;padding:14px 28px;border-radius:8px;margin:4px;">Accepter la conversation →</a>
+        <a href="${declineUrl}" style="display:inline-block;background:#f4f4f5;color:#374151;font-size:14px;font-weight:600;text-decoration:none;padding:14px 24px;border-radius:8px;border:1px solid #e5e7eb;margin:4px;">Décliner</a>
+      </div>
+      ${divider}
+      ${p(`Si les boutons ne fonctionnent pas, <a href="${BASE_URL}/tableau-de-bord" style="color:${BRAND_COLOR};">connectez-vous à votre espace</a> pour répondre.`, `font-size:12px;color:#9ca3af;`)}
+      ${p(`Rappel : tout échange reste dans le cadre sécurisé de la plateforme. Votre numéro et vos coordonnées ne sont jamais partagés.`, `font-size:12px;color:#9ca3af;font-style:italic;`)}
+    `, `${matchPrenom} souhaite ouvrir une conversation avec vous sur MASR.`)
+  }
+}
+
+// ════════════════════════════════════════════════════════════════
+// 19. DEMANDE DE MOUQABALA
+// Envoyé à user B quand user A planifie une session mouqabala.
+// ════════════════════════════════════════════════════════════════
+export function mouquabalaRequestEmail({ prenom, matchPrenom, sessionId, dateHeure, dureeMinutes, superviseur }: {
+  prenom: string; matchPrenom: string; sessionId: string
+  dateHeure: string; dureeMinutes: number; superviseur: string
+}) {
+  const acceptUrl  = `${BASE_URL}/api/sessions/${sessionId}/confirmer-email?action=ACCEPTER`
+  const declineUrl = `${BASE_URL}/api/sessions/${sessionId}/confirmer-email?action=DECLINER`
+  const sessionUrl = `${BASE_URL}/sessions/${sessionId}`
+
+  return {
+    subject: `🤝 ${matchPrenom} vous invite à une mouqabala virtuelle`,
+    html: baseLayout(`
+      ${h1(`Invitation à une mouqabala encadrée`)}
+      ${p(`Bonjour ${prenom}, ${gold(matchPrenom)} vous invite à une mouqabala virtuelle sur Mariés au Second Regard. Cette session encadrée est la prochaine étape vers la connaissance mutuelle selon les préceptes de l'Islam.`)}
+      <div style="background:linear-gradient(135deg,#1a1a1a 0%,#111 100%);border-radius:12px;padding:24px;margin:24px 0;border:1px solid rgba(212,168,83,0.2);">
+        <div style="font-size:13px;color:${BRAND_COLOR};font-weight:600;letter-spacing:2px;text-transform:uppercase;margin-bottom:16px;">Détails de la session</div>
+        <table width="100%" cellpadding="0" cellspacing="0">
+          ${[
+            { icon: '📅', label: 'Date & heure', value: dateHeure },
+            { icon: '⏱️', label: 'Durée', value: `${dureeMinutes} minutes` },
+            { icon: '🕌', label: 'Superviseur', value: superviseur },
+            { icon: '🔒', label: 'Cadre', value: 'Islamique · Supervisé · Confidentiel' },
+            { icon: '👥', label: 'Participants', value: `Vous, ${matchPrenom} et le superviseur` },
+          ].map(row => `
+            <tr>
+              <td style="padding:6px 0;width:28px;font-size:16px;">${row.icon}</td>
+              <td style="padding:6px 8px;font-size:12px;color:#9ca3af;width:110px;">${row.label}</td>
+              <td style="padding:6px 0;font-size:13px;color:#ffffff;font-weight:500;">${row.value}</td>
+            </tr>
+          `).join('')}
+        </table>
+      </div>
+      ${p(`Acceptez pour confirmer votre présence, ou déclinez si vous ne souhaitez pas participer. ${gold(matchPrenom)} sera notifié(e) de votre décision.`)}
+      <div style="text-align:center;margin:32px 0;">
+        <a href="${acceptUrl}" style="display:inline-block;background:${BRAND_COLOR};color:#000000;font-size:15px;font-weight:700;text-decoration:none;padding:14px 28px;border-radius:8px;margin:4px 8px 4px 4px;">Accepter la mouqabala →</a>
+        <a href="${declineUrl}" style="display:inline-block;background:#f4f4f5;color:#374151;font-size:14px;font-weight:600;text-decoration:none;padding:14px 24px;border-radius:8px;border:1px solid #e5e7eb;margin:4px;">Décliner</a>
+      </div>
+      ${divider}
+      ${p(`Vous pouvez également <a href="${sessionUrl}" style="color:${BRAND_COLOR};">accéder à la session</a> depuis votre espace pour rejoindre la mouqabala le jour J.`, `font-size:12px;color:#9ca3af;`)}
+      ${p(`Que Allah facilite votre chemin vers le mariage. 🤲`, `font-style:italic;color:#9ca3af;font-size:13px;`)}
+    `, `${matchPrenom} vous invite à une mouqabala virtuelle encadrée sur MASR.`)
+  }
+}

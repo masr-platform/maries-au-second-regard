@@ -11,6 +11,9 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { createDailyRoom } from '@/lib/daily'
+import { emailService } from '@/lib/email'
+import { format } from 'date-fns'
+import { fr } from 'date-fns/locale'
 
 // ─── GET — Sessions à venir de l'utilisateur ──────────────────────
 export async function GET(req: NextRequest) {
@@ -150,30 +153,63 @@ export async function POST(req: NextRequest) {
       console.warn('[Sessions] DAILY_API_KEY non configuré — room vidéo non créée')
     }
 
-    // Notifications aux participants
-    const notifData = JSON.stringify({ sessionId: newSession.id, scheduledAt, type })
-    const notifContenu = `Mouqabala virtuelle planifiée le ${scheduledDate.toLocaleDateString('fr-FR', {
-      weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit',
-    })} avec ${imam.nom} ${imam.prenom}.`
-
-    await prisma.notification.createMany({
-      data: [
-        {
-          userId:  userId,
-          type:    'SESSION_RAPPEL',
-          titre:   '📅 Session planifiée',
-          contenu: notifContenu,
-          data:    notifData,
-        },
-        ...(user2Id ? [{
-          userId:  user2Id as string,
-          type:    'SESSION_RAPPEL' as const,
-          titre:   '📅 Session planifiée',
-          contenu: notifContenu,
-          data:    notifData,
-        }] : []),
-      ],
+    // ── Notifications + emails aux participants ──────────────────
+    const dateFormatee = format(scheduledDate, "EEEE d MMMM 'à' HH'h'mm", { locale: fr })
+    const superviseurNom = `${imam.type === 'IMAM' ? 'Imam' : 'Dr.'} ${imam.prenom} ${imam.nom}`
+    const notifData   = JSON.stringify({
+      sessionId:   newSession.id,
+      scheduledAt,
+      type,
+      action:      'DEMANDE_MOUQUABALA',
     })
+
+    // Récupérer les prénoms/emails des deux utilisateurs
+    const [user1Data, user2Data] = await Promise.all([
+      prisma.user.findUnique({ where: { id: userId }, select: { prenom: true, email: true } }),
+      user2Id
+        ? prisma.user.findUnique({ where: { id: user2Id }, select: { prenom: true, email: true } })
+        : Promise.resolve(null),
+    ])
+
+    // Notif à l'initiateur (user1 — confirmation de planification)
+    await prisma.notification.create({
+      data: {
+        userId:  userId,
+        type:    'SESSION_RAPPEL',
+        titre:   '📅 Mouqabala planifiée',
+        contenu: `Votre mouqabala avec ${superviseurNom} est planifiée ${dateFormatee}.`,
+        data:    notifData,
+      },
+    })
+
+    // Notif + email à user2 (invitation avec boutons Accepter/Décliner)
+    if (user2Id && user2Data && user1Data) {
+      await prisma.notification.create({
+        data: {
+          userId:  user2Id,
+          type:    'SESSION_RAPPEL',
+          titre:   `🤝 ${user1Data.prenom} vous invite à une mouqabala`,
+          contenu: `${user1Data.prenom} a planifié une mouqabala ${dateFormatee} encadrée par ${superviseurNom}. Acceptez ou déclinez.`,
+          data:    JSON.stringify({
+            sessionId:   newSession.id,
+            action:      'DEMANDE_MOUQUABALA',
+            prenomAutre: user1Data.prenom,
+            dateHeure:   dateFormatee,
+          }),
+        },
+      })
+
+      // Email d'invitation non bloquant
+      emailService.sendMouquabalaRequest({
+        email:        user2Data.email,
+        prenom:       user2Data.prenom,
+        matchPrenom:  user1Data.prenom,
+        sessionId:    newSession.id,
+        dateHeure:    dateFormatee,
+        dureeMinutes,
+        superviseur:  superviseurNom,
+      }).catch(err => console.error('[email] sendMouquabalaRequest:', err))
+    }
 
     return NextResponse.json({
       session: { ...newSession, dailyRoomUrl, dailyRoomName },

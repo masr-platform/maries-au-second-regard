@@ -4,6 +4,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { emailService } from '@/lib/email'
 
 export async function POST(
   req: NextRequest,
@@ -65,16 +66,16 @@ export async function POST(
         prisma.notification.createMany({
           data: [
             {
-              userId: match.user1Id,
-              type:   'MATCH_ACCEPTE',
-              titre:  '🎉 Intérêt mutuel ! Le chat est ouvert.',
+              userId:  match.user1Id,
+              type:    'MATCH_ACCEPTE',
+              titre:   '🎉 Intérêt mutuel ! Le chat est ouvert.',
               contenu: 'Votre intérêt est partagé ! Vous pouvez maintenant échanger dans notre chat encadré.',
               data:    JSON.stringify({ matchId: params.matchId }),
             },
             {
-              userId: match.user2Id,
-              type:   'MATCH_ACCEPTE',
-              titre:  '🎉 Intérêt mutuel ! Le chat est ouvert.',
+              userId:  match.user2Id,
+              type:    'MATCH_ACCEPTE',
+              titre:   '🎉 Intérêt mutuel ! Le chat est ouvert.',
               contenu: 'Votre intérêt est partagé ! Vous pouvez maintenant échanger dans notre chat encadré.',
               data:    JSON.stringify({ matchId: params.matchId }),
             },
@@ -87,6 +88,40 @@ export async function POST(
         status:  'CHAT_OUVERT',
         message: 'Intérêt mutuel ! Le chat est maintenant ouvert.',
       })
+    }
+
+    // USER A ACCEPTE mais B n'a pas encore répondu — notifier + emailer B
+    if (reponse === 'ACCEPTE' && autreReponse === 'EN_ATTENTE') {
+      // Récupérer les infos des deux utilisateurs
+      const [userA, userB] = await Promise.all([
+        prisma.user.findUnique({ where: { id: userId },       select: { prenom: true } }),
+        prisma.user.findUnique({ where: { id: autreUserId }, select: { email: true, prenom: true } }),
+      ])
+
+      if (userA && userB) {
+        // Notif in-app avec boutons Accepter / Décliner
+        await prisma.notification.create({
+          data: {
+            userId:  autreUserId,
+            type:    'NOUVEAU_MATCH',
+            titre:   `💬 ${userA.prenom} souhaite vous parler`,
+            contenu: `${userA.prenom} a manifesté son intérêt pour votre profil et souhaite ouvrir une conversation encadrée.`,
+            data:    JSON.stringify({
+              matchId:     params.matchId,
+              action:      'DEMANDE_CHAT',
+              prenomAutre: userA.prenom,
+            }),
+          },
+        })
+
+        // Email non bloquant
+        emailService.sendChatRequest({
+          email:       userB.email,
+          prenom:      userB.prenom,
+          matchPrenom: userA.prenom,
+          matchId:     params.matchId,
+        }).catch(err => console.error('[email] sendChatRequest:', err))
+      }
     }
 
     if (reponse === 'REJETE') {

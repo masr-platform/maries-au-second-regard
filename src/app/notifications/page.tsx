@@ -1,13 +1,13 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { useSession, signOut } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import {
   Bell, Heart, MessageCircle, User, Settings, LogOut,
   TrendingUp, Sparkles, CheckCircle2, Check,
-  Star, Shield, Calendar, Video,
+  Star, Shield, Calendar, Video, Loader2,
 } from 'lucide-react'
 import { formatDistanceToNow } from 'date-fns'
 import { fr } from 'date-fns/locale'
@@ -18,6 +18,7 @@ interface Notification {
   type:      string
   titre:     string
   contenu:   string
+  data?:     string | null  // JSON: { action, matchId, sessionId, prenomAutre, ... }
   isRead:    boolean
   createdAt: string
 }
@@ -45,9 +46,10 @@ const TYPE_CONFIG: Record<string, { icon: React.ElementType; color: string; bg: 
 export default function NotificationsPage() {
   const { data: session, status } = useSession()
   const router = useRouter()
-  const [notifications, setNotifications] = useState<Notification[]>([])
-  const [loading, setLoading] = useState(true)
-  const [markingAll, setMarkingAll] = useState(false)
+  const [notifications, setNotifications]   = useState<Notification[]>([])
+  const [loading, setLoading]               = useState(true)
+  const [markingAll, setMarkingAll]         = useState(false)
+  const [actionLoading, setActionLoading]   = useState<Set<string>>(new Set())
 
   useEffect(() => {
     if (status === 'unauthenticated') router.replace('/connexion')
@@ -96,6 +98,54 @@ export default function NotificationsPage() {
     })
     setNotifications(n => n.map(notif => notif.id === id ? { ...notif, isRead: true } : notif))
   }
+
+  // ── Répondre à une demande de chat ──────────────────────────
+  const repondreChat = useCallback(async (notifId: string, matchId: string, reponse: 'ACCEPTE' | 'REJETE') => {
+    setActionLoading(s => new Set(s).add(notifId))
+    try {
+      const res = await fetch(`/api/matching/${matchId}/repondre`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ reponse }),
+      })
+      const data = await res.json()
+      if (!res.ok) { toast.error(data.error || 'Erreur'); return }
+
+      if (data.status === 'CHAT_OUVERT') {
+        toast.success('🎉 Chat ouvert ! Vous pouvez maintenant vous écrire.')
+        router.push(`/messages?matchId=${matchId}`)
+      } else {
+        toast(reponse === 'ACCEPTE' ? 'Demande acceptée — en attente de l\'autre' : 'Demande déclinée.', { icon: reponse === 'ACCEPTE' ? '✅' : '👋' })
+      }
+      await marquerLue(notifId)
+      setNotifications(n => n.filter(notif => notif.id !== notifId))
+    } catch { toast.error('Erreur réseau') }
+    finally { setActionLoading(s => { const next = new Set(s); next.delete(notifId); return next }) }
+  }, [router])
+
+  // ── Confirmer une mouqabala ───────────────────────────────────
+  const confirmerMouqabala = useCallback(async (notifId: string, sessionId: string, action: 'ACCEPTER' | 'DECLINER') => {
+    setActionLoading(s => new Set(s).add(notifId))
+    try {
+      const res = await fetch(`/api/sessions/${sessionId}/confirmer`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action }),
+      })
+      const data = await res.json()
+      if (!res.ok) { toast.error(data.error || 'Erreur'); return }
+
+      if (action === 'ACCEPTER') {
+        toast.success('🤲 Mouqabala confirmée ! Elle apparaît dans vos sessions.')
+        router.push(`/sessions/${sessionId}`)
+      } else {
+        toast('Mouqabala déclinée.', { icon: '👋' })
+      }
+      await marquerLue(notifId)
+      setNotifications(n => n.filter(notif => notif.id !== notifId))
+    } catch { toast.error('Erreur réseau') }
+    finally { setActionLoading(s => { const next = new Set(s); next.delete(notifId); return next }) }
+  }, [router])
 
   const nonLues = notifications.filter(n => !n.isRead).length
 
@@ -215,48 +265,88 @@ export default function NotificationsPage() {
         ) : (
           <div className="space-y-2">
               {notifications.map((notif, i) => {
-                const cfg = TYPE_CONFIG[notif.type] ?? TYPE_CONFIG.SYSTEME
-                const Icon = cfg.icon
-                const timeAgo = formatDistanceToNow(new Date(notif.createdAt), {
-                  addSuffix: true,
-                  locale: fr,
-                })
+                const cfg     = TYPE_CONFIG[notif.type] ?? TYPE_CONFIG.SYSTEME
+                const Icon    = cfg.icon
+                const timeAgo = formatDistanceToNow(new Date(notif.createdAt), { addSuffix: true, locale: fr })
+                const isLoading = actionLoading.has(notif.id)
+
+                // Parser le JSON data pour détecter les actions
+                let notifData: Record<string, string> = {}
+                try { if (notif.data) notifData = JSON.parse(notif.data) } catch { /* ignore */ }
+
+                const isDemandChat       = notifData.action === 'DEMANDE_CHAT' && notifData.matchId
+                const isDemandMouqabala  = notifData.action === 'DEMANDE_MOUQUABALA' && notifData.sessionId
+                const hasActionButtons   = (isDemandChat || isDemandMouqabala) && !notif.isRead
 
                 return (
                   <div
                     key={notif.id}
                     style={{ animation: `fadeInLeft 0.3s ease ${i * 0.03}s both` }}
-                    onClick={() => !notif.isRead && marquerLue(notif.id)}
-                    className={`flex items-start gap-4 p-4 rounded-xl border transition-all cursor-pointer ${
-                      notif.isRead
-                        ? 'bg-dark-800 border-dark-700 opacity-60 hover:opacity-80'
-                        : 'bg-dark-800 border-gold-500/20 hover:border-gold-500/40'
+                    className={`p-4 rounded-xl border transition-all ${
+                      hasActionButtons
+                        ? 'bg-dark-800 border-gold-500/30 shadow-lg shadow-gold-500/5'
+                        : notif.isRead
+                          ? 'bg-dark-800 border-dark-700 opacity-60 hover:opacity-80 cursor-pointer'
+                          : 'bg-dark-800 border-gold-500/20 hover:border-gold-500/40 cursor-pointer'
                     }`}
+                    onClick={() => !hasActionButtons && !notif.isRead && marquerLue(notif.id)}
                   >
-                    {/* Icône */}
-                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${cfg.bg}`}>
-                      <Icon size={18} className={cfg.color} />
-                    </div>
-
-                    {/* Contenu */}
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-start justify-between gap-2">
-                        <p className={`text-sm font-medium leading-tight ${notif.isRead ? 'text-dark-300' : 'text-white'}`}>
-                          {notif.titre}
-                        </p>
-                        {!notif.isRead && (
-                          <div className="w-2 h-2 rounded-full bg-gold-400 flex-shrink-0 mt-1" />
-                        )}
+                    <div className="flex items-start gap-4">
+                      {/* Icône */}
+                      <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${cfg.bg}`}>
+                        <Icon size={18} className={cfg.color} />
                       </div>
-                      <p className={`text-xs mt-1 leading-relaxed ${notif.isRead ? 'text-dark-500' : 'text-dark-400'}`}>
-                        {notif.contenu}
-                      </p>
-                      <p className="text-[10px] text-dark-600 mt-1.5">{timeAgo}</p>
+
+                      {/* Contenu */}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-start justify-between gap-2">
+                          <p className={`text-sm font-semibold leading-tight ${notif.isRead ? 'text-dark-300' : 'text-white'}`}>
+                            {notif.titre}
+                          </p>
+                          {!notif.isRead && !hasActionButtons && (
+                            <div className="w-2 h-2 rounded-full bg-gold-400 flex-shrink-0 mt-1" />
+                          )}
+                        </div>
+                        <p className={`text-xs mt-1 leading-relaxed ${notif.isRead ? 'text-dark-500' : 'text-dark-400'}`}>
+                          {notif.contenu}
+                        </p>
+                        <p className="text-[10px] text-dark-600 mt-1.5">{timeAgo}</p>
+                      </div>
+
+                      {/* Check si lue */}
+                      {notif.isRead && !hasActionButtons && (
+                        <CheckCircle2 size={14} className="text-dark-600 flex-shrink-0 mt-1" />
+                      )}
                     </div>
 
-                    {/* Check si lue */}
-                    {notif.isRead && (
-                      <CheckCircle2 size={14} className="text-dark-600 flex-shrink-0 mt-1" />
+                    {/* ── Boutons Accepter / Décliner ─────────────────── */}
+                    {hasActionButtons && (
+                      <div className="flex gap-2 mt-4 ml-14">
+                        {/* Accepter */}
+                        <button
+                          disabled={isLoading}
+                          onClick={() => isDemandChat
+                            ? repondreChat(notif.id, notifData.matchId, 'ACCEPTE')
+                            : confirmerMouqabala(notif.id, notifData.sessionId, 'ACCEPTER')
+                          }
+                          className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold transition-all bg-gold-500/15 text-gold-400 border border-gold-500/40 hover:bg-gold-500/25 hover:border-gold-500/60 disabled:opacity-50"
+                        >
+                          {isLoading ? <Loader2 size={12} className="animate-spin" /> : <CheckCircle2 size={12} />}
+                          Accepter
+                        </button>
+
+                        {/* Décliner */}
+                        <button
+                          disabled={isLoading}
+                          onClick={() => isDemandChat
+                            ? repondreChat(notif.id, notifData.matchId, 'REJETE')
+                            : confirmerMouqabala(notif.id, notifData.sessionId, 'DECLINER')
+                          }
+                          className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-medium transition-all text-dark-400 border border-dark-600 hover:border-dark-500 hover:text-white disabled:opacity-50"
+                        >
+                          Décliner
+                        </button>
+                      </div>
                     )}
                   </div>
                 )
