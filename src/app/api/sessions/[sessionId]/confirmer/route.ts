@@ -2,8 +2,8 @@ export const dynamic = 'force-dynamic'
 
 // ══════════════════════════════════════════════════════════════════
 // POST /api/sessions/[sessionId]/confirmer
-// User B accepte ou décline une invitation mouqabala.
-// Body : { action: 'ACCEPTER' | 'DECLINER' }
+// User B (ou A en contre-proposition) répond à l'invitation mouqabala.
+// Body : { action: 'ACCEPTER' | 'DECLINER' | 'CONTRE_PROPOSER', scheduledAt?: string, message?: string }
 // ══════════════════════════════════════════════════════════════════
 
 import { NextRequest, NextResponse } from 'next/server'
@@ -22,10 +22,18 @@ export async function POST(
   }
 
   const userId    = session.user.id
-  const { action } = await req.json() as { action: 'ACCEPTER' | 'DECLINER' }
+  const body = await req.json() as {
+    action: 'ACCEPTER' | 'DECLINER' | 'CONTRE_PROPOSER'
+    scheduledAt?: string   // ISO — requis pour CONTRE_PROPOSER
+    message?: string       // message optionnel pour la contre-proposition
+  }
+  const { action, scheduledAt, message } = body
 
-  if (!['ACCEPTER', 'DECLINER'].includes(action)) {
+  if (!['ACCEPTER', 'DECLINER', 'CONTRE_PROPOSER'].includes(action)) {
     return NextResponse.json({ error: 'Action invalide' }, { status: 400 })
+  }
+  if (action === 'CONTRE_PROPOSER' && !scheduledAt) {
+    return NextResponse.json({ error: 'Date requise pour une contre-proposition' }, { status: 400 })
   }
 
   try {
@@ -52,13 +60,12 @@ export async function POST(
     }
 
     if (action === 'ACCEPTER') {
-      // Confirmer la session — marquer user2Confirmed
+      // ── Confirmer la session ────────────────────────────────────
       await prisma.imamSession.update({
         where: { id: params.sessionId },
         data:  { status: 'PLANIFIE' },
       })
 
-      // Récupérer les admins pour les notifier
       const admins = await prisma.user.findMany({
         where: { role: { in: ['ADMIN', 'SUPER_ADMIN'] } },
         select: { id: true },
@@ -69,10 +76,8 @@ export async function POST(
       const dateStr   = format(imamSession.scheduledAt, "EEEE d MMMM 'à' HH'h'mm", { locale: fr })
       const imamNom   = `${imamSession.imam.type === 'IMAM' ? 'Imam' : 'Dr.'} ${imamSession.imam.prenom} ${imamSession.imam.nom}`
 
-      // Notifier user1 + tous les admins en parallèle
       await prisma.notification.createMany({
         data: [
-          // User1 — confirmation
           {
             userId:  imamSession.user1Id,
             type:    'SESSION_RAPPEL',
@@ -80,7 +85,6 @@ export async function POST(
             contenu: `${imamSession.user2!.prenom} a confirmé sa présence. La mouqabala est confirmée pour ${dateStr}.`,
             data:    JSON.stringify({ sessionId: params.sessionId, action: 'MOUQUABALA_CONFIRMEE' }),
           },
-          // Admins — nouvelle mouqabala confirmée
           ...admins.map(admin => ({
             userId:  admin.id,
             type:    'SESSION_RAPPEL' as const,
@@ -99,7 +103,6 @@ export async function POST(
         ],
       })
 
-      // Email à user1
       emailService.sendMouquabalaAccepted({
         email:       imamSession.user1.email,
         prenom:      imamSession.user1.prenom,
@@ -108,14 +111,76 @@ export async function POST(
 
       return NextResponse.json({ success: true, status: 'CONFIRME', message: 'Mouqabala confirmée !' })
 
+    } else if (action === 'CONTRE_PROPOSER') {
+      // ── user2 propose un autre créneau ──────────────────────────
+      const proposedDate = new Date(scheduledAt!)
+
+      await prisma.imamSession.update({
+        where: { id: params.sessionId },
+        data: {
+          status:                   'ANNULE',
+          contrePropositionBy:      userId,
+          contrePropositionAt:      new Date(),
+          scheduledAtContrePropose: proposedDate,
+          contrePropositionMessage: message || null,
+        },
+      })
+
+      // Nouvelle session avec rôles inversés
+      const newSession = await prisma.imamSession.create({
+        data: {
+          imamId:       imamSession.imamId,
+          matchId:      imamSession.matchId,
+          user1Id:      imamSession.user2Id!,   // user2 devient l'initiateur
+          user2Id:      imamSession.user1Id,    // user1 devient l'invité
+          type:         imamSession.type,
+          scheduledAt:  proposedDate,
+          dureeMinutes: imamSession.dureeMinutes,
+          montant:      imamSession.montant,
+          status:       'PLANIFIE',
+        },
+      })
+
+      const { format } = await import('date-fns')
+      const { fr }    = await import('date-fns/locale')
+      const dateStr   = format(proposedDate, "EEEE d MMMM 'à' HH'h'mm", { locale: fr })
+
+      await prisma.notification.create({
+        data: {
+          userId:  imamSession.user1Id,
+          type:    'SESSION_RAPPEL',
+          titre:   `🔄 ${imamSession.user2!.prenom} propose un autre créneau`,
+          contenu: `${imamSession.user2!.prenom} n'est pas disponible mais propose le ${dateStr}.${message ? ` Message : "${message}"` : ''} Confirmez ou déclinez ce nouveau créneau.`,
+          data:    JSON.stringify({
+            sessionId:   newSession.id,
+            action:      'CONTRE_PROPOSITION_RECUE',
+            scheduledAt: proposedDate.toISOString(),
+            prenomAutre: imamSession.user2!.prenom,
+          }),
+        },
+      })
+
+      emailService.sendChatRequest?.({
+        email:       imamSession.user1.email,
+        prenom:      imamSession.user1.prenom,
+        matchPrenom: imamSession.user2!.prenom,
+        matchId:     imamSession.matchId || '',
+      }).catch((err: unknown) => console.error('[email] contre-proposition:', err))
+
+      return NextResponse.json({
+        success:      true,
+        status:       'CONTRE_PROPOSE',
+        newSessionId: newSession.id,
+        message:      `Contre-proposition envoyée pour le ${dateStr}.`,
+      })
+
     } else {
-      // Annuler la session
+      // ── DECLINER ────────────────────────────────────────────────
       await prisma.imamSession.update({
         where: { id: params.sessionId },
         data:  { status: 'ANNULE' },
       })
 
-      // Notifier user1
       await prisma.notification.create({
         data: {
           userId:  imamSession.user1Id,

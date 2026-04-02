@@ -7,7 +7,7 @@ import Link from 'next/link'
 import {
   Video, Bell, Heart, MessageCircle, User, Settings, LogOut,
   TrendingUp, Calendar, Clock, Shield, CheckCircle2, XCircle,
-  PlayCircle, ChevronRight, Plus,
+  PlayCircle, ChevronRight, Plus, RefreshCw, Check, X,
 } from 'lucide-react'
 import { format, isPast, isToday, isFuture } from 'date-fns'
 import { fr } from 'date-fns/locale'
@@ -21,6 +21,8 @@ interface ImamSession {
   dureeMinutes: number
   montant:     number
   dailyRoomUrl: string | null
+  user1Id:     string
+  user2Id:     string | null
   imam: {
     nom:    string
     prenom: string
@@ -58,6 +60,12 @@ export default function SessionsPage() {
   const [sessions, setSessions]     = useState<ImamSession[]>([])
   const [activeTab, setActiveTab]   = useState<'upcoming' | 'past'>('upcoming')
   const [loading, setLoading]       = useState(true)
+  const [confirmingId, setConfirmingId] = useState<string | null>(null)
+  const [contreProposerState, setContreProposerState] = useState<{
+    sessionId: string
+    date:      string   // ISO local datetime-local input value
+    message:   string
+  } | null>(null)
 
   useEffect(() => {
     if (status === 'unauthenticated') router.replace('/connexion')
@@ -90,6 +98,49 @@ export default function SessionsPage() {
 
   const rejoindre = async (sessionId: string) => {
     router.push(`/sessions/${sessionId}`)
+  }
+
+  const confirmerSession = async (sessionId: string, action: 'ACCEPTER' | 'DECLINER') => {
+    setConfirmingId(sessionId)
+    try {
+      const res = await fetch(`/api/sessions/${sessionId}/confirmer`, {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ action }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Erreur')
+      toast.success(action === 'ACCEPTER' ? '✅ Mouqabala confirmée !' : '❌ Session déclinée.')
+      chargerSessions()
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : 'Erreur')
+    } finally {
+      setConfirmingId(null)
+    }
+  }
+
+  const envoyerContreProposition = async () => {
+    if (!contreProposerState) return
+    const { sessionId, date, message } = contreProposerState
+    if (!date) { toast.error('Veuillez choisir une date'); return }
+    const scheduledAt = new Date(date).toISOString()
+    setConfirmingId(sessionId)
+    try {
+      const res = await fetch(`/api/sessions/${sessionId}/confirmer`, {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ action: 'CONTRE_PROPOSER', scheduledAt, message: message || undefined }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Erreur')
+      toast.success('🔄 Contre-proposition envoyée !')
+      setContreProposerState(null)
+      chargerSessions()
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : 'Erreur')
+    } finally {
+      setConfirmingId(null)
+    }
   }
 
   const upcoming = sessions.filter(s => s.status !== 'TERMINE' && s.status !== 'ANNULE')
@@ -241,11 +292,14 @@ export default function SessionsPage() {
         ) : (
           <div className="space-y-3">
             {displayed.map((s, i) => {
-              const cfg      = STATUS_CONFIG[s.status] ?? STATUS_CONFIG.PLANIFIE
+              const cfg        = STATUS_CONFIG[s.status] ?? STATUS_CONFIG.PLANIFIE
               const StatusIcon = cfg.icon
-              const date     = new Date(s.scheduledAt)
-              const canJoin  = s.status === 'PLANIFIE' || s.status === 'EN_COURS'
-              const isNow    = s.status === 'EN_COURS' || (isToday(date) && isFuture(date) && !isPast(new Date(date.getTime() + s.dureeMinutes * 60000)))
+              const date       = new Date(s.scheduledAt)
+              const canJoin    = s.status === 'PLANIFIE' || s.status === 'EN_COURS'
+              const isNow      = s.status === 'EN_COURS' || (isToday(date) && isFuture(date) && !isPast(new Date(date.getTime() + s.dureeMinutes * 60000)))
+              const isInvited  = s.status === 'PLANIFIE' && s.user2Id === session?.user?.id
+              const isContreProposing = contreProposerState?.sessionId === s.id
+              const isConfirming      = confirmingId === s.id
 
               return (
                 <div
@@ -264,6 +318,11 @@ export default function SessionsPage() {
                           <StatusIcon size={10} />
                           {cfg.label}
                         </span>
+                        {isInvited && (
+                          <span className="inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-400 font-medium">
+                            En attente de votre réponse
+                          </span>
+                        )}
                         {isNow && s.status !== 'EN_COURS' && (
                           <span className="inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-full bg-green-500/10 text-green-400 font-medium">
                             <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" />
@@ -304,11 +363,76 @@ export default function SessionsPage() {
                           {[s.user1.prenom, s.user2?.prenom, `${s.imam.prenom} ${s.imam.nom} (imam)`].filter(Boolean).join(' · ')}
                         </span>
                       </div>
+
+                      {/* ── Contre-proposition inline form ── */}
+                      {isContreProposing && (
+                        <div className="mt-4 p-4 rounded-xl border border-gold-500/20 bg-gold-500/5 space-y-3">
+                          <p className="text-xs text-gold-400 font-medium">Proposer un autre créneau</p>
+                          <input
+                            type="datetime-local"
+                            value={contreProposerState!.date}
+                            onChange={e => setContreProposerState(prev => prev ? { ...prev, date: e.target.value } : null)}
+                            min={new Date().toISOString().slice(0, 16)}
+                            className="w-full text-xs bg-dark-700 border border-dark-600 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-gold-500/50"
+                          />
+                          <input
+                            type="text"
+                            placeholder="Message optionnel…"
+                            value={contreProposerState!.message}
+                            onChange={e => setContreProposerState(prev => prev ? { ...prev, message: e.target.value } : null)}
+                            className="w-full text-xs bg-dark-700 border border-dark-600 rounded-lg px-3 py-2 text-white placeholder-dark-500 focus:outline-none focus:border-gold-500/50"
+                          />
+                          <div className="flex gap-2">
+                            <button
+                              onClick={envoyerContreProposition}
+                              disabled={isConfirming || !contreProposerState?.date}
+                              className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-medium bg-gold-500/15 text-gold-400 border border-gold-500/30 hover:bg-gold-500/25 transition-all disabled:opacity-50"
+                            >
+                              <RefreshCw size={12} className={isConfirming ? 'animate-spin' : ''} />
+                              Envoyer la proposition
+                            </button>
+                            <button
+                              onClick={() => setContreProposerState(null)}
+                              className="px-3 py-2 rounded-lg text-xs text-dark-400 hover:text-white transition-all"
+                            >
+                              Annuler
+                            </button>
+                          </div>
+                        </div>
+                      )}
                     </div>
 
                     {/* CTA */}
                     <div className="flex-shrink-0">
-                      {canJoin ? (
+                      {isInvited && !isContreProposing ? (
+                        /* Invité en attente → Accepter / Décliner / Contre-proposer */
+                        <div className="flex flex-col gap-2 items-end">
+                          <button
+                            onClick={() => confirmerSession(s.id, 'ACCEPTER')}
+                            disabled={isConfirming}
+                            className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold bg-green-500/10 text-green-400 border border-green-500/30 hover:bg-green-500/20 transition-all disabled:opacity-50"
+                          >
+                            <Check size={13} />
+                            Accepter
+                          </button>
+                          <button
+                            onClick={() => confirmerSession(s.id, 'DECLINER')}
+                            disabled={isConfirming}
+                            className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold bg-red-500/10 text-red-400 border border-red-500/30 hover:bg-red-500/20 transition-all disabled:opacity-50"
+                          >
+                            <X size={13} />
+                            Décliner
+                          </button>
+                          <button
+                            onClick={() => setContreProposerState({ sessionId: s.id, date: '', message: '' })}
+                            disabled={isConfirming}
+                            className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold bg-amber-500/10 text-amber-400 border border-amber-500/30 hover:bg-amber-500/20 transition-all disabled:opacity-50"
+                          >
+                            <RefreshCw size={13} />
+                            Autre créneau
+                          </button>
+                        </div>
+                      ) : !isInvited && canJoin ? (
                         <button
                           onClick={() => rejoindre(s.id)}
                           className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all ${
@@ -321,12 +445,12 @@ export default function SessionsPage() {
                           {isNow ? 'Rejoindre' : 'Accéder'}
                           <ChevronRight size={13} />
                         </button>
-                      ) : (
+                      ) : !isInvited ? (
                         <div className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs ${cfg.bg} ${cfg.color}`}>
                           <StatusIcon size={13} />
                           {cfg.label}
                         </div>
-                      )}
+                      ) : null}
                     </div>
                   </div>
                 </div>

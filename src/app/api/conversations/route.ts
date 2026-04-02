@@ -60,26 +60,33 @@ export async function GET() {
       const dernierMessage = conv.messages[0] || null
 
       return {
-        id: conv.id,
-        matchId: conv.matchId,
-        etape: conv.etape,
-        isFlagged: conv.isFlagged,
+        id:            conv.id,
+        matchId:       conv.matchId,
+        etape:         conv.etape,
+        isFlagged:     conv.isFlagged,
         lastMessageAt: conv.lastMessageAt,
-        messageCount: conv.messageCount,
-        nonLus: conv._count.messages,
+        messageCount:  conv.messageCount,
+        nonLus:        conv._count.messages,
+        // Charte & expiry
+        user1Id:              conv.user1Id,
+        user2Id:              conv.user2Id,
+        charteAccepteeUser1:  conv.charteAccepteeUser1  ?? false,
+        charteAccepteeUser2:  conv.charteAccepteeUser2  ?? false,
+        expiresAt:            conv.expiresAt            ?? null,
+        isExpired:            conv.isExpired            ?? false,
         interlocuteur: {
-          id: interlocuteur.id,
-          prenom: interlocuteur.prenom,
-          photoUrl: interlocuteur.photoUrl,
+          id:           interlocuteur.id,
+          prenom:       interlocuteur.prenom,
+          photoUrl:     interlocuteur.photoUrl,
           lastActiveAt: interlocuteur.lastActiveAt,
         },
         dernierMessage: dernierMessage
           ? {
-              content: dernierMessage.content,
-              senderId: dernierMessage.senderId,
+              content:   dernierMessage.content,
+              senderId:  dernierMessage.senderId,
               createdAt: dernierMessage.createdAt,
-              isRead: dernierMessage.isRead,
-              isMine: dernierMessage.senderId === userId,
+              isRead:    dernierMessage.isRead,
+              isMine:    dernierMessage.senderId === userId,
             }
           : null,
       }

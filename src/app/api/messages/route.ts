@@ -73,13 +73,28 @@ export async function GET(req: NextRequest) {
       data: { isRead: true, readAt: new Date() },
     })
 
+    // Vérifier expiration en temps réel
+    const expired = conversation.isExpired ||
+      (conversation.expiresAt != null && new Date() > new Date(conversation.expiresAt))
+
+    if (expired && !conversation.isExpired) {
+      // Lazy update sans bloquer la réponse
+      prisma.conversation.update({
+        where: { id: conversationId },
+        data:  { isExpired: true, expiredAt: conversation.expiredAt ?? new Date() },
+      }).catch(err => console.error('[conv] expiry lazy update GET:', err))
+    }
+
     return NextResponse.json({
       messages: messages.reverse(),
       hasMore,
       nextCursor: hasMore && messages.length > 0
         ? messages[0].createdAt.toISOString()
         : null,
-      etape: conversation.etape,
+      etape:     conversation.etape,
+      expiresAt: conversation.expiresAt,
+      isExpired: expired,
+      matchId:   conversation.matchId,
     })
 
   } catch (error) {
@@ -127,6 +142,19 @@ export async function POST(req: NextRequest) {
 
     if (!conversation) {
       return NextResponse.json({ error: 'Conversation non accessible' }, { status: 403 })
+    }
+
+    // ── Vérifier que la conversation n'est pas expirée ────────────────
+    if (conversation.isExpired) {
+      return NextResponse.json({ error: 'Cette conversation a expiré. Vous pouvez demander une mouqabala.' }, { status: 403 })
+    }
+    if (conversation.expiresAt && new Date() > new Date(conversation.expiresAt)) {
+      // Marquer comme expirée en DB (lazy update)
+      prisma.conversation.update({
+        where: { id: conversationId },
+        data:  { isExpired: true, expiredAt: new Date() },
+      }).catch(err => console.error('[conv] expiry lazy update:', err))
+      return NextResponse.json({ error: 'Cette conversation a expiré. Vous pouvez demander une mouqabala.' }, { status: 403 })
     }
 
     // ── Détection coordonnées AVANT envoi ────────────────────────────
