@@ -1,7 +1,6 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { motion } from 'framer-motion'
 import {
   Users, MessageCircle, AlertTriangle, TrendingUp,
   CheckCircle2, Ban, Eye, Flag, RefreshCw, Shield,
@@ -52,10 +51,9 @@ function KPICard({ titre, valeur, icon: Icon, gradient, sousTitre, glow }: {
   glow?: string
 }) {
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 16 }}
-      animate={{ opacity: 1, y: 0 }}
+    <div
       className={`relative overflow-hidden bg-[#0d0a1f] border border-white/8 rounded-2xl p-5 shadow-lg ${glow ?? ''}`}
+      style={{ animation: 'fadeInUp 0.35s ease both' }}
     >
       {/* gradient orb background */}
       <div className={`absolute -top-6 -right-6 w-24 h-24 rounded-full bg-gradient-to-br ${gradient} opacity-20 blur-2xl`} />
@@ -69,7 +67,7 @@ function KPICard({ titre, valeur, icon: Icon, gradient, sousTitre, glow }: {
           <Icon size={20} className="text-white" />
         </div>
       </div>
-    </motion.div>
+    </div>
   )
 }
 
@@ -140,6 +138,17 @@ export default function AdminPage() {
 
   return (
     <div className="min-h-screen bg-[#060412] p-5 md:p-8">
+
+      <style jsx global>{`
+        @keyframes fadeInUp {
+          from { opacity: 0; transform: translateY(16px); }
+          to   { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes fadeInLeft {
+          from { opacity: 0; transform: translateX(-8px); }
+          to   { opacity: 1; transform: translateX(0); }
+        }
+      `}</style>
 
       {/* ── Header ──────────────────────────────────────────── */}
       <div className="flex items-center justify-between mb-8">
@@ -235,12 +244,11 @@ export default function AdminPage() {
               <p className="text-white font-semibold">Aucun signalement en attente</p>
               <p className="text-white/40 text-sm mt-1">Tout est sous contrôle 🎉</p>
             </div>
-          ) : signalements.map((sig) => (
-            <motion.div
+          ) : signalements.map((sig, i) => (
+            <div
               key={sig.id}
-              initial={{ opacity: 0, x: -10 }}
-              animate={{ opacity: 1, x: 0 }}
               className="bg-[#0d0a1f] border border-red-500/20 rounded-2xl p-5"
+              style={{ animation: `fadeInLeft 0.3s ease ${i * 0.05}s both` }}
             >
               <div className="flex items-start justify-between gap-4">
                 <div className="flex items-start gap-3">
@@ -282,7 +290,7 @@ export default function AdminPage() {
                   </button>
                 </div>
               </div>
-            </motion.div>
+            </div>
           ))}
         </div>
       )}
@@ -436,11 +444,9 @@ export default function AdminPage() {
                       <span className={`font-semibold ${item.color}`}>{item.val} / {item.total}</span>
                     </div>
                     <div className="h-2 bg-white/8 rounded-full overflow-hidden">
-                      <motion.div
-                        initial={{ width: 0 }}
-                        animate={{ width: `${pct}%` }}
-                        transition={{ duration: 0.8, ease: 'easeOut' }}
+                      <div
                         className={`h-full rounded-full bg-gradient-to-r ${item.gradient}`}
+                        style={{ width: `${pct}%`, transition: 'width 0.8s ease' }}
                       />
                     </div>
                     <p className="text-xs text-white/30 mt-1 text-right">{pct}%</p>

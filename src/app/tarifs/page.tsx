@@ -2,7 +2,6 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { motion } from 'framer-motion'
 import { Check, ArrowRight, Shield, Star, Zap, Crown } from 'lucide-react'
 
 const PLANS = [
@@ -144,7 +143,7 @@ export default function TarifsPage() {
 
       {/* Header */}
       <section className="relative z-10 pt-32 pb-16 px-6 text-center">
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
+        <div style={{ animation: 'fadeInUp 0.6s ease both' }}>
           <p className="text-purple-400 text-sm font-semibold uppercase tracking-widest mb-4">Tarifs & abonnements</p>
           <h1 className="text-4xl md:text-6xl font-black text-white mb-4">
             Investissez dans<br />
@@ -178,7 +177,7 @@ export default function TarifsPage() {
               Annuel <span className="text-fuchsia-400 text-xs font-black ml-1">−20%</span>
             </button>
           </div>
-        </motion.div>
+        </div>
       </section>
 
       {/* Plans */}
@@ -187,12 +186,10 @@ export default function TarifsPage() {
           {PLANS.map((plan, i) => {
             const Icon = plan.icon
             return (
-              <motion.div
+              <div
                 key={plan.key}
-                initial={{ opacity: 0, y: 30 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: i * 0.1, duration: 0.6 }}
                 className={`relative rounded-3xl border bg-gradient-to-b ${plan.gradient} ${plan.border} p-7 flex flex-col ${plan.featured ? 'shadow-2xl shadow-fuchsia-500/15 scale-[1.02]' : ''}`}
+                style={{ animation: `fadeInUp 0.5s ease ${i * 0.1}s both` }}
               >
                 {plan.badge && (
                   <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-gradient-to-r from-purple-600 via-fuchsia-600 to-pink-600 text-white text-xs font-black px-5 py-1.5 rounded-full whitespace-nowrap shadow-lg">
@@ -231,7 +228,7 @@ export default function TarifsPage() {
                   {plan.cta}
                   <ArrowRight size={16} />
                 </Link>
-              </motion.div>
+              </div>
             )
           })}
         </div>
@@ -244,10 +241,10 @@ export default function TarifsPage() {
       {/* Tableau comparatif */}
       <section className="relative z-10 py-20 px-6 bg-gradient-to-b from-transparent via-purple-950/10 to-transparent">
         <div className="max-w-4xl mx-auto">
-          <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-12">
+          <div className="text-center mb-12">
             <h2 className="text-3xl font-black text-white mb-3">Comparatif détaillé</h2>
             <p className="text-white/40">Choisissez la formule qui correspond à votre rythme.</p>
-          </motion.div>
+          </div>
 
           <div className="overflow-hidden rounded-3xl border border-purple-500/20">
             <div className="grid grid-cols-4 bg-gradient-to-r from-purple-950/40 via-fuchsia-950/20 to-purple-950/40 px-6 py-4 border-b border-purple-500/20">
@@ -271,19 +268,21 @@ export default function TarifsPage() {
       {/* Garanties */}
       <section className="relative z-10 py-20 px-6">
         <div className="max-w-5xl mx-auto">
-          <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-12">
+          <div className="text-center mb-12">
             <h2 className="text-3xl font-black text-white mb-3">Nos engagements</h2>
             <p className="text-white/40">Nous prenons vos intérêts au sérieux.</p>
-          </motion.div>
+          </div>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-5">
             {GARANTIES.map((g, i) => (
-              <motion.div key={i} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }} transition={{ delay: i * 0.1 }}
-                className="bg-white/4 border border-white/8 rounded-2xl p-5 text-center hover:bg-white/6 transition-all">
+              <div
+                key={i}
+                className="bg-white/4 border border-white/8 rounded-2xl p-5 text-center hover:bg-white/6 transition-all"
+                style={{ animation: `fadeInUp 0.4s ease ${i * 0.08}s both` }}
+              >
                 <div className="text-3xl mb-3">{g.emoji}</div>
                 <p className="text-white font-bold text-sm mb-1">{g.titre}</p>
                 <p className="text-white/40 text-xs leading-relaxed">{g.desc}</p>
-              </motion.div>
+              </div>
             ))}
           </div>
         </div>
@@ -306,6 +305,13 @@ export default function TarifsPage() {
           </div>
         </div>
       </section>
+
+      <style jsx global>{`
+        @keyframes fadeInUp {
+          from { opacity: 0; transform: translateY(20px); }
+          to   { opacity: 1; transform: translateY(0); }
+        }
+      `}</style>
 
       {/* Footer */}
       <footer className="border-t border-purple-500/10 py-8 px-6">

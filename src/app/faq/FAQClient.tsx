@@ -2,7 +2,6 @@
 
 import { useState } from 'react'
 import { ChevronDown } from 'lucide-react'
-import { AnimatePresence, motion } from 'framer-motion'
 
 interface Question {
   q: string
@@ -15,7 +14,10 @@ export default function FAQClient({ questions }: { questions: Question[] }) {
   return (
     <div className="space-y-2">
       {questions.map((faq, i) => (
-        <div key={i} className="border border-purple-500/15 rounded-2xl overflow-hidden bg-gradient-to-r from-purple-950/20 to-fuchsia-950/10 hover:border-purple-500/30 transition-colors">
+        <div
+          key={i}
+          className="border border-purple-500/15 rounded-2xl overflow-hidden bg-gradient-to-r from-purple-950/20 to-fuchsia-950/10 hover:border-purple-500/30 transition-colors"
+        >
           <button
             onClick={() => setOpen(open === i ? null : i)}
             className="w-full flex justify-between items-center p-5 text-left"
@@ -27,19 +29,14 @@ export default function FAQClient({ questions }: { questions: Question[] }) {
               className={`text-purple-400 flex-shrink-0 transition-transform duration-300 ${open === i ? 'rotate-180' : ''}`}
             />
           </button>
-          <AnimatePresence initial={false}>
-            {open === i && (
-              <motion.div
-                initial={{ height: 0 }}
-                animate={{ height: 'auto' }}
-                exit={{ height: 0 }}
-                transition={{ duration: 0.25, ease: 'easeInOut' }}
-                className="overflow-hidden"
-              >
-                <p className="px-5 pb-5 text-white/60 text-sm leading-relaxed">{faq.a}</p>
-              </motion.div>
-            )}
-          </AnimatePresence>
+
+          {/* Accordion — CSS maxHeight transition, zéro framer-motion */}
+          <div
+            className="overflow-hidden transition-all duration-300 ease-in-out"
+            style={{ maxHeight: open === i ? '400px' : '0px', opacity: open === i ? 1 : 0 }}
+          >
+            <p className="px-5 pb-5 text-white/60 text-sm leading-relaxed">{faq.a}</p>
+          </div>
         </div>
       ))}
     </div>
