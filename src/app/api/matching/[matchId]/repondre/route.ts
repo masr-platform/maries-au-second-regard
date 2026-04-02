@@ -61,6 +61,8 @@ export async function POST(
             user1Id:  match.user1Id,
             user2Id:  match.user2Id,
             etape:    'PRESENTATION',
+            // expiresAt (72H) sera défini dans PATCH /charte
+            // quand le 2e utilisateur aura accepté la charte d'entrée
           },
         }),
         prisma.notification.createMany({
@@ -130,11 +132,8 @@ export async function POST(
         data:  { status: 'REJETE' },
       })
 
-      // Notifier l'IA de chercher un nouveau profil pour les deux (sans révéler le refus)
-      setImmediate(async () => {
-        // L'autre utilisateur reçoit une nouvelle proposition dans le cycle suivant
-        // Sans notification de refus pour préserver la dignité
-      })
+      // L'autre utilisateur reçoit une nouvelle proposition dans le cycle suivant
+      // Sans notification de refus pour préserver la dignité
     }
 
     return NextResponse.json({ success: true, status: reponse })

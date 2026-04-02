@@ -199,8 +199,8 @@ export async function POST(req: NextRequest) {
         },
       })
 
-      // Email d'invitation non bloquant
-      emailService.sendMouquabalaRequest({
+      // Email d'invitation (await direct — serverless safe)
+      await emailService.sendMouquabalaRequest({
         email:        user2Data.email,
         prenom:       user2Data.prenom,
         matchPrenom:  user1Data.prenom,

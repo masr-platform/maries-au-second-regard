@@ -68,11 +68,9 @@ export async function POST(req: NextRequest) {
       },
     })
 
-    // Envoyer l'email de bienvenue (non bloquant)
-    setImmediate(() => {
-      emailService.sendWelcome({ email: user.email, prenom: user.prenom })
-        .catch((err) => console.error('Email bienvenue échoué:', err))
-    })
+    // Envoyer l'email de bienvenue (await direct — setImmediate ne fonctionne pas en serverless)
+    await emailService.sendWelcome({ email: user.email, prenom: user.prenom })
+      .catch((err) => console.error('[inscription] Email bienvenue échoué:', err))
 
     return NextResponse.json({
       success: true,

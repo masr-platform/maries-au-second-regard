@@ -7,29 +7,36 @@
 import { Resend } from 'resend'
 import * as T from './templates'
 
-// Initialisation lazy — évite le throw au niveau module si RESEND_API_KEY absent
-const FROM = 'Mariés au Second Regard <noreply@mariesausecondregard.fr>'
+// ── FROM : utilise le domaine vérifié Resend si dispo, sinon fallback onboarding
+// Pour utiliser votre domaine custom : vérifiez-le dans Resend et définissez
+// RESEND_FROM="Mariés au Second Regard <noreply@votredomaine.fr>" dans Vercel
+const FROM = process.env.RESEND_FROM
+  || 'Mariés au Second Regard <onboarding@resend.dev>'   // domaine de test Resend (toujours ok)
 const REPLY_TO = 'mariesausecondregard@gmail.com'
 
 // ─── Fonction d'envoi de base ────────────────────────────────
 async function send(to: string, subject: string, html: string): Promise<void> {
   if (!process.env.RESEND_API_KEY) {
-    console.warn('[email] RESEND_API_KEY manquant — email non envoyé:', subject)
+    console.warn('[email] RESEND_API_KEY manquant — email non envoyé:', subject, '→', to)
     return
   }
   try {
     const resend = new Resend(process.env.RESEND_API_KEY)
-    const { error } = await resend.emails.send({
+    const { data, error } = await resend.emails.send({
       from: FROM,
       to,
       reply_to: REPLY_TO,
       subject,
       html,
     })
-    if (error) throw error
+    if (error) {
+      console.error('[email] Resend error:', subject, '→', to, error)
+      throw error
+    }
+    console.log('[email] Envoyé:', subject, '→', to, 'id:', data?.id)
   } catch (err) {
-    console.error('[email] Échec envoi:', subject, err)
-    // Ne pas propager l'erreur — l'email est non bloquant
+    console.error('[email] Échec envoi:', subject, '→', to, err)
+    // Ne pas propager — l'email est non bloquant pour l'UX
   }
 }
 
