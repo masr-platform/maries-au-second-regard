@@ -15,6 +15,7 @@ import {
   Video, CalendarDays, Clock, CheckCircle2, XCircle,
   RefreshCw, ChevronLeft, ChevronRight, Users, Loader2,
   Shield, ExternalLink, AlertCircle, Star, PlayCircle,
+  X, MapPin, Mail, Phone, BookOpen, UserCheck, Ban, Eye,
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 
@@ -55,11 +56,196 @@ function StatusBadge({ status }: { status: Session['status'] }) {
   )
 }
 
-function Avatar({ prenom, color }: { prenom: string; color: string }) {
+function Avatar({ prenom, color, onClick }: { prenom: string; color: string; onClick?: () => void }) {
+  if (onClick) {
+    return (
+      <button
+        onClick={onClick}
+        className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0 hover:ring-2 hover:ring-white/30 transition-all ${color}`}
+        title={`Voir le profil de ${prenom}`}
+      >
+        {prenom[0]}
+      </button>
+    )
+  }
   return (
     <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${color}`}>
       {prenom[0]}
     </div>
+  )
+}
+
+/* ── Mini drawer profil superviseur ────────────────────── */
+interface UserSupDetail {
+  id: string; prenom: string; email: string; genre: string
+  ville: string; pays: string; origine?: string | null; phone?: string | null
+  photos: string[]; photoUrl?: string | null; photoApproved?: boolean
+  plan: string; role: string; isVerified: boolean; isBanned: boolean
+  isSuspended: boolean; banReason?: string | null
+  age: number | null; createdAt: string; lastActiveAt?: string | null
+  questionnaireCompleted: boolean; profileCompleted?: boolean
+  stats: { matchCount: number; convCount: number; sessionCount: number; signalementCount: number }
+  questionnaireReponse?: {
+    niveauPratique?: string | null; objectifMariage?: string | null
+    souhaitEnfants?: boolean | null; modeVieSouhaite?: string | null
+    niveauEtudes?: string | null; profession?: string | null
+    portVoile?: boolean | null; portBarbe?: boolean | null; taille?: number | null
+    partenaireIdeal5Mots?: string | null; visionFoyer?: string | null
+    messageConjoint?: string | null
+  } | null
+}
+
+function UserDrawerSup({
+  user, onClose,
+}: {
+  user: UserSupDetail
+  onClose: () => void
+}) {
+  const [photo, setPhoto] = useState(user.photoUrl || '')
+  const q = user.questionnaireReponse
+
+  const row = (label: string, value: string | number | boolean | null | undefined) => {
+    if (value === null || value === undefined || value === '') return null
+    const txt = typeof value === 'boolean' ? (value ? 'Oui' : 'Non') : String(value)
+    return (
+      <div className="flex gap-3 py-2" style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+        <span className="text-xs w-40 shrink-0" style={{ color: 'rgba(255,255,255,0.35)' }}>{label}</span>
+        <span className="text-xs text-white font-medium">{txt}</span>
+      </div>
+    )
+  }
+
+  const pratiqueLabel: Record<string, string> = {
+    debutant: 'Débutant(e)', pratiquant: 'Pratiquant(e)',
+    tres_pratiquant: 'Très pratiquant(e)', savant: 'Savant(e)',
+  }
+  const objectifLabel: Record<string, string> = {
+    mariage_uniquement: 'Mariage direct', mariage_apres: 'Après connaissance',
+    engagement_progressif: 'Engagement progressif',
+  }
+
+  return (
+    <>
+      <div className="fixed inset-0 z-40" style={{ background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(4px)' }} onClick={onClose} />
+      <div
+        className="fixed top-0 right-0 bottom-0 z-50 overflow-y-auto"
+        style={{ width: 'min(560px, 100vw)', background: '#0a0817', borderLeft: '1px solid rgba(255,255,255,0.08)', animation: 'slideInRight 0.22s ease' }}
+      >
+        <style>{`@keyframes slideInRight { from { transform: translateX(50px); opacity:0 } to { transform: translateX(0); opacity:1 } }`}</style>
+
+        {/* Header */}
+        <div className="sticky top-0 z-10 flex items-center justify-between px-5 py-4" style={{ background: '#0a0817', borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
+          <p className="text-white font-semibold text-sm">Profil de {user.prenom}</p>
+          <button onClick={onClose} className="p-2 rounded-lg hover:bg-white/10 transition-all">
+            <X size={15} style={{ color: 'rgba(255,255,255,0.5)' }} />
+          </button>
+        </div>
+
+        <div className="p-5 space-y-4">
+          {/* Hero */}
+          <div className="flex items-start gap-4 pb-4" style={{ borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
+            <div className="shrink-0">
+              <div className="w-16 h-16 rounded-2xl overflow-hidden"
+                style={{ border: '2px solid rgba(167,139,250,0.3)', background: 'rgba(167,139,250,0.1)' }}>
+                {photo ? (
+                  <img src={photo} alt={user.prenom} className="w-full h-full object-cover" />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center text-xl font-bold" style={{ color: '#a78bfa' }}>
+                    {user.prenom[0]}
+                  </div>
+                )}
+              </div>
+              {user.photos.length > 1 && (
+                <div className="flex gap-1 mt-1.5">
+                  {user.photos.slice(0, 3).map((p, i) => (
+                    <button key={i} onClick={() => setPhoto(p)}
+                      className="w-5 h-5 rounded overflow-hidden"
+                      style={{ border: photo === p ? '1.5px solid #a78bfa' : '1.5px solid rgba(255,255,255,0.1)' }}>
+                      <img src={p} alt="" className="w-full h-full object-cover" />
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2 flex-wrap mb-1">
+                <p className="text-white font-bold">{user.prenom}</p>
+                {user.age && <span className="text-white/50 text-sm">{user.age} ans</span>}
+                <span className={`text-xs px-2 py-0.5 rounded-full font-semibold ${user.genre === 'HOMME' ? 'bg-blue-500/15 text-blue-300' : 'bg-fuchsia-500/15 text-fuchsia-300'}`}>
+                  {user.genre === 'HOMME' ? '♂ Homme' : '♀ Femme'}
+                </span>
+              </div>
+              <div className="flex flex-wrap gap-2 text-xs mb-2" style={{ color: 'rgba(255,255,255,0.4)' }}>
+                {user.ville && <span className="flex items-center gap-1"><MapPin size={9} />{user.ville}</span>}
+                {user.email && <span className="flex items-center gap-1"><Mail size={9} />{user.email}</span>}
+              </div>
+              <div className="flex flex-wrap gap-1.5">
+                {user.isVerified
+                  ? <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-300 border border-emerald-500/20 font-semibold">✓ Vérifié</span>
+                  : <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-300 border border-amber-500/20 font-semibold">⏳ Non vérifié</span>}
+                {user.isBanned && <span className="text-[10px] px-2 py-0.5 rounded-full bg-red-500/15 text-red-300 border border-red-500/20 font-semibold">🚫 Banni</span>}
+                {user.questionnaireReponse && <span className="text-[10px] px-2 py-0.5 rounded-full bg-violet-500/15 text-violet-300 border border-violet-500/20 font-semibold">✓ Questionnaire</span>}
+              </div>
+            </div>
+          </div>
+
+          {/* Stats */}
+          <div className="grid grid-cols-4 gap-2">
+            {[
+              { label: 'Matchs',       val: user.stats.matchCount,       color: '#f472b6' },
+              { label: 'Convs',        val: user.stats.convCount,        color: '#34d399' },
+              { label: 'Sessions',     val: user.stats.sessionCount,     color: '#60a5fa' },
+              { label: 'Signalements', val: user.stats.signalementCount, color: '#f87171' },
+            ].map(s => (
+              <div key={s.label} className="rounded-xl p-2 text-center" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)' }}>
+                <p className="text-lg font-bold" style={{ color: s.color }}>{s.val}</p>
+                <p className="text-[9px] mt-0.5" style={{ color: 'rgba(255,255,255,0.3)' }}>{s.label}</p>
+              </div>
+            ))}
+          </div>
+
+          {/* Identité */}
+          <div>
+            <p className="text-[10px] font-bold uppercase tracking-wider mb-2" style={{ color: 'rgba(167,139,250,0.6)' }}>Identité</p>
+            {row('Email',             user.email)}
+            {row('Téléphone',         user.phone)}
+            {row('Pays',              user.pays)}
+            {row('Origine',           user.origine)}
+            {row('Inscrit le',        new Date(user.createdAt).toLocaleString('fr-FR'))}
+            {user.lastActiveAt && row('Dernière activité', new Date(user.lastActiveAt).toLocaleString('fr-FR'))}
+          </div>
+
+          {/* Questionnaire résumé */}
+          {q && (
+            <div>
+              <p className="text-[10px] font-bold uppercase tracking-wider mb-2" style={{ color: 'rgba(167,139,250,0.6)' }}>Questionnaire</p>
+              {row('Niveau de pratique', q.niveauPratique ? (pratiqueLabel[q.niveauPratique] ?? q.niveauPratique) : null)}
+              {row('Objectif mariage',   q.objectifMariage ? (objectifLabel[q.objectifMariage] ?? q.objectifMariage) : null)}
+              {row('Souhaite enfants',   q.souhaitEnfants)}
+              {row('Mode de vie',        q.modeVieSouhaite)}
+              {row('Études',             q.niveauEtudes)}
+              {row('Profession',         q.profession)}
+              {row('Taille',             q.taille ? `${q.taille} cm` : null)}
+              {row('Port du voile',      q.portVoile)}
+              {row('Port de la barbe',   q.portBarbe)}
+              {q.partenaireIdeal5Mots && row('Partenaire idéal', q.partenaireIdeal5Mots)}
+              {q.visionFoyer && row('Vision du foyer',    q.visionFoyer)}
+              {q.messageConjoint && row('Message au conjoint', q.messageConjoint)}
+            </div>
+          )}
+          {!q && (
+            <div className="text-center py-4 rounded-xl" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)' }}>
+              <BookOpen size={18} className="mx-auto mb-1.5" style={{ color: 'rgba(255,255,255,0.2)' }} />
+              <p className="text-xs" style={{ color: 'rgba(255,255,255,0.3)' }}>Questionnaire non complété</p>
+            </div>
+          )}
+
+          <p className="text-[10px] text-center" style={{ color: 'rgba(255,255,255,0.2)' }}>
+            Pour les actions (vérifier, bannir…) → Dashboard Admin
+          </p>
+        </div>
+      </div>
+    </>
   )
 }
 
@@ -166,7 +352,7 @@ function MiniCalendrier({
 }
 
 /* ── Carte session ──────────────────────────────────────────── */
-function CarteSession({ session: s }: { session: Session }) {
+function CarteSession({ session: s, onClickUser }: { session: Session; onClickUser?: (id: string) => void }) {
   const debut  = new Date(s.scheduledAt)
   const fin    = new Date(debut.getTime() + s.dureeMinutes * 60_000)
   const heureD = debut.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
@@ -217,17 +403,23 @@ function CarteSession({ session: s }: { session: Session }) {
       {/* Participants */}
       <div className="flex items-center gap-4 mb-3">
         <div className="flex items-center gap-2">
-          <Avatar prenom={s.user1.prenom} color="bg-violet-500/20 text-violet-300" />
+          <Avatar prenom={s.user1.prenom} color="bg-violet-500/20 text-violet-300" onClick={onClickUser ? () => onClickUser(s.user1.id) : undefined} />
           <div>
-            <p className="text-white text-xs font-semibold">{s.user1.prenom}</p>
+            <button
+              className={`text-white text-xs font-semibold ${onClickUser ? 'hover:text-violet-300 transition-colors' : ''}`}
+              onClick={onClickUser ? () => onClickUser(s.user1.id) : undefined}
+            >{s.user1.prenom}</button>
             {s.user1.ville && <p className="text-white/30 text-[10px]">{s.user1.ville}</p>}
           </div>
         </div>
         <span className="text-white/20">×</span>
         <div className="flex items-center gap-2">
-          <Avatar prenom={s.user2.prenom} color="bg-fuchsia-500/20 text-fuchsia-300" />
+          <Avatar prenom={s.user2.prenom} color="bg-fuchsia-500/20 text-fuchsia-300" onClick={onClickUser ? () => onClickUser(s.user2.id) : undefined} />
           <div>
-            <p className="text-white text-xs font-semibold">{s.user2.prenom}</p>
+            <button
+              className={`text-white text-xs font-semibold ${onClickUser ? 'hover:text-fuchsia-300 transition-colors' : ''}`}
+              onClick={onClickUser ? () => onClickUser(s.user2.id) : undefined}
+            >{s.user2.prenom}</button>
             {s.user2.ville && <p className="text-white/30 text-[10px]">{s.user2.ville}</p>}
           </div>
         </div>
@@ -270,11 +462,27 @@ function CarteSession({ session: s }: { session: Session }) {
    PAGE PRINCIPALE
 ══════════════════════════════════════════════════════════════ */
 export default function SuperviseurPage() {
-  const [sessions,     setSessions]     = useState<Session[]>([])
-  const [loading,      setLoading]      = useState(true)
-  const [moisOffset,   setMoisOffset]   = useState(0)
-  const [selectedDate, setSelectedDate] = useState<Date | null>(null)
-  const [onglet,       setOnglet]       = useState<'aujourdhui' | 'avenir' | 'historique'>('aujourdhui')
+  const [sessions,      setSessions]      = useState<Session[]>([])
+  const [loading,       setLoading]       = useState(true)
+  const [moisOffset,    setMoisOffset]    = useState(0)
+  const [selectedDate,  setSelectedDate]  = useState<Date | null>(null)
+  const [onglet,        setOnglet]        = useState<'aujourdhui' | 'avenir' | 'historique'>('aujourdhui')
+  const [supDrawerUser, setSupDrawerUser] = useState<UserSupDetail | null>(null)
+  const [supDrawerLoad, setSupDrawerLoad] = useState(false)
+
+  const ouvrirProfil = async (userId: string) => {
+    setSupDrawerLoad(true)
+    try {
+      const res = await fetch(`/api/admin/users/${userId}`)
+      if (res.ok) {
+        const data = await res.json()
+        setSupDrawerUser(data.user)
+      } else {
+        toast.error('Impossible de charger le profil')
+      }
+    } catch { toast.error('Erreur réseau') }
+    finally { setSupDrawerLoad(false) }
+  }
 
   const charger = useCallback(async () => {
     try {
@@ -319,6 +527,16 @@ export default function SuperviseurPage() {
 
   return (
     <div className="min-h-screen bg-[#060412] p-5 md:p-8">
+
+      {/* Drawer profil utilisateur */}
+      {supDrawerUser && (
+        <UserDrawerSup user={supDrawerUser} onClose={() => setSupDrawerUser(null)} />
+      )}
+      {supDrawerLoad && (
+        <div className="fixed inset-0 z-40 flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.5)' }}>
+          <div className="w-8 h-8 border-2 border-violet-500 border-t-transparent rounded-full animate-spin" />
+        </div>
+      )}
 
       <style jsx global>{`
         @keyframes fadeInUp {
@@ -535,7 +753,7 @@ export default function SuperviseurPage() {
                     <p className="text-white/40 text-sm mt-2">Profitez de cette journée pour préparer les prochaines sessions.</p>
                   </div>
                 ) : (
-                  sessionsDuJour.map(s => <CarteSession key={s.id} session={s} />)
+                  sessionsDuJour.map(s => <CarteSession key={s.id} session={s} onClickUser={ouvrirProfil} />)
                 )}
               </div>
             )}
@@ -571,11 +789,11 @@ export default function SuperviseurPage() {
                           <p className="text-white/30 text-[10px] capitalize">{dateStr}</p>
                         </div>
                         <div className="flex items-center gap-3 flex-1 min-w-0">
-                          <Avatar prenom={s.user1.prenom} color="bg-violet-500/20 text-violet-300" />
-                          <span className="text-white/70 text-xs font-semibold">{s.user1.prenom}</span>
+                          <Avatar prenom={s.user1.prenom} color="bg-violet-500/20 text-violet-300" onClick={() => ouvrirProfil(s.user1.id)} />
+                          <button onClick={() => ouvrirProfil(s.user1.id)} className="text-white/70 text-xs font-semibold hover:text-violet-300 transition-colors">{s.user1.prenom}</button>
                           <span className="text-white/20 text-xs">×</span>
-                          <Avatar prenom={s.user2.prenom} color="bg-fuchsia-500/20 text-fuchsia-300" />
-                          <span className="text-white/70 text-xs font-semibold">{s.user2.prenom}</span>
+                          <Avatar prenom={s.user2.prenom} color="bg-fuchsia-500/20 text-fuchsia-300" onClick={() => ouvrirProfil(s.user2.id)} />
+                          <button onClick={() => ouvrirProfil(s.user2.id)} className="text-white/70 text-xs font-semibold hover:text-fuchsia-300 transition-colors">{s.user2.prenom}</button>
                         </div>
                         <div className="text-right shrink-0 hidden md:block">
                           <p className="text-white/40 text-[10px]">{imamTitre} {s.imam.prenom} {s.imam.nom}</p>
@@ -617,7 +835,9 @@ export default function SuperviseurPage() {
                         </div>
                         <div className="flex-1 min-w-0">
                           <p className="text-white/70 text-sm font-semibold truncate">
-                            {s.user1.prenom} × {s.user2.prenom}
+                            <button onClick={() => ouvrirProfil(s.user1.id)} className="hover:text-violet-300 transition-colors">{s.user1.prenom}</button>
+                            <span className="text-white/30 mx-1">×</span>
+                            <button onClick={() => ouvrirProfil(s.user2.id)} className="hover:text-fuchsia-300 transition-colors">{s.user2.prenom}</button>
                           </p>
                           <p className="text-white/30 text-xs capitalize">{dateStr} · {heureD}</p>
                         </div>

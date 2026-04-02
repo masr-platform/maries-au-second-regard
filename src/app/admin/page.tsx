@@ -67,18 +67,20 @@ interface UserRecent {
 }
 
 /* ── KPI card ─────────────────────────────────────────── */
-function KPICard({ titre, valeur, icon: Icon, gradient, sousTitre, glow }: {
+function KPICard({ titre, valeur, icon: Icon, gradient, sousTitre, glow, onClick }: {
   titre: string
   valeur: number | string
   icon: React.ElementType
   gradient: string
   sousTitre?: string
   glow?: string
+  onClick?: () => void
 }) {
   return (
     <div
-      className={`relative overflow-hidden bg-[#0d0a1f] border border-white/8 rounded-2xl p-5 shadow-lg ${glow ?? ''}`}
+      className={`relative overflow-hidden bg-[#0d0a1f] border border-white/8 rounded-2xl p-5 shadow-lg transition-all ${glow ?? ''} ${onClick ? 'cursor-pointer hover:border-white/20 hover:shadow-xl hover:scale-[1.02]' : ''}`}
       style={{ animation: 'fadeInUp 0.35s ease both' }}
+      onClick={onClick}
     >
       {/* gradient orb background */}
       <div className={`absolute -top-6 -right-6 w-24 h-24 rounded-full bg-gradient-to-br ${gradient} opacity-20 blur-2xl`} />
@@ -92,7 +94,284 @@ function KPICard({ titre, valeur, icon: Icon, gradient, sousTitre, glow }: {
           <Icon size={20} className="text-white" />
         </div>
       </div>
+      {onClick && (
+        <div className="absolute bottom-3 right-3 opacity-30 hover:opacity-60 transition-opacity">
+          <ChevronRight size={13} className="text-white" />
+        </div>
+      )}
     </div>
+  )
+}
+
+/* ── KPI drill-down panel ─────────────────────────────── */
+type KPIPanelType = 'membres' | 'matchs' | 'mouqabalas' | 'signalements' | 'revenu'
+
+function KPIPanel({
+  type, onClose, stats, users, sessions, signalements, sessionStats,
+  onOpenProfil,
+}: {
+  type: KPIPanelType
+  onClose: () => void
+  stats: Stats | null
+  users: UserRecent[]
+  sessions: SessionAdmin[]
+  signalements: Signalement[]
+  sessionStats: SessionStats | null
+  onOpenProfil: (id: string) => void
+}) {
+  const config: Record<KPIPanelType, { titre: string; gradient: string }> = {
+    membres:       { titre: 'Membres inscrits',      gradient: 'from-violet-500 to-purple-600' },
+    matchs:        { titre: 'Matchs actifs',          gradient: 'from-pink-500 to-rose-500' },
+    mouqabalas:    { titre: 'Sessions mouqabala',     gradient: 'from-emerald-500 to-teal-500' },
+    signalements:  { titre: 'Signalements en cours',  gradient: 'from-red-500 to-orange-500' },
+    revenu:        { titre: 'Revenus & abonnements',  gradient: 'from-amber-400 to-yellow-500' },
+  }
+  const { titre, gradient } = config[type]
+
+  return (
+    <>
+      <div className="fixed inset-0 z-40" style={{ background: 'rgba(0,0,0,0.65)', backdropFilter: 'blur(4px)' }} onClick={onClose} />
+      <div
+        className="fixed top-0 right-0 bottom-0 z-50 overflow-y-auto"
+        style={{ width: 'min(560px, 100vw)', background: '#0a0817', borderLeft: '1px solid rgba(255,255,255,0.08)', animation: 'slideInRight 0.22s ease' }}
+      >
+        <style>{`@keyframes slideInRight { from { transform: translateX(50px); opacity:0 } to { transform: translateX(0); opacity:1 } }`}</style>
+
+        {/* Header */}
+        <div className="sticky top-0 z-10 flex items-center justify-between px-5 py-4" style={{ background: '#0a0817', borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
+          <div className="flex items-center gap-3">
+            <div className={`w-1.5 h-6 rounded-full bg-gradient-to-b ${gradient}`} />
+            <p className="text-white font-bold text-sm">{titre}</p>
+          </div>
+          <button onClick={onClose} className="p-2 rounded-lg hover:bg-white/10 transition-all">
+            <X size={15} style={{ color: 'rgba(255,255,255,0.5)' }} />
+          </button>
+        </div>
+
+        <div className="p-5 space-y-3">
+
+          {/* ── MEMBRES ── */}
+          {type === 'membres' && (
+            <>
+              <div className="grid grid-cols-3 gap-2 mb-4">
+                {[
+                  { label: 'Total',     val: stats?.totalUsers ?? 0,             color: '#a78bfa' },
+                  { label: "Auj.",      val: stats?.nouveauxAujourdhui ?? 0,     color: '#34d399' },
+                  { label: 'Bannis',    val: stats?.usersBannis ?? 0,            color: '#f87171' },
+                ].map(s => (
+                  <div key={s.label} className="rounded-xl p-3 text-center" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)' }}>
+                    <p className="text-xl font-bold" style={{ color: s.color }}>{s.val}</p>
+                    <p className="text-[10px] mt-0.5" style={{ color: 'rgba(255,255,255,0.3)' }}>{s.label}</p>
+                  </div>
+                ))}
+              </div>
+              {users.length === 0 ? (
+                <p className="text-center text-sm py-8" style={{ color: 'rgba(255,255,255,0.3)' }}>Aucun membre</p>
+              ) : (
+                <div className="space-y-1.5">
+                  {users.map((u) => (
+                    <button
+                      key={u.id}
+                      onClick={() => { onClose(); onOpenProfil(u.id) }}
+                      className="w-full flex items-center gap-3 p-3 rounded-xl text-left transition-all hover:bg-white/5"
+                      style={{ border: '1px solid rgba(255,255,255,0.05)' }}
+                    >
+                      <div className="w-9 h-9 rounded-xl flex items-center justify-center text-sm font-bold shrink-0"
+                        style={{ background: u.genre === 'HOMME' ? 'rgba(59,130,246,0.2)' : 'rgba(217,70,239,0.2)', color: u.genre === 'HOMME' ? '#93c5fd' : '#e879f9' }}>
+                        {u.prenom[0]}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-white text-sm font-semibold">{u.prenom}</p>
+                        <p className="text-xs truncate" style={{ color: 'rgba(255,255,255,0.35)' }}>
+                          {u.ville || '—'} · {new Date(u.createdAt).toLocaleDateString('fr-FR')}
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-1.5 shrink-0">
+                        <PlanBadge plan={u.plan} />
+                        {u.isVerified
+                          ? <span className="text-[10px] px-1.5 py-0.5 rounded-full" style={{ background: 'rgba(52,211,153,0.1)', color: '#34d399' }}>✓</span>
+                          : <span className="text-[10px] px-1.5 py-0.5 rounded-full" style={{ background: 'rgba(251,191,36,0.1)', color: '#fbbf24' }}>⏳</span>
+                        }
+                      </div>
+                      <ChevronRight size={12} style={{ color: 'rgba(255,255,255,0.2)' }} />
+                    </button>
+                  ))}
+                </div>
+              )}
+            </>
+          )}
+
+          {/* ── MATCHS ACTIFS ── */}
+          {type === 'matchs' && (
+            <>
+              <div className="grid grid-cols-2 gap-2 mb-4">
+                {[
+                  { label: 'Chats ouverts', val: stats?.chatsouverts ?? 0,  color: '#f472b6' },
+                  { label: 'Total matchs',  val: stats?.totalMatchs ?? 0,   color: '#c084fc' },
+                ].map(s => (
+                  <div key={s.label} className="rounded-xl p-3 text-center" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)' }}>
+                    <p className="text-2xl font-bold" style={{ color: s.color }}>{s.val}</p>
+                    <p className="text-[10px] mt-0.5" style={{ color: 'rgba(255,255,255,0.3)' }}>{s.label}</p>
+                  </div>
+                ))}
+              </div>
+              {sessions.filter(s => s.status === 'EN_COURS' || s.status === 'PLANIFIE').length === 0 ? (
+                <p className="text-center text-sm py-8" style={{ color: 'rgba(255,255,255,0.3)' }}>Aucun match actif</p>
+              ) : (
+                <div className="space-y-1.5">
+                  {sessions.filter(s => s.status === 'EN_COURS' || s.status === 'PLANIFIE').map((s) => {
+                    const debut = new Date(s.scheduledAt)
+                    const dateStr = debut.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })
+                    const heureD  = debut.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
+                    return (
+                      <div key={s.id} className="flex items-center gap-3 p-3 rounded-xl" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}>
+                        <button onClick={() => { onClose(); onOpenProfil(s.user1.id) }}
+                          className="flex items-center gap-1.5 hover:opacity-80 transition-opacity">
+                          <div className="w-7 h-7 rounded-full bg-violet-500/20 flex items-center justify-center text-[11px] font-bold text-violet-300">{s.user1.prenom[0]}</div>
+                          <span className="text-xs font-medium text-white/70">{s.user1.prenom}</span>
+                        </button>
+                        <span className="text-white/20 text-xs">×</span>
+                        <button onClick={() => { onClose(); onOpenProfil(s.user2.id) }}
+                          className="flex items-center gap-1.5 hover:opacity-80 transition-opacity">
+                          <div className="w-7 h-7 rounded-full bg-fuchsia-500/20 flex items-center justify-center text-[11px] font-bold text-fuchsia-300">{s.user2.prenom[0]}</div>
+                          <span className="text-xs font-medium text-white/70">{s.user2.prenom}</span>
+                        </button>
+                        <div className="ml-auto text-right">
+                          <p className="text-[10px]" style={{ color: 'rgba(255,255,255,0.4)' }}>{dateStr} {heureD}</p>
+                          <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-full ${s.status === 'EN_COURS' ? 'bg-emerald-500/15 text-emerald-300' : 'bg-blue-500/15 text-blue-300'}`}>
+                            {s.status === 'EN_COURS' ? 'En cours' : 'Planifié'}
+                          </span>
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              )}
+            </>
+          )}
+
+          {/* ── MOUQABALAS ── */}
+          {type === 'mouqabalas' && (
+            <>
+              {sessionStats && (
+                <div className="grid grid-cols-4 gap-2 mb-4">
+                  {[
+                    { label: 'Total',      val: sessionStats.total,      color: '#94a3b8' },
+                    { label: "Auj.",       val: sessionStats.aujourdhui, color: '#a78bfa' },
+                    { label: 'Planifiées', val: sessionStats.planifiees, color: '#60a5fa' },
+                    { label: 'Terminées', val: sessionStats.terminees,  color: '#fbbf24' },
+                  ].map(s => (
+                    <div key={s.label} className="rounded-xl p-3 text-center" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)' }}>
+                      <p className="text-lg font-bold" style={{ color: s.color }}>{s.val}</p>
+                      <p className="text-[10px] mt-0.5" style={{ color: 'rgba(255,255,255,0.3)' }}>{s.label}</p>
+                    </div>
+                  ))}
+                </div>
+              )}
+              {sessions.length === 0 ? (
+                <p className="text-center text-sm py-8" style={{ color: 'rgba(255,255,255,0.3)' }}>Aucune session</p>
+              ) : (
+                <div className="space-y-1.5">
+                  {sessions.slice(0, 30).map((s) => {
+                    const debut   = new Date(s.scheduledAt)
+                    const dateStr = debut.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: '2-digit' })
+                    const heureD  = debut.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
+                    const statusCls = {
+                      PLANIFIE: 'bg-blue-500/15 text-blue-300',
+                      EN_COURS: 'bg-emerald-500/15 text-emerald-300',
+                      TERMINE:  'bg-white/8 text-white/35',
+                      ANNULE:   'bg-red-500/15 text-red-300',
+                    }[s.status] ?? 'bg-white/8 text-white/35'
+                    const statusLabel = { PLANIFIE: 'Planif.', EN_COURS: 'En cours', TERMINE: 'Terminée', ANNULE: 'Annulée' }[s.status] ?? s.status
+
+                    return (
+                      <div key={s.id} className="flex items-center gap-3 p-3 rounded-xl" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}>
+                        <div className="text-center w-16 shrink-0">
+                          <p className="text-white text-xs font-semibold">{heureD}</p>
+                          <p className="text-[10px]" style={{ color: 'rgba(255,255,255,0.3)' }}>{dateStr}</p>
+                        </div>
+                        <button onClick={() => { onClose(); onOpenProfil(s.user1.id) }} className="flex items-center gap-1 hover:opacity-80 transition-opacity">
+                          <div className="w-6 h-6 rounded-full bg-violet-500/20 flex items-center justify-center text-[10px] font-bold text-violet-300">{s.user1.prenom[0]}</div>
+                          <span className="text-xs text-white/60">{s.user1.prenom}</span>
+                        </button>
+                        <span className="text-white/20 text-[10px]">×</span>
+                        <button onClick={() => { onClose(); onOpenProfil(s.user2.id) }} className="flex items-center gap-1 hover:opacity-80 transition-opacity">
+                          <div className="w-6 h-6 rounded-full bg-fuchsia-500/20 flex items-center justify-center text-[10px] font-bold text-fuchsia-300">{s.user2.prenom[0]}</div>
+                          <span className="text-xs text-white/60">{s.user2.prenom}</span>
+                        </button>
+                        <span className={`ml-auto text-[10px] font-semibold px-2 py-0.5 rounded-full shrink-0 ${statusCls}`}>{statusLabel}</span>
+                      </div>
+                    )
+                  })}
+                </div>
+              )}
+            </>
+          )}
+
+          {/* ── SIGNALEMENTS ── */}
+          {type === 'signalements' && (
+            <>
+              <div className="mb-3 p-3 rounded-xl flex items-center gap-3" style={{ background: 'rgba(239,68,68,0.07)', border: '1px solid rgba(239,68,68,0.15)' }}>
+                <AlertTriangle size={14} style={{ color: '#f87171' }} />
+                <p className="text-sm font-semibold" style={{ color: '#f87171' }}>{signalements.length} signalement{signalements.length > 1 ? 's' : ''} en attente</p>
+              </div>
+              {signalements.length === 0 ? (
+                <div className="text-center py-8">
+                  <CheckCircle2 size={28} className="mx-auto mb-2" style={{ color: '#34d399' }} />
+                  <p className="text-sm" style={{ color: 'rgba(255,255,255,0.4)' }}>Aucun signalement 🎉</p>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {signalements.map((sig) => (
+                    <div key={sig.id} className="p-3 rounded-xl" style={{ background: 'rgba(239,68,68,0.05)', border: '1px solid rgba(239,68,68,0.12)' }}>
+                      <div className="flex items-start gap-2 mb-2">
+                        <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full shrink-0" style={{ background: 'rgba(239,68,68,0.15)', color: '#f87171' }}>{sig.flagType}</span>
+                        <p className="text-xs truncate" style={{ color: 'rgba(255,255,255,0.5)' }}>{sig.user1.prenom} ↔ {sig.user2.prenom}</p>
+                      </div>
+                      <p className="text-[11px] mb-2 line-clamp-2" style={{ color: 'rgba(255,255,255,0.35)' }}>{sig.flagDetails}</p>
+                      <p className="text-[10px] flex items-center gap-1" style={{ color: 'rgba(255,255,255,0.25)' }}>
+                        <Clock size={9} /> {new Date(sig.flaggedAt).toLocaleString('fr-FR')}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </>
+          )}
+
+          {/* ── REVENU ── */}
+          {type === 'revenu' && stats && (
+            <>
+              <div className="p-4 rounded-xl mb-4 text-center" style={{ background: 'rgba(251,191,36,0.07)', border: '1px solid rgba(251,191,36,0.2)' }}>
+                <p className="text-3xl font-bold" style={{ color: '#fbbf24' }}>{stats.revenuMois} €</p>
+                <p className="text-xs mt-1" style={{ color: 'rgba(255,255,255,0.4)' }}>Revenu ce mois-ci</p>
+              </div>
+              <div className="space-y-2">
+                {[
+                  { label: 'Membres total',         val: stats.totalUsers,           icon: Users,        color: '#a78bfa' },
+                  { label: 'Membres bannis',         val: stats.usersBannis,          icon: Ban,          color: '#f87171' },
+                  { label: 'Questionnaires',         val: stats.questionnaireCompletes, icon: CheckCircle2, color: '#34d399' },
+                  { label: 'Nouveaux aujourd\'hui',  val: stats.nouveauxAujourdhui,   icon: Zap,          color: '#60a5fa' },
+                ].map((item) => {
+                  const Icon = item.icon
+                  return (
+                    <div key={item.label} className="flex items-center gap-3 p-3 rounded-xl" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)' }}>
+                      <Icon size={14} style={{ color: item.color }} />
+                      <span className="flex-1 text-sm" style={{ color: 'rgba(255,255,255,0.6)' }}>{item.label}</span>
+                      <span className="font-bold text-sm" style={{ color: item.color }}>{item.val}</span>
+                    </div>
+                  )
+                })}
+              </div>
+              <p className="text-[11px] mt-4 text-center" style={{ color: 'rgba(255,255,255,0.2)' }}>
+                Données en temps réel — Tableau de bord financier complet à venir
+              </p>
+            </>
+          )}
+
+        </div>
+      </div>
+    </>
   )
 }
 
@@ -117,6 +396,7 @@ function PlanBadge({ plan }: { plan: string }) {
 interface UserDetail extends UserRecent {
   email:          string
   age:            number | null
+  dateNaissance:  string | null
   pays:           string
   origine:        string | null
   phone:          string | null
@@ -469,6 +749,7 @@ export default function AdminPage() {
   const [sessionStats,   setSessionStats]   = useState<SessionStats | null>(null)
   const [loading,        setLoading]        = useState(true)
   const [onglet,         setOnglet]         = useState<'overview' | 'signalements' | 'users' | 'sessions'>('overview')
+  const [kpiPanel,       setKpiPanel]       = useState<KPIPanelType | null>(null)
   // Users tab state
   const [userSearch,     setUserSearch]     = useState('')
   const [userFilter,     setUserFilter]     = useState('all')
@@ -611,6 +892,7 @@ export default function AdminPage() {
             gradient="from-violet-500 to-purple-600"
             sousTitre={`+${stats.nouveauxAujourdhui} aujourd'hui`}
             glow="shadow-violet-500/10"
+            onClick={() => setKpiPanel('membres')}
           />
           <KPICard
             titre="Matchs actifs"
@@ -619,6 +901,7 @@ export default function AdminPage() {
             gradient="from-pink-500 to-rose-500"
             sousTitre={`/ ${stats.totalMatchs} total`}
             glow="shadow-pink-500/10"
+            onClick={() => setKpiPanel('matchs')}
           />
           <KPICard
             titre="Mouqabalas"
@@ -627,6 +910,7 @@ export default function AdminPage() {
             gradient="from-emerald-500 to-teal-500"
             sousTitre={`${sessionStats?.aujourdhui ?? 0} aujourd'hui`}
             glow="shadow-emerald-500/10"
+            onClick={() => setKpiPanel('mouqabalas')}
           />
           <KPICard
             titre="Signalements"
@@ -635,6 +919,7 @@ export default function AdminPage() {
             gradient="from-red-500 to-orange-500"
             sousTitre="À traiter"
             glow="shadow-red-500/10"
+            onClick={() => setKpiPanel('signalements')}
           />
           <KPICard
             titre="Revenu ce mois"
@@ -643,8 +928,27 @@ export default function AdminPage() {
             gradient="from-amber-400 to-yellow-500"
             sousTitre={`${stats.usersBannis} bannis`}
             glow="shadow-amber-500/10"
+            onClick={() => setKpiPanel('revenu')}
           />
         </div>
+      )}
+
+      {/* ── KPI Panel drill-down ─────────────────────────────── */}
+      {kpiPanel && (
+        <KPIPanel
+          type={kpiPanel}
+          onClose={() => setKpiPanel(null)}
+          stats={stats}
+          users={usersRecents}
+          sessions={sessions}
+          signalements={signalements}
+          sessionStats={sessionStats}
+          onOpenProfil={(id) => {
+            setKpiPanel(null)
+            setOnglet('users')
+            ouvrirProfil(id)
+          }}
+        />
       )}
 
       {/* ── Onglets ─────────────────────────────────────────── */}
