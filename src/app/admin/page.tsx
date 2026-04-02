@@ -7,7 +7,9 @@ import {
   CheckCircle2, Ban, Eye, Flag, RefreshCw, Shield,
   Heart, DollarSign, Activity, Crown, Zap, Sparkles,
   UserCheck, Clock, ChevronRight, BarChart3, Video,
-  CalendarDays, ExternalLink,
+  CalendarDays, ExternalLink, Search, ChevronLeft,
+  X, BookOpen, Home, Briefcase, MapPin, Phone, Mail,
+  Camera, Star,
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 
@@ -111,6 +113,354 @@ function PlanBadge({ plan }: { plan: string }) {
   )
 }
 
+// ─── Types profil détaillé ────────────────────────────────────────
+interface UserDetail extends UserRecent {
+  email:          string
+  age:            number | null
+  pays:           string
+  origine:        string | null
+  phone:          string | null
+  photos:         string[]
+  photoUrl:       string | null
+  photoApproved:  boolean
+  role:           string
+  isBanned:       boolean
+  isSuspended:    boolean
+  banReason:      string | null
+  profileCompleted: boolean
+  lastActiveAt:   string
+  waliEnabled:    boolean
+  waliEmail:      string | null
+  waliNom:        string | null
+  stats: {
+    matchCount:        number
+    convCount:         number
+    sessionCount:      number
+    signalementCount:  number
+  }
+  questionnaireReponse: {
+    niveauPratique:         string | null
+    ecoleJurisprudentielle: string | null
+    foiCentraleDecisions:   boolean | null
+    objectifMariage:        string | null
+    souhaitEnfants:         boolean | null
+    nombreEnfantsSouhaite:  number | null
+    modeVieSouhaite:        string | null
+    villeSouhaitee:         string | null
+    mobilitePossible:       boolean | null
+    visionPolygamie:        string | null
+    visionComplementarite:  string | null
+    gestionConflits:        string | null
+    niveauExtraversion:     number | null
+    langageAmour:           string | null
+    independanceCouple:     number | null
+    fumeur:                 boolean | null
+    consommeAlcool:         boolean | null
+    activitePhysique:       string | null
+    cercleSocial:           string | null
+    niveauEtudes:           string | null
+    profession:             string | null
+    situationFinanciere:    string | null
+    ambitionsPro:           string | null
+    taille:                 number | null
+    portVoile:              boolean | null
+    portBarbe:              boolean | null
+    accepteEnfantsPrevious: boolean | null
+    accepteDivorce:         boolean | null
+    accepteConverti:        boolean | null
+    partenaireIdeal5Mots:   string | null
+    peurMariage:            string | null
+    sourceBonheur:          string | null
+    valeurIslamiqueVoulue:  string | null
+    visionFoyer:            string | null
+    messageConjoint:        string | null
+    completedAt:            string | null
+  } | null
+}
+
+// ─── Drawer profil complet ────────────────────────────────────────
+function DrawerProfil({
+  user,
+  onClose,
+  onAction,
+}: {
+  user: UserDetail
+  onClose: () => void
+  onAction: (id: string, action: 'verify' | 'suspend' | 'ban' | 'unban') => void
+}) {
+  const [photo, setPhoto] = useState(user.photoUrl || '')
+  const q = user.questionnaireReponse
+
+  const row = (label: string, value: string | number | null | boolean | undefined) => {
+    if (value === null || value === undefined || value === '') return null
+    const txt = typeof value === 'boolean' ? (value ? 'Oui' : 'Non') : String(value)
+    return (
+      <div className="flex gap-3 py-2" style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+        <span className="text-xs w-44 shrink-0" style={{ color: 'rgba(255,255,255,0.35)' }}>{label}</span>
+        <span className="text-xs text-white font-medium">{txt}</span>
+      </div>
+    )
+  }
+
+  const section = (title: string, icon: React.ElementType, children: React.ReactNode) => {
+    const Icon = icon
+    return (
+      <div className="mb-5">
+        <div className="flex items-center gap-2 mb-3">
+          <Icon size={13} style={{ color: '#a78bfa' }} />
+          <p className="text-xs font-bold uppercase tracking-wider" style={{ color: 'rgba(255,255,255,0.4)' }}>{title}</p>
+        </div>
+        {children}
+      </div>
+    )
+  }
+
+  const pratiqueLabel: Record<string, string> = {
+    debutant: 'Débutant(e)', pratiquant: 'Pratiquant(e)',
+    tres_pratiquant: 'Très pratiquant(e)', savant: 'Savant(e)',
+  }
+  const objectifLabel: Record<string, string> = {
+    mariage_uniquement: 'Mariage direct', mariage_apres: 'Après connaissance',
+    engagement_progressif: 'Engagement progressif',
+  }
+
+  return (
+    <>
+      {/* Overlay */}
+      <div
+        className="fixed inset-0 z-40"
+        style={{ background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(4px)' }}
+        onClick={onClose}
+      />
+
+      {/* Drawer */}
+      <div
+        className="fixed top-0 right-0 bottom-0 z-50 overflow-y-auto"
+        style={{
+          width: 'min(680px, 100vw)',
+          background: '#0a0817',
+          borderLeft: '1px solid rgba(255,255,255,0.08)',
+          animation: 'slideInRight 0.25s ease',
+        }}
+      >
+        <style>{`@keyframes slideInRight { from { transform: translateX(60px); opacity:0 } to { transform: translateX(0); opacity:1 } }`}</style>
+
+        {/* ── En-tête drawer ── */}
+        <div className="sticky top-0 z-10 flex items-center justify-between px-6 py-4"
+          style={{ background: '#0a0817', borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
+          <p className="text-white font-semibold text-sm">Profil de {user.prenom}</p>
+          <button onClick={onClose} className="p-2 rounded-lg hover:bg-white/10 transition-all">
+            <X size={16} style={{ color: 'rgba(255,255,255,0.5)' }} />
+          </button>
+        </div>
+
+        <div className="p-6 space-y-1">
+
+          {/* ── Hero ── */}
+          <div className="flex items-start gap-4 mb-6 pb-5" style={{ borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
+            {/* Avatar / photos */}
+            <div className="flex-shrink-0">
+              <div className="w-20 h-20 rounded-2xl overflow-hidden"
+                style={{ border: '2px solid rgba(167,139,250,0.3)', background: 'rgba(167,139,250,0.1)' }}>
+                {photo ? (
+                  <img src={photo} alt={user.prenom} className="w-full h-full object-cover" />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center text-2xl font-bold"
+                    style={{ color: '#a78bfa' }}>
+                    {user.prenom[0]}
+                  </div>
+                )}
+              </div>
+              {/* Miniatures photos supplémentaires */}
+              {user.photos.length > 1 && (
+                <div className="flex gap-1 mt-2">
+                  {user.photos.slice(0, 3).map((p, i) => (
+                    <button
+                      key={i}
+                      onClick={() => setPhoto(p)}
+                      className="w-6 h-6 rounded overflow-hidden"
+                      style={{ border: photo === p ? '1.5px solid #a78bfa' : '1.5px solid rgba(255,255,255,0.1)' }}
+                    >
+                      <img src={p} alt="" className="w-full h-full object-cover" />
+                    </button>
+                  ))}
+                </div>
+              )}
+              {!user.photoApproved && user.photoUrl && (
+                <span className="mt-1 block text-[10px] text-amber-400 text-center">Photo non approuvée</span>
+              )}
+            </div>
+
+            {/* Identité rapide */}
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2 mb-1 flex-wrap">
+                <p className="text-white font-bold text-lg">{user.prenom}</p>
+                {user.age && <span className="text-white/50 text-sm">{user.age} ans</span>}
+                <span className={`text-xs px-2 py-0.5 rounded-full font-semibold ${
+                  user.genre === 'HOMME'
+                    ? 'bg-blue-500/15 text-blue-300'
+                    : 'bg-fuchsia-500/15 text-fuchsia-300'
+                }`}>{user.genre === 'HOMME' ? '♂ Homme' : '♀ Femme'}</span>
+              </div>
+              <div className="flex flex-wrap items-center gap-3 text-xs mb-3" style={{ color: 'rgba(255,255,255,0.4)' }}>
+                {user.ville && <span className="flex items-center gap-1"><MapPin size={10} />{user.ville}{user.pays !== 'France' ? `, ${user.pays}` : ''}</span>}
+                {user.email && <span className="flex items-center gap-1"><Mail size={10} />{user.email}</span>}
+                {user.phone && <span className="flex items-center gap-1"><Phone size={10} />{user.phone}</span>}
+              </div>
+              <div className="flex flex-wrap gap-1.5">
+                <PlanBadge plan={user.plan} />
+                {user.isVerified
+                  ? <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-300 border border-emerald-500/20 font-semibold">✓ Vérifié</span>
+                  : <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-300 border border-amber-500/20 font-semibold">⏳ Non vérifié</span>
+                }
+                {user.isBanned && <span className="text-[10px] px-2 py-0.5 rounded-full bg-red-500/15 text-red-300 border border-red-500/20 font-semibold">🚫 Banni</span>}
+                {user.isSuspended && !user.isBanned && <span className="text-[10px] px-2 py-0.5 rounded-full bg-orange-500/15 text-orange-300 border border-orange-500/20 font-semibold">⚠ Suspendu</span>}
+                {user.questionnaireCompleted && <span className="text-[10px] px-2 py-0.5 rounded-full bg-violet-500/15 text-violet-300 border border-violet-500/20 font-semibold">✓ Questionnaire</span>}
+              </div>
+            </div>
+          </div>
+
+          {/* ── Stats ── */}
+          <div className="grid grid-cols-4 gap-2 mb-6">
+            {[
+              { label: 'Matchs',         val: user.stats.matchCount,       color: '#f472b6' },
+              { label: 'Conversations',  val: user.stats.convCount,        color: '#34d399' },
+              { label: 'Sessions',       val: user.stats.sessionCount,     color: '#60a5fa' },
+              { label: 'Signalements',   val: user.stats.signalementCount, color: '#f87171' },
+            ].map(s => (
+              <div key={s.label} className="rounded-xl p-3 text-center"
+                style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)' }}>
+                <p className="text-lg font-bold" style={{ color: s.color }}>{s.val}</p>
+                <p className="text-[10px] mt-0.5" style={{ color: 'rgba(255,255,255,0.3)' }}>{s.label}</p>
+              </div>
+            ))}
+          </div>
+
+          {/* ── Actions ── */}
+          <div className="flex flex-wrap gap-2 mb-6 pb-5" style={{ borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
+            {!user.isVerified && (
+              <button onClick={() => { onAction(user.id, 'verify'); onClose() }}
+                className="flex items-center gap-1.5 text-xs px-3 py-2 rounded-lg font-semibold transition-all"
+                style={{ background: 'rgba(52,211,153,0.1)', color: '#34d399', border: '1px solid rgba(52,211,153,0.2)' }}>
+                <UserCheck size={12} /> Vérifier le compte
+              </button>
+            )}
+            {user.isBanned ? (
+              <button onClick={() => { onAction(user.id, 'unban'); onClose() }}
+                className="flex items-center gap-1.5 text-xs px-3 py-2 rounded-lg font-semibold transition-all"
+                style={{ background: 'rgba(251,191,36,0.1)', color: '#fbbf24', border: '1px solid rgba(251,191,36,0.2)' }}>
+                <CheckCircle2 size={12} /> Débannir
+              </button>
+            ) : (
+              <>
+                <button onClick={() => { onAction(user.id, 'suspend'); onClose() }}
+                  className="flex items-center gap-1.5 text-xs px-3 py-2 rounded-lg font-semibold transition-all"
+                  style={{ background: 'rgba(251,191,36,0.1)', color: '#fbbf24', border: '1px solid rgba(251,191,36,0.2)' }}>
+                  <Eye size={12} /> Suspendre
+                </button>
+                <button onClick={() => { onAction(user.id, 'ban'); onClose() }}
+                  className="flex items-center gap-1.5 text-xs px-3 py-2 rounded-lg font-semibold transition-all"
+                  style={{ background: 'rgba(239,68,68,0.1)', color: '#f87171', border: '1px solid rgba(239,68,68,0.2)' }}>
+                  <Ban size={12} /> Bannir
+                </button>
+              </>
+            )}
+            {user.banReason && (
+              <p className="text-xs w-full mt-1" style={{ color: 'rgba(239,68,68,0.7)' }}>
+                Raison du bannissement : {user.banReason}
+              </p>
+            )}
+          </div>
+
+          {/* ── Identité ── */}
+          {section('Identité & compte', Users, (
+            <div>
+              {row('Email',             user.email)}
+              {row('Téléphone',         user.phone)}
+              {row('Âge',               user.age ? `${user.age} ans` : null)}
+              {row('Date de naissance', user.dateNaissance ? new Date(user.dateNaissance as unknown as string).toLocaleDateString('fr-FR') : null)}
+              {row('Ville',             user.ville)}
+              {row('Pays',              user.pays)}
+              {row('Origine',           user.origine)}
+              {row('Rôle',              user.role)}
+              {row('Inscrit le',        new Date(user.createdAt).toLocaleString('fr-FR'))}
+              {row('Dernière activité', user.lastActiveAt ? new Date(user.lastActiveAt).toLocaleString('fr-FR') : null)}
+              {row('Profil complété',   user.profileCompleted)}
+              {user.waliEnabled && row('Wali',  `${user.waliNom || ''} (${user.waliEmail || ''})`)}
+            </div>
+          ))}
+
+          {/* ── Questionnaire ── */}
+          {q && section('Questionnaire', BookOpen, (
+            <div>
+              <p className="text-[10px] mb-3" style={{ color: 'rgba(255,255,255,0.25)' }}>
+                Complété le {q.completedAt ? new Date(q.completedAt).toLocaleDateString('fr-FR') : '—'}
+              </p>
+
+              <p className="text-[10px] font-bold uppercase tracking-wider mb-2 mt-1" style={{ color: 'rgba(167,139,250,0.6)' }}>Foi & Pratique</p>
+              {row('Niveau de pratique',     q.niveauPratique ? (pratiqueLabel[q.niveauPratique] ?? q.niveauPratique) : null)}
+              {row('École juridique',        q.ecoleJurisprudentielle)}
+              {row('Foi centrale décisions', q.foiCentraleDecisions)}
+
+              <p className="text-[10px] font-bold uppercase tracking-wider mb-2 mt-4" style={{ color: 'rgba(167,139,250,0.6)' }}>Projet Conjugal</p>
+              {row('Objectif mariage',       q.objectifMariage ? (objectifLabel[q.objectifMariage] ?? q.objectifMariage) : null)}
+              {row('Souhaite des enfants',   q.souhaitEnfants)}
+              {row('Nombre enfants',         q.nombreEnfantsSouhaite)}
+              {row('Mode de vie souhaité',   q.modeVieSouhaite)}
+              {row('Ville souhaitée',        q.villeSouhaitee)}
+              {row('Mobilité possible',      q.mobilitePossible)}
+              {row('Vision polygamie',       q.visionPolygamie)}
+              {row('Vision complémentarité', q.visionComplementarite)}
+
+              <p className="text-[10px] font-bold uppercase tracking-wider mb-2 mt-4" style={{ color: 'rgba(167,139,250,0.6)' }}>Personnalité & Communication</p>
+              {row('Gestion des conflits',   q.gestionConflits)}
+              {row("Extraversion (1–10)",    q.niveauExtraversion)}
+              {row("Langage de l'amour",     q.langageAmour)}
+              {row("Indépendance (1–5)",     q.independanceCouple)}
+
+              <p className="text-[10px] font-bold uppercase tracking-wider mb-2 mt-4" style={{ color: 'rgba(167,139,250,0.6)' }}>Style de Vie</p>
+              {row('Fumeur',                 q.fumeur)}
+              {row('Consomme alcool',        q.consommeAlcool)}
+              {row('Activité physique',      q.activitePhysique)}
+              {row('Cercle social',          q.cercleSocial)}
+
+              <p className="text-[10px] font-bold uppercase tracking-wider mb-2 mt-4" style={{ color: 'rgba(167,139,250,0.6)' }}>Formation & Carrière</p>
+              {row("Niveau d'études",        q.niveauEtudes)}
+              {row('Profession',             q.profession)}
+              {row('Situation financière',   q.situationFinanciere)}
+              {row('Ambitions pro',          q.ambitionsPro)}
+
+              <p className="text-[10px] font-bold uppercase tracking-wider mb-2 mt-4" style={{ color: 'rgba(167,139,250,0.6)' }}>Apparence</p>
+              {row('Taille',                 q.taille ? `${q.taille} cm` : null)}
+              {row('Port du voile',          q.portVoile)}
+              {row('Port de la barbe',       q.portBarbe)}
+              {row('Accepte enfants ex',     q.accepteEnfantsPrevious)}
+              {row('Accepte divorcé(e)',     q.accepteDivorce)}
+              {row('Accepte converti(e)',    q.accepteConverti)}
+
+              <p className="text-[10px] font-bold uppercase tracking-wider mb-2 mt-4" style={{ color: 'rgba(167,139,250,0.6)' }}>Questions Profondes</p>
+              {row('Partenaire idéal',       q.partenaireIdeal5Mots)}
+              {row('Peur du mariage',        q.peurMariage)}
+              {row('Source de bonheur',      q.sourceBonheur)}
+              {row('Valeur islamique',       q.valeurIslamiqueVoulue)}
+              {row('Vision du foyer',        q.visionFoyer)}
+              {row('Message au conjoint',    q.messageConjoint)}
+            </div>
+          ))}
+
+          {!q && (
+            <div className="text-center py-6 rounded-xl"
+              style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)' }}>
+              <BookOpen size={20} className="mx-auto mb-2" style={{ color: 'rgba(255,255,255,0.2)' }} />
+              <p className="text-xs" style={{ color: 'rgba(255,255,255,0.3)' }}>Questionnaire non complété</p>
+            </div>
+          )}
+        </div>
+      </div>
+    </>
+  )
+}
+
 export default function AdminPage() {
   const [stats,          setStats]          = useState<Stats | null>(null)
   const [signalements,   setSignalements]   = useState<Signalement[]>([])
@@ -119,8 +469,19 @@ export default function AdminPage() {
   const [sessionStats,   setSessionStats]   = useState<SessionStats | null>(null)
   const [loading,        setLoading]        = useState(true)
   const [onglet,         setOnglet]         = useState<'overview' | 'signalements' | 'users' | 'sessions'>('overview')
+  // Users tab state
+  const [userSearch,     setUserSearch]     = useState('')
+  const [userFilter,     setUserFilter]     = useState('all')
+  const [userOffset,     setUserOffset]     = useState(0)
+  const [userTotal,      setUserTotal]      = useState(0)
+  const [usersLoading,   setUsersLoading]   = useState(false)
+  const USER_PAGE = 20
+  // Drawer profil
+  const [drawerUser,     setDrawerUser]     = useState<UserDetail | null>(null)
+  const [drawerLoading,  setDrawerLoading]  = useState(false)
 
   useEffect(() => { chargerDonnees() }, [])
+  useEffect(() => { if (onglet === 'users') chargerUsers() }, [onglet]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const chargerDonnees = async () => {
     try {
@@ -145,14 +506,43 @@ export default function AdminPage() {
     }
   }
 
-  const actionUser = async (userId: string, action: 'verify' | 'suspend' | 'ban') => {
+  const chargerUsers = async (search = userSearch, filter = userFilter, offset = userOffset) => {
+    setUsersLoading(true)
+    try {
+      const params = new URLSearchParams({ limite: String(USER_PAGE), offset: String(offset), filter })
+      if (search) params.set('q', search)
+      const res = await fetch(`/api/admin/users?${params}`)
+      if (res.ok) {
+        const data = await res.json()
+        setUsersRecents(data.users || [])
+        setUserTotal(data.total || 0)
+      }
+    } catch { toast.error('Erreur chargement utilisateurs') }
+    finally { setUsersLoading(false) }
+  }
+
+  const ouvrirProfil = async (userId: string) => {
+    setDrawerLoading(true)
+    try {
+      const res = await fetch(`/api/admin/users/${userId}`)
+      if (res.ok) {
+        const data = await res.json()
+        setDrawerUser(data.user)
+      } else {
+        toast.error('Impossible de charger le profil')
+      }
+    } catch { toast.error('Erreur réseau') }
+    finally { setDrawerLoading(false) }
+  }
+
+  const actionUser = async (userId: string, action: 'verify' | 'suspend' | 'ban' | 'unban') => {
     try {
       const res = await fetch(`/api/admin/users/${userId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action }),
       })
-      if (res.ok) { toast.success(`Action "${action}" effectuée`); chargerDonnees() }
+      if (res.ok) { toast.success(`Action "${action}" effectuée`); chargerDonnees(); chargerUsers() }
     } catch { toast.error('Erreur') }
   }
 
@@ -493,112 +883,201 @@ export default function AdminPage() {
 
       {/* ── Utilisateurs ────────────────────────────────────── */}
       {onglet === 'users' && (
-        <div className="bg-[#0d0a1f] border border-white/8 rounded-2xl overflow-hidden">
-          <div className="p-4 border-b border-white/8 flex items-center justify-between">
-            <h3 className="text-white font-semibold text-sm flex items-center gap-2">
-              <Users size={15} className="text-violet-400" />
-              Membres récents
-            </h3>
-            <span className="text-xs text-white/40">{usersRecents.length} membres</span>
+        <div>
+          {/* Drawer profil */}
+          {drawerUser && (
+            <DrawerProfil
+              user={drawerUser}
+              onClose={() => setDrawerUser(null)}
+              onAction={actionUser}
+            />
+          )}
+          {drawerLoading && (
+            <div className="fixed inset-0 z-40 flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.5)' }}>
+              <div className="w-8 h-8 border-2 border-violet-500 border-t-transparent rounded-full animate-spin" />
+            </div>
+          )}
+
+          {/* Search + filtres */}
+          <div className="flex flex-wrap gap-3 mb-4">
+            <div className="flex-1 min-w-[220px] relative">
+              <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-white/30" />
+              <input
+                type="text"
+                placeholder="Rechercher par prénom ou email…"
+                value={userSearch}
+                onChange={e => setUserSearch(e.target.value)}
+                onKeyDown={e => e.key === 'Enter' && (setUserOffset(0), chargerUsers(userSearch, userFilter, 0))}
+                className="w-full pl-9 pr-4 py-2.5 text-sm rounded-xl outline-none"
+                style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: 'white' }}
+              />
+            </div>
+            <div className="flex gap-1.5 flex-wrap">
+              {[
+                { id: 'all',        label: 'Tous' },
+                { id: 'unverified', label: 'Non vérifiés' },
+                { id: 'banned',     label: 'Bannis' },
+                { id: 'premium',    label: 'Premium' },
+              ].map(f => (
+                <button key={f.id}
+                  onClick={() => { setUserFilter(f.id); setUserOffset(0); chargerUsers(userSearch, f.id, 0) }}
+                  className="text-xs px-3 py-2 rounded-xl font-medium transition-all"
+                  style={userFilter === f.id
+                    ? { background: 'linear-gradient(90deg,#7c3aed,#a855f7)', color: 'white' }
+                    : { background: 'rgba(255,255,255,0.05)', color: 'rgba(255,255,255,0.45)', border: '1px solid rgba(255,255,255,0.08)' }
+                  }
+                >
+                  {f.label}
+                </button>
+              ))}
+              <button
+                onClick={() => chargerUsers(userSearch, userFilter, userOffset)}
+                className="text-xs px-3 py-2 rounded-xl font-medium transition-all"
+                style={{ background: 'rgba(255,255,255,0.05)', color: 'rgba(255,255,255,0.45)', border: '1px solid rgba(255,255,255,0.08)' }}
+              >
+                <RefreshCw size={12} className={usersLoading ? 'animate-spin' : ''} />
+              </button>
+            </div>
           </div>
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-white/6">
-                  <th className="text-left text-white/40 py-3 px-4 font-medium text-xs uppercase tracking-wide">Membre</th>
-                  <th className="text-left text-white/40 py-3 px-4 font-medium text-xs uppercase tracking-wide">Genre</th>
-                  <th className="text-left text-white/40 py-3 px-4 font-medium text-xs uppercase tracking-wide">Plan</th>
-                  <th className="text-left text-white/40 py-3 px-4 font-medium text-xs uppercase tracking-wide">Statut</th>
-                  <th className="text-left text-white/40 py-3 px-4 font-medium text-xs uppercase tracking-wide">Inscription</th>
-                  <th className="text-left text-white/40 py-3 px-4 font-medium text-xs uppercase tracking-wide">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-white/4">
-                {usersRecents.map((user) => {
-                  const isHomme = user.genre === 'HOMME'
-                  return (
-                    <tr key={user.id} className="hover:bg-white/3 transition-colors group">
-                      <td className="py-3 px-4">
-                        <div className="flex items-center gap-3">
-                          <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold ${
-                            isHomme
-                              ? 'bg-blue-500/20 text-blue-300'
-                              : 'bg-fuchsia-500/20 text-fuchsia-300'
-                          }`}>
-                            {user.prenom[0]}
+
+          {/* Table */}
+          <div className="rounded-2xl overflow-hidden" style={{ background: '#0d0a1f', border: '1px solid rgba(255,255,255,0.08)' }}>
+            <div className="flex items-center justify-between px-5 py-3.5" style={{ borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
+              <h3 className="text-white font-semibold text-sm flex items-center gap-2">
+                <Users size={14} className="text-violet-400" />
+                Membres
+              </h3>
+              <span className="text-xs" style={{ color: 'rgba(255,255,255,0.3)' }}>
+                {userTotal > 0 ? `${userOffset + 1}–${Math.min(userOffset + USER_PAGE, userTotal)} sur ${userTotal}` : `${usersRecents.length} membres`}
+              </span>
+            </div>
+
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+                    {['Membre', 'Genre', 'Plan', 'Questionnaire', 'Statut', 'Inscription', 'Actions'].map(h => (
+                      <th key={h} className="text-left py-3 px-4 text-[11px] font-semibold uppercase tracking-wider"
+                        style={{ color: 'rgba(255,255,255,0.3)' }}>{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {usersLoading ? (
+                    <tr><td colSpan={7} className="py-12 text-center">
+                      <div className="w-6 h-6 border-2 border-violet-500 border-t-transparent rounded-full animate-spin mx-auto" />
+                    </td></tr>
+                  ) : usersRecents.length === 0 ? (
+                    <tr><td colSpan={7} className="py-12 text-center text-sm" style={{ color: 'rgba(255,255,255,0.3)' }}>
+                      Aucun membre trouvé
+                    </td></tr>
+                  ) : usersRecents.map((user) => {
+                    const isHomme = user.genre === 'HOMME'
+                    return (
+                      <tr
+                        key={user.id}
+                        className="cursor-pointer transition-colors"
+                        style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}
+                        onMouseEnter={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.03)')}
+                        onMouseLeave={e => (e.currentTarget.style.background = '')}
+                        onClick={() => ouvrirProfil(user.id)}
+                      >
+                        {/* Membre */}
+                        <td className="py-3 px-4">
+                          <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold flex-shrink-0"
+                              style={{ background: isHomme ? 'rgba(59,130,246,0.2)' : 'rgba(217,70,239,0.2)', color: isHomme ? '#93c5fd' : '#e879f9' }}>
+                              {user.prenom[0]}
+                            </div>
+                            <div>
+                              <p className="text-white font-medium text-sm">{user.prenom}</p>
+                              <p className="text-[11px]" style={{ color: 'rgba(255,255,255,0.3)' }}>{user.ville || '—'}</p>
+                            </div>
                           </div>
-                          <div>
-                            <p className="text-white font-medium text-sm">{user.prenom}</p>
-                            <p className="text-white/30 text-xs">{user.ville || '—'}</p>
+                        </td>
+                        {/* Genre */}
+                        <td className="py-3 px-4">
+                          <span className="text-xs px-2 py-0.5 rounded-full font-semibold"
+                            style={isHomme
+                              ? { background: 'rgba(59,130,246,0.12)', color: '#93c5fd', border: '1px solid rgba(59,130,246,0.2)' }
+                              : { background: 'rgba(217,70,239,0.12)', color: '#e879f9', border: '1px solid rgba(217,70,239,0.2)' }
+                            }>{isHomme ? '♂ H' : '♀ F'}</span>
+                        </td>
+                        {/* Plan */}
+                        <td className="py-3 px-4"><PlanBadge plan={user.plan} /></td>
+                        {/* Questionnaire */}
+                        <td className="py-3 px-4">
+                          {user.questionnaireCompleted
+                            ? <span className="text-[11px] px-2 py-0.5 rounded-full font-semibold" style={{ background: 'rgba(167,139,250,0.1)', color: '#a78bfa', border: '1px solid rgba(167,139,250,0.2)' }}>✓ Complété</span>
+                            : <span className="text-[11px] px-2 py-0.5 rounded-full font-semibold" style={{ background: 'rgba(255,255,255,0.05)', color: 'rgba(255,255,255,0.3)', border: '1px solid rgba(255,255,255,0.08)' }}>— En cours</span>
+                          }
+                        </td>
+                        {/* Statut */}
+                        <td className="py-3 px-4">
+                          <div className="flex items-center gap-1.5">
+                            {user.isVerified
+                              ? <span className="text-[11px] px-2 py-0.5 rounded-full font-semibold" style={{ background: 'rgba(52,211,153,0.1)', color: '#34d399', border: '1px solid rgba(52,211,153,0.2)' }}>✓ Vérifié</span>
+                              : <span className="text-[11px] px-2 py-0.5 rounded-full font-semibold" style={{ background: 'rgba(251,191,36,0.1)', color: '#fbbf24', border: '1px solid rgba(251,191,36,0.2)' }}>⏳ Attente</span>
+                            }
                           </div>
-                        </div>
-                      </td>
-                      <td className="py-3 px-4">
-                        <span className={`text-xs px-2 py-0.5 rounded-full font-semibold ${
-                          isHomme
-                            ? 'bg-blue-500/15 text-blue-300 border border-blue-400/20'
-                            : 'bg-fuchsia-500/15 text-fuchsia-300 border border-fuchsia-400/20'
-                        }`}>
-                          {isHomme ? '♂ Homme' : '♀ Femme'}
-                        </span>
-                      </td>
-                      <td className="py-3 px-4">
-                        <PlanBadge plan={user.plan} />
-                      </td>
-                      <td className="py-3 px-4">
-                        <div className="flex items-center gap-1.5">
-                          {user.isVerified ? (
-                            <>
-                              <div className="w-5 h-5 bg-emerald-500/20 rounded-full flex items-center justify-center">
-                                <CheckCircle2 size={11} className="text-emerald-400" />
-                              </div>
-                              <span className="text-xs text-emerald-400 font-medium">Vérifié</span>
-                            </>
-                          ) : (
-                            <>
-                              <div className="w-5 h-5 bg-amber-500/20 rounded-full flex items-center justify-center">
-                                <AlertTriangle size={11} className="text-amber-400" />
-                              </div>
-                              <span className="text-xs text-amber-400 font-medium">En attente</span>
-                            </>
-                          )}
-                        </div>
-                      </td>
-                      <td className="py-3 px-4 text-white/40 text-xs">
-                        {new Date(user.createdAt).toLocaleDateString('fr-FR')}
-                      </td>
-                      <td className="py-3 px-4">
-                        <div className="flex gap-1.5">
-                          {!user.isVerified && (
-                            <button
-                              onClick={() => actionUser(user.id, 'verify')}
-                              title="Vérifier"
-                              className="p-1.5 rounded-lg bg-emerald-500/15 text-emerald-400 hover:bg-emerald-500/30 border border-emerald-500/20 transition-all"
-                            >
-                              <UserCheck size={13} />
+                        </td>
+                        {/* Inscription */}
+                        <td className="py-3 px-4 text-xs" style={{ color: 'rgba(255,255,255,0.35)' }}>
+                          {new Date(user.createdAt).toLocaleDateString('fr-FR')}
+                        </td>
+                        {/* Actions rapides */}
+                        <td className="py-3 px-4">
+                          <div className="flex gap-1.5" onClick={e => e.stopPropagation()}>
+                            {!user.isVerified && (
+                              <button onClick={() => actionUser(user.id, 'verify')} title="Vérifier"
+                                className="p-1.5 rounded-lg transition-all"
+                                style={{ background: 'rgba(52,211,153,0.1)', color: '#34d399', border: '1px solid rgba(52,211,153,0.2)' }}>
+                                <UserCheck size={12} />
+                              </button>
+                            )}
+                            <button onClick={() => actionUser(user.id, 'suspend')} title="Suspendre"
+                              className="p-1.5 rounded-lg transition-all"
+                              style={{ background: 'rgba(251,191,36,0.1)', color: '#fbbf24', border: '1px solid rgba(251,191,36,0.2)' }}>
+                              <Eye size={12} />
                             </button>
-                          )}
-                          <button
-                            onClick={() => actionUser(user.id, 'suspend')}
-                            title="Suspendre"
-                            className="p-1.5 rounded-lg bg-amber-500/15 text-amber-400 hover:bg-amber-500/30 border border-amber-500/20 transition-all"
-                          >
-                            <Eye size={13} />
-                          </button>
-                          <button
-                            onClick={() => actionUser(user.id, 'ban')}
-                            title="Bannir"
-                            className="p-1.5 rounded-lg bg-red-500/15 text-red-400 hover:bg-red-500/30 border border-red-500/20 transition-all"
-                          >
-                            <Ban size={13} />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  )
-                })}
-              </tbody>
-            </table>
+                            <button onClick={() => actionUser(user.id, 'ban')} title="Bannir"
+                              className="p-1.5 rounded-lg transition-all"
+                              style={{ background: 'rgba(239,68,68,0.1)', color: '#f87171', border: '1px solid rgba(239,68,68,0.2)' }}>
+                              <Ban size={12} />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    )
+                  })}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Pagination */}
+            {userTotal > USER_PAGE && (
+              <div className="flex items-center justify-between px-5 py-3" style={{ borderTop: '1px solid rgba(255,255,255,0.07)' }}>
+                <button
+                  disabled={userOffset === 0}
+                  onClick={() => { const o = Math.max(0, userOffset - USER_PAGE); setUserOffset(o); chargerUsers(userSearch, userFilter, o) }}
+                  className="flex items-center gap-1.5 text-xs px-3 py-2 rounded-lg transition-all disabled:opacity-30"
+                  style={{ background: 'rgba(255,255,255,0.05)', color: 'rgba(255,255,255,0.5)', border: '1px solid rgba(255,255,255,0.08)' }}
+                >
+                  <ChevronLeft size={13} /> Précédent
+                </button>
+                <span className="text-xs" style={{ color: 'rgba(255,255,255,0.3)' }}>
+                  Page {Math.floor(userOffset / USER_PAGE) + 1} / {Math.ceil(userTotal / USER_PAGE)}
+                </span>
+                <button
+                  disabled={userOffset + USER_PAGE >= userTotal}
+                  onClick={() => { const o = userOffset + USER_PAGE; setUserOffset(o); chargerUsers(userSearch, userFilter, o) }}
+                  className="flex items-center gap-1.5 text-xs px-3 py-2 rounded-lg transition-all disabled:opacity-30"
+                  style={{ background: 'rgba(255,255,255,0.05)', color: 'rgba(255,255,255,0.5)', border: '1px solid rgba(255,255,255,0.08)' }}
+                >
+                  Suivant <ChevronRight size={13} />
+                </button>
+              </div>
+            )}
           </div>
         </div>
       )}
