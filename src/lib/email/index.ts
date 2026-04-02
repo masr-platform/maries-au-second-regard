@@ -136,6 +136,14 @@ export const emailService = {
     await send(email, subject, html)
   },
 
+  /** Relance questionnaire non complété — cron J+1 */
+  async sendQuestionnaireReminder({ email, prenom, heuresEcoules }: {
+    email: string; prenom: string; heuresEcoules: number
+  }) {
+    const { subject, html } = T.questionnaireReminderEmail({ prenom, heuresEcoules })
+    await send(email, subject, html)
+  },
+
   /** Résumé hebdomadaire */
   async sendWeeklyDigest({ email, prenom, nouveauxMatches, messages, vues }: {
     email: string; prenom: string; nouveauxMatches: number; messages: number; vues: number

@@ -511,3 +511,36 @@ export function mouquabalaRequestEmail({ prenom, matchPrenom, sessionId, dateHeu
     `, `${matchPrenom} vous invite à une mouqabala virtuelle encadrée sur MASR.`)
   }
 }
+
+// ─── Relance questionnaire non complété ──────────────────────
+export function questionnaireReminderEmail({ prenom, heuresEcoules }: {
+  prenom: string
+  heuresEcoules: number
+}) {
+  const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://maries-au-second-regard.vercel.app'
+  const questionnaireUrl = `${BASE_URL}/questionnaire`
+  const delaiTxt = heuresEcoules < 30 ? 'hier' : `il y a ${Math.round(heuresEcoules / 24)} jours`
+  return {
+    subject: `${prenom}, votre profil est incomplet — complétez votre questionnaire`,
+    html: baseLayout(`
+      <h2 style="font-size:22px;font-weight:700;color:#0a0a0a;margin:0 0 16px;">
+        Votre compatibilité n'a pas encore pu être calculée, ${prenom}.
+      </h2>
+      <p style="font-size:15px;color:#374151;line-height:1.6;margin:0 0 16px;">
+        Vous avez créé votre compte <strong>${delaiTxt}</strong>, mais votre questionnaire n'est pas encore complété.
+      </p>
+      <p style="font-size:15px;color:#374151;line-height:1.6;margin:0 0 24px;">
+        Sans questionnaire, notre IA ne peut pas analyser votre profil ni vous proposer de compatibilités validées par nos psychologues cliniciens.
+      </p>
+      <div style="background:#fefce8;border:1px solid #d4a853;border-radius:8px;padding:16px 20px;margin:0 0 28px;">
+        <p style="font-size:14px;color:#92400e;margin:0;font-weight:500;">
+          ⏱ Le questionnaire prend environ <strong>10 minutes</strong>. Il est la base de tout ce qui suit.
+        </p>
+      </div>
+      ${ctaButton('Compléter mon questionnaire maintenant', questionnaireUrl)}
+      <p style="font-size:13px;color:#9ca3af;text-align:center;margin:16px 0 0;">
+        Si vous avez des questions, répondez directement à cet email.
+      </p>
+    `, `${prenom}, complétez votre questionnaire pour recevoir vos compatibilités.`),
+  }
+}
