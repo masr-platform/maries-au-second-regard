@@ -1,11 +1,13 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import Link from 'next/link'
 import {
   Users, MessageCircle, AlertTriangle, TrendingUp,
   CheckCircle2, Ban, Eye, Flag, RefreshCw, Shield,
   Heart, DollarSign, Activity, Crown, Zap, Sparkles,
-  UserCheck, Clock, ChevronRight, BarChart3,
+  UserCheck, Clock, ChevronRight, BarChart3, Video,
+  CalendarDays, ExternalLink,
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 
@@ -18,6 +20,27 @@ interface Stats {
   revenuMois:             number
   usersBannis:            number
   questionnaireCompletes: number
+}
+
+interface SessionAdmin {
+  id:           string
+  scheduledAt:  string
+  dureeMinutes: number
+  status:       string
+  peutRejoindre: boolean
+  dailyRoomUrl: string | null
+  imam: { nom: string; prenom: string; type: string }
+  user1: { id: string; prenom: string; photoUrl?: string | null }
+  user2: { id: string; prenom: string; photoUrl?: string | null }
+}
+
+interface SessionStats {
+  total:      number
+  planifiees: number
+  enCours:    number
+  terminees:  number
+  annulees:   number
+  aujourdhui: number
 }
 
 interface Signalement {
@@ -89,24 +112,32 @@ function PlanBadge({ plan }: { plan: string }) {
 }
 
 export default function AdminPage() {
-  const [stats,        setStats]        = useState<Stats | null>(null)
-  const [signalements, setSignalements] = useState<Signalement[]>([])
-  const [usersRecents, setUsersRecents] = useState<UserRecent[]>([])
-  const [loading,      setLoading]      = useState(true)
-  const [onglet,       setOnglet]       = useState<'overview' | 'signalements' | 'users'>('overview')
+  const [stats,          setStats]          = useState<Stats | null>(null)
+  const [signalements,   setSignalements]   = useState<Signalement[]>([])
+  const [usersRecents,   setUsersRecents]   = useState<UserRecent[]>([])
+  const [sessions,       setSessions]       = useState<SessionAdmin[]>([])
+  const [sessionStats,   setSessionStats]   = useState<SessionStats | null>(null)
+  const [loading,        setLoading]        = useState(true)
+  const [onglet,         setOnglet]         = useState<'overview' | 'signalements' | 'users' | 'sessions'>('overview')
 
   useEffect(() => { chargerDonnees() }, [])
 
   const chargerDonnees = async () => {
     try {
-      const [statsRes, sigRes, usersRes] = await Promise.all([
+      const [statsRes, sigRes, usersRes, sessionsRes] = await Promise.all([
         fetch('/api/admin/stats'),
         fetch('/api/admin/signalements'),
         fetch('/api/admin/users?limite=20'),
+        fetch('/api/admin/sessions?limite=50'),
       ])
-      if (statsRes.ok)  setStats(await statsRes.json())
-      if (sigRes.ok)    setSignalements((await sigRes.json()).signalements || [])
-      if (usersRes.ok)  setUsersRecents((await usersRes.json()).users || [])
+      if (statsRes.ok)    setStats(await statsRes.json())
+      if (sigRes.ok)      setSignalements((await sigRes.json()).signalements || [])
+      if (usersRes.ok)    setUsersRecents((await usersRes.json()).users || [])
+      if (sessionsRes.ok) {
+        const data = await sessionsRes.json()
+        setSessions(data.sessions || [])
+        setSessionStats(data.stats || null)
+      }
     } catch {
       toast.error('Erreur chargement des données admin')
     } finally {
@@ -151,7 +182,7 @@ export default function AdminPage() {
       `}</style>
 
       {/* ── Header ──────────────────────────────────────────── */}
-      <div className="flex items-center justify-between mb-8">
+      <div className="flex items-start justify-between mb-8 gap-4">
         <div>
           <h1 className="text-2xl font-serif font-bold text-white flex items-center gap-3">
             <div className="p-2 rounded-xl bg-gradient-to-br from-violet-500 to-fuchsia-500 shadow-lg shadow-violet-500/30">
@@ -161,18 +192,28 @@ export default function AdminPage() {
           </h1>
           <p className="text-white/40 text-sm mt-1 ml-1">Mariés au Second Regard — Supervision</p>
         </div>
-        <button
-          onClick={chargerDonnees}
-          className="flex items-center gap-2 text-sm font-semibold text-white bg-white/8 hover:bg-white/12 border border-white/10 px-4 py-2 rounded-xl transition-all"
-        >
-          <RefreshCw size={14} className={loading ? 'animate-spin' : ''} />
-          Actualiser
-        </button>
+        <div className="flex items-center gap-2 shrink-0">
+          {/* Switch vers le dashboard Superviseur */}
+          <Link
+            href="/admin/superviseur"
+            className="flex items-center gap-2 text-sm font-semibold text-emerald-300 bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 px-4 py-2 rounded-xl transition-all"
+          >
+            <Video size={14} />
+            Vue Superviseur
+          </Link>
+          <button
+            onClick={chargerDonnees}
+            className="flex items-center gap-2 text-sm font-semibold text-white bg-white/8 hover:bg-white/12 border border-white/10 px-4 py-2 rounded-xl transition-all"
+          >
+            <RefreshCw size={14} className={loading ? 'animate-spin' : ''} />
+            Actualiser
+          </button>
+        </div>
       </div>
 
       {/* ── KPIs ────────────────────────────────────────────── */}
       {stats && (
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
           <KPICard
             titre="Membres total"
             valeur={stats.totalUsers}
@@ -188,6 +229,14 @@ export default function AdminPage() {
             gradient="from-pink-500 to-rose-500"
             sousTitre={`/ ${stats.totalMatchs} total`}
             glow="shadow-pink-500/10"
+          />
+          <KPICard
+            titre="Mouqabalas"
+            valeur={sessionStats?.total ?? 0}
+            icon={Video}
+            gradient="from-emerald-500 to-teal-500"
+            sousTitre={`${sessionStats?.aujourdhui ?? 0} aujourd'hui`}
+            glow="shadow-emerald-500/10"
           />
           <KPICard
             titre="Signalements"
@@ -209,11 +258,12 @@ export default function AdminPage() {
       )}
 
       {/* ── Onglets ─────────────────────────────────────────── */}
-      <div className="flex gap-1 mb-6 bg-white/5 border border-white/8 p-1.5 rounded-2xl w-fit">
+      <div className="flex flex-wrap gap-1 mb-6 bg-white/5 border border-white/8 p-1.5 rounded-2xl w-fit">
         {([
-          { id: 'overview',      label: 'Vue d\'ensemble', icon: BarChart3,     color: 'text-violet-400' },
-          { id: 'signalements',  label: `Signalements (${signalements.length})`, icon: Flag, color: 'text-red-400' },
-          { id: 'users',         label: 'Utilisateurs',   icon: Users,          color: 'text-blue-400' },
+          { id: 'overview',     label: "Vue d'ensemble",                          icon: BarChart3,    color: 'text-violet-400' },
+          { id: 'sessions',     label: `Mouqabalas (${sessionStats?.total ?? 0})`, icon: Video,        color: 'text-emerald-400' },
+          { id: 'signalements', label: `Signalements (${signalements.length})`,    icon: Flag,         color: 'text-red-400' },
+          { id: 'users',        label: 'Utilisateurs',                             icon: Users,        color: 'text-blue-400' },
         ] as const).map((tab) => {
           const Icon = tab.icon
           return (
@@ -232,6 +282,152 @@ export default function AdminPage() {
           )
         })}
       </div>
+
+      {/* ── Sessions / Mouqabalas ───────────────────────────── */}
+      {onglet === 'sessions' && (
+        <div>
+          {/* Stats row */}
+          {sessionStats && (
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mb-6">
+              {[
+                { label: 'Total',       val: sessionStats.total,      gradient: 'from-slate-500 to-slate-600',    text: 'text-slate-300' },
+                { label: "Aujourd'hui", val: sessionStats.aujourdhui, gradient: 'from-violet-500 to-purple-600',  text: 'text-violet-300' },
+                { label: 'Planifiées',  val: sessionStats.planifiees, gradient: 'from-blue-500 to-indigo-500',    text: 'text-blue-300' },
+                { label: 'En cours',    val: sessionStats.enCours,    gradient: 'from-emerald-500 to-teal-500',   text: 'text-emerald-300' },
+                { label: 'Terminées',   val: sessionStats.terminees,  gradient: 'from-amber-400 to-yellow-500',   text: 'text-amber-300' },
+              ].map((s) => (
+                <div key={s.label} className="bg-[#0d0a1f] border border-white/8 rounded-xl p-4 flex items-center gap-3">
+                  <div className={`w-2 h-2 rounded-full bg-gradient-to-br ${s.gradient}`} />
+                  <div>
+                    <p className={`text-2xl font-bold ${s.text}`}>{s.val}</p>
+                    <p className="text-white/40 text-xs">{s.label}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Live alert */}
+          {sessions.some(s => s.peutRejoindre) && (
+            <div className="bg-emerald-500/10 border border-emerald-500/30 rounded-2xl p-4 mb-5 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-2.5 h-2.5 bg-emerald-400 rounded-full animate-pulse" />
+                <span className="text-emerald-300 font-semibold text-sm">
+                  {sessions.filter(s => s.peutRejoindre).length} mouqabala(s) en cours ou rejoignable maintenant
+                </span>
+              </div>
+              <Link href="/admin/mouqabalas" className="text-xs font-semibold text-emerald-300 hover:text-emerald-200 flex items-center gap-1.5 border border-emerald-500/40 px-3 py-1.5 rounded-lg transition-colors">
+                Ouvrir le calendrier <ExternalLink size={11} />
+              </Link>
+            </div>
+          )}
+
+          {/* Sessions list */}
+          <div className="bg-[#0d0a1f] border border-white/8 rounded-2xl overflow-hidden">
+            <div className="p-4 border-b border-white/8 flex items-center justify-between">
+              <h3 className="text-white font-semibold text-sm flex items-center gap-2">
+                <Video size={15} className="text-emerald-400" />
+                Prochaines mouqabalas
+              </h3>
+              <Link href="/admin/mouqabalas" className="text-xs text-violet-400 hover:text-violet-300 flex items-center gap-0.5 transition-colors">
+                Calendrier complet <ChevronRight size={11} />
+              </Link>
+            </div>
+            {sessions.filter(s => s.status !== 'ANNULE').length === 0 ? (
+              <div className="text-center py-12">
+                <div className="w-12 h-12 bg-emerald-500/15 rounded-full flex items-center justify-center mx-auto mb-3">
+                  <CalendarDays size={22} className="text-emerald-400" />
+                </div>
+                <p className="text-white/50 text-sm">Aucune mouqabala planifiée</p>
+              </div>
+            ) : (
+              <div className="divide-y divide-white/5">
+                {sessions.filter(s => s.status !== 'ANNULE').slice(0, 15).map((s, i) => {
+                  const debut   = new Date(s.scheduledAt)
+                  const fin     = new Date(debut.getTime() + s.dureeMinutes * 60_000)
+                  const heureD  = debut.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
+                  const heureF  = fin.toLocaleTimeString('fr-FR',   { hour: '2-digit', minute: '2-digit' })
+                  const dateStr = debut.toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric', month: 'short' })
+                  const imamNom = `${s.imam.type === 'IMAM' ? 'Imam' : 'Dr.'} ${s.imam.prenom} ${s.imam.nom}`
+
+                  const statusBadge = {
+                    PLANIFIE: { label: 'Planifiée', cls: 'bg-blue-500/15 text-blue-300 border border-blue-500/20' },
+                    EN_COURS: { label: 'En cours',  cls: 'bg-emerald-500/15 text-emerald-300 border border-emerald-500/20' },
+                    TERMINE:  { label: 'Terminée',  cls: 'bg-white/8 text-white/40 border border-white/10' },
+                    ANNULE:   { label: 'Annulée',   cls: 'bg-red-500/15 text-red-300 border border-red-500/20' },
+                  }[s.status] ?? { label: s.status, cls: 'bg-white/8 text-white/40' }
+
+                  return (
+                    <div
+                      key={s.id}
+                      className="flex items-center gap-4 px-5 py-3.5 hover:bg-white/3 transition-colors"
+                      style={{ animation: `fadeInLeft 0.25s ease ${i * 0.04}s both` }}
+                    >
+                      {/* Date/heure */}
+                      <div className="w-28 shrink-0">
+                        <p className="text-white/70 text-xs font-semibold capitalize">{dateStr}</p>
+                        <p className="text-white/40 text-[11px]">{heureD} – {heureF}</p>
+                      </div>
+
+                      {/* Participants */}
+                      <div className="flex items-center gap-2 flex-1 min-w-0">
+                        <div className="flex items-center gap-1.5">
+                          <div className="w-7 h-7 rounded-full bg-violet-500/20 flex items-center justify-center text-[11px] font-bold text-violet-300">
+                            {s.user1.prenom[0]}
+                          </div>
+                          <span className="text-white/70 text-xs font-medium">{s.user1.prenom}</span>
+                        </div>
+                        <span className="text-white/20 text-xs">×</span>
+                        <div className="flex items-center gap-1.5">
+                          <div className="w-7 h-7 rounded-full bg-fuchsia-500/20 flex items-center justify-center text-[11px] font-bold text-fuchsia-300">
+                            {s.user2.prenom[0]}
+                          </div>
+                          <span className="text-white/70 text-xs font-medium">{s.user2.prenom}</span>
+                        </div>
+                      </div>
+
+                      {/* Superviseur */}
+                      <p className="text-white/30 text-xs hidden md:block w-40 truncate shrink-0">{imamNom}</p>
+
+                      {/* Badge statut */}
+                      <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full shrink-0 ${statusBadge.cls}`}>
+                        {statusBadge.label}
+                      </span>
+
+                      {/* Rejoindre */}
+                      {s.peutRejoindre && s.dailyRoomUrl ? (
+                        <a
+                          href={s.dailyRoomUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg bg-gradient-to-r from-emerald-500 to-teal-500 text-white shadow-lg shadow-emerald-500/20 shrink-0"
+                        >
+                          <Video size={11} />
+                          Rejoindre
+                        </a>
+                      ) : (
+                        <div className="w-24 shrink-0" />
+                      )}
+                    </div>
+                  )
+                })}
+              </div>
+            )}
+          </div>
+
+          {/* CTA calendrier complet */}
+          <div className="mt-4 text-center">
+            <Link
+              href="/admin/mouqabalas"
+              className="inline-flex items-center gap-2 text-sm font-semibold text-white bg-gradient-to-r from-emerald-500/20 to-teal-500/20 hover:from-emerald-500/30 hover:to-teal-500/30 border border-emerald-500/30 px-6 py-3 rounded-xl transition-all"
+            >
+              <CalendarDays size={16} />
+              Voir le calendrier complet des mouqabalas
+              <ChevronRight size={14} />
+            </Link>
+          </div>
+        </div>
+      )}
 
       {/* ── Signalements ────────────────────────────────────── */}
       {onglet === 'signalements' && (
@@ -497,6 +693,65 @@ export default function AdminPage() {
                     </button>
                   </div>
                 ))}
+              </div>
+            )}
+          </div>
+
+          {/* Prochaines mouqabalas — widget overview */}
+          <div className="bg-[#0d0a1f] border border-white/8 rounded-2xl p-5 md:col-span-2">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-semibold text-white text-sm flex items-center gap-2">
+                <div className="p-1.5 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-500">
+                  <Video size={13} className="text-white" />
+                </div>
+                Mouqabalas à venir
+              </h3>
+              <Link href="/admin/mouqabalas" className="text-xs text-emerald-400 hover:text-emerald-300 flex items-center gap-0.5 transition-colors">
+                Calendrier <ChevronRight size={11} />
+              </Link>
+            </div>
+            {sessions.filter(s => s.status === 'PLANIFIE' || s.status === 'EN_COURS').length === 0 ? (
+              <div className="text-center py-6">
+                <div className="w-10 h-10 bg-emerald-500/15 rounded-full flex items-center justify-center mx-auto mb-2">
+                  <CalendarDays size={18} className="text-emerald-400" />
+                </div>
+                <p className="text-white/50 text-sm">Aucune mouqabala planifiée</p>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {sessions.filter(s => s.status === 'PLANIFIE' || s.status === 'EN_COURS').slice(0, 4).map((s) => {
+                  const debut  = new Date(s.scheduledAt)
+                  const heureD = debut.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
+                  const dateS  = debut.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })
+                  return (
+                    <div key={s.id} className="flex items-center gap-3 p-3 bg-white/4 border border-white/6 rounded-xl">
+                      <div className="text-center w-14 shrink-0">
+                        <p className="text-white text-sm font-bold">{heureD}</p>
+                        <p className="text-white/40 text-[10px] capitalize">{dateS}</p>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-white/80 text-xs font-semibold truncate">
+                          {s.user1.prenom} × {s.user2.prenom}
+                        </p>
+                        <p className="text-white/30 text-[10px] truncate">
+                          {s.imam.type === 'IMAM' ? 'Imam' : 'Dr.'} {s.imam.prenom} {s.imam.nom}
+                        </p>
+                      </div>
+                      {s.peutRejoindre && s.dailyRoomUrl ? (
+                        <a
+                          href={s.dailyRoomUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-[11px] font-semibold px-2.5 py-1 rounded-lg bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 hover:bg-emerald-500/30 transition-colors shrink-0"
+                        >
+                          Rejoindre
+                        </a>
+                      ) : (
+                        <span className="text-[10px] text-white/20 shrink-0">{s.dureeMinutes} min</span>
+                      )}
+                    </div>
+                  )
+                })}
               </div>
             )}
           </div>

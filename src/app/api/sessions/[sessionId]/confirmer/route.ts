@@ -52,21 +52,51 @@ export async function POST(
     }
 
     if (action === 'ACCEPTER') {
-      // Confirmer la session
+      // Confirmer la session — marquer user2Confirmed
       await prisma.imamSession.update({
         where: { id: params.sessionId },
-        data:  { status: 'PLANIFIE' }, // reste PLANIFIE mais les deux ont confirmé
+        data:  { status: 'PLANIFIE' },
       })
 
-      // Notifier user1
-      await prisma.notification.create({
-        data: {
-          userId:  imamSession.user1Id,
-          type:    'SESSION_RAPPEL',
-          titre:   `✅ ${imamSession.user2!.prenom} a accepté la mouqabala`,
-          contenu: `${imamSession.user2!.prenom} a confirmé sa présence. La mouqabala est confirmée.`,
-          data:    JSON.stringify({ sessionId: params.sessionId, action: 'MOUQUABALA_CONFIRMEE' }),
-        },
+      // Récupérer les admins pour les notifier
+      const admins = await prisma.user.findMany({
+        where: { role: { in: ['ADMIN', 'SUPER_ADMIN'] } },
+        select: { id: true },
+      })
+
+      const { format } = await import('date-fns')
+      const { fr }    = await import('date-fns/locale')
+      const dateStr   = format(imamSession.scheduledAt, "EEEE d MMMM 'à' HH'h'mm", { locale: fr })
+      const imamNom   = `${imamSession.imam.type === 'IMAM' ? 'Imam' : 'Dr.'} ${imamSession.imam.prenom} ${imamSession.imam.nom}`
+
+      // Notifier user1 + tous les admins en parallèle
+      await prisma.notification.createMany({
+        data: [
+          // User1 — confirmation
+          {
+            userId:  imamSession.user1Id,
+            type:    'SESSION_RAPPEL',
+            titre:   `✅ ${imamSession.user2!.prenom} a accepté la mouqabala`,
+            contenu: `${imamSession.user2!.prenom} a confirmé sa présence. La mouqabala est confirmée pour ${dateStr}.`,
+            data:    JSON.stringify({ sessionId: params.sessionId, action: 'MOUQUABALA_CONFIRMEE' }),
+          },
+          // Admins — nouvelle mouqabala confirmée
+          ...admins.map(admin => ({
+            userId:  admin.id,
+            type:    'SESSION_RAPPEL' as const,
+            titre:   '📅 Mouqabala confirmée',
+            contenu: `${imamSession.user1.prenom} × ${imamSession.user2!.prenom} — ${dateStr} avec ${imamNom}.`,
+            data:    JSON.stringify({
+              sessionId:    params.sessionId,
+              action:       'ADMIN_MOUQUABALA_CONFIRMEE',
+              dailyRoomUrl: imamSession.dailyRoomUrl,
+              scheduledAt:  imamSession.scheduledAt.toISOString(),
+              user1Prenom:  imamSession.user1.prenom,
+              user2Prenom:  imamSession.user2!.prenom,
+              imamNom,
+            }),
+          })),
+        ],
       })
 
       // Email à user1
