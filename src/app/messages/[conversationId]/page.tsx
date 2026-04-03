@@ -6,10 +6,10 @@ import { useSession } from 'next-auth/react'
 import Image from 'next/image'
 import {
   ArrowLeft, Send, User, ShieldCheck, AlertTriangle,
-  Clock, CheckCheck, Check, Lock, Info,
+  Clock, CheckCheck, Check, Lock, Info, Video, AlertCircle,
 } from 'lucide-react'
 import Link from 'next/link'
-import { formatDistanceToNow, format } from 'date-fns'
+import { formatDistanceToNow, format, differenceInSeconds } from 'date-fns'
 import { fr } from 'date-fns/locale'
 import { getSupabaseClient } from '@/lib/supabase-client'
 import toast from 'react-hot-toast'
@@ -34,11 +34,17 @@ interface Message {
 
 interface ConversationInfo {
   id: string
+  matchId: string
   etape: string
   isFlagged: boolean
   user1Id: string
   user2Id: string
   messageCount: number
+  // Charte 72H
+  charteAccepteeUser1: boolean
+  charteAccepteeUser2: boolean
+  expiresAt: string | null
+  isExpired: boolean
   interlocuteur: {
     id: string
     prenom: string
@@ -59,6 +65,160 @@ const ETAPE_INFO: Record<string, string> = {
   CONNAISSANCE: 'Vous pouvez approfondir la discussion. 10 messages + 3 jours pour atteindre cette étape.',
   FAMILLE: 'Il est maintenant possible d\'inviter un wali à superviser la conversation.',
   VISIO: 'Un appel vidéo supervisé peut être organisé à cette étape.',
+}
+
+// ─── Modal Charte 72H ─────────────────────────────────────────────────────────
+function ModalCharte({ prenom, onAccepter, loading }: {
+  prenom: string
+  onAccepter: () => void
+  loading: boolean
+}) {
+  const [checked, setChecked] = useState(false)
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      style={{ background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(8px)' }}>
+      <div className="w-full max-w-md rounded-2xl p-6 flex flex-col gap-5"
+        style={{ background: '#0f0f14', border: '1px solid rgba(212,175,55,0.25)' }}>
+
+        {/* Icône */}
+        <div className="flex flex-col items-center gap-3 text-center">
+          <div className="w-14 h-14 rounded-full flex items-center justify-center"
+            style={{ background: 'rgba(212,175,55,0.1)', border: '1px solid rgba(212,175,55,0.3)' }}>
+            <ShieldCheck size={26} style={{ color: '#D4AF37' }} />
+          </div>
+          <div>
+            <h2 className="text-white font-bold text-base">Avant d'entrer dans la conversation</h2>
+            <p className="text-xs mt-1" style={{ color: 'rgba(255,255,255,0.45)' }}>
+              Vous allez échanger avec <span className="text-white font-medium">{prenom}</span>
+            </p>
+          </div>
+        </div>
+
+        {/* Règles */}
+        <div className="rounded-xl p-4 space-y-3"
+          style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)' }}>
+          <p className="text-xs font-semibold uppercase tracking-wider" style={{ color: '#D4AF37' }}>
+            Charte de conduite — à respecter obligatoirement
+          </p>
+          {[
+            ['⏳', 'Ce chat est limité à 72 heures. Un décompte sera visible pendant toute la durée.'],
+            ['📵', 'Il est strictement interdit de partager : numéro de téléphone, email, réseaux sociaux, ou tout autre moyen de contact externe.'],
+            ['🚫', 'Aucune photo personnelle, profil ou lien externe ne doit être échangé dans ce chat.'],
+            ['⚠️', 'Tout manquement à ces règles entraîne un bannissement immédiat et définitif de la plateforme.'],
+            ['🔒', 'Tous les messages sont supervisés par notre équipe de modération.'],
+          ].map(([icon, texte], i) => (
+            <div key={i} className="flex items-start gap-2.5">
+              <span className="text-base flex-shrink-0 mt-0.5">{icon}</span>
+              <p className="text-xs leading-relaxed" style={{ color: 'rgba(255,255,255,0.6)' }}>{texte}</p>
+            </div>
+          ))}
+        </div>
+
+        {/* Checkbox */}
+        <label className="flex items-start gap-3 cursor-pointer group">
+          <div
+            onClick={() => setChecked(!checked)}
+            className="w-5 h-5 rounded flex-shrink-0 mt-0.5 flex items-center justify-center transition-all cursor-pointer"
+            style={{
+              background: checked ? '#D4AF37' : 'transparent',
+              border: checked ? 'none' : '1.5px solid rgba(255,255,255,0.3)',
+            }}
+          >
+            {checked && (
+              <svg width="11" height="9" viewBox="0 0 11 9" fill="none">
+                <path d="M1 4L4 7.5L10 1" stroke="#000" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            )}
+          </div>
+          <p className="text-xs leading-relaxed" style={{ color: 'rgba(255,255,255,0.6)' }}>
+            Je comprends et j'accepte ces règles. Je m'engage à ne partager aucun moyen de contact
+            personnel, sous peine d'être banni(e) définitivement de la plateforme.
+          </p>
+        </label>
+
+        {/* Bouton */}
+        <button
+          onClick={onAccepter}
+          disabled={!checked || loading}
+          className="w-full py-3 rounded-xl font-semibold text-sm transition-all"
+          style={{
+            background: checked && !loading ? 'linear-gradient(135deg, #D4AF37, #f0d060)' : 'rgba(255,255,255,0.06)',
+            color: checked && !loading ? '#000' : 'rgba(255,255,255,0.25)',
+            cursor: !checked || loading ? 'not-allowed' : 'pointer',
+          }}
+        >
+          {loading ? 'Vérification…' : 'J\'ai lu et j\'accepte — Entrer dans le chat'}
+        </button>
+      </div>
+    </div>
+  )
+}
+
+// ─── Décompte 72H ─────────────────────────────────────────────────────────────
+function Countdown({ expiresAt, onExpire }: { expiresAt: string; onExpire: () => void }) {
+  const [secondsLeft, setSecondsLeft] = useState(() =>
+    Math.max(0, differenceInSeconds(new Date(expiresAt), new Date()))
+  )
+
+  useEffect(() => {
+    if (secondsLeft <= 0) { onExpire(); return }
+    const interval = setInterval(() => {
+      const left = Math.max(0, differenceInSeconds(new Date(expiresAt), new Date()))
+      setSecondsLeft(left)
+      if (left === 0) { onExpire(); clearInterval(interval) }
+    }, 1000)
+    return () => clearInterval(interval)
+  }, [expiresAt, onExpire])
+
+  const h = Math.floor(secondsLeft / 3600)
+  const m = Math.floor((secondsLeft % 3600) / 60)
+  const s = secondsLeft % 60
+
+  const isUrgent = secondsLeft < 3600 // < 1h
+
+  return (
+    <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full"
+      style={{
+        background: isUrgent ? 'rgba(239,68,68,0.12)' : 'rgba(212,175,55,0.1)',
+        border: `1px solid ${isUrgent ? 'rgba(239,68,68,0.3)' : 'rgba(212,175,55,0.25)'}`,
+      }}>
+      <Clock size={11} style={{ color: isUrgent ? '#f87171' : '#D4AF37' }} />
+      <span className="text-[11px] font-mono font-semibold"
+        style={{ color: isUrgent ? '#f87171' : '#D4AF37' }}>
+        {String(h).padStart(2, '0')}:{String(m).padStart(2, '0')}:{String(s).padStart(2, '0')}
+      </span>
+    </div>
+  )
+}
+
+// ─── CTA Mouqabala post-expiration ────────────────────────────────────────────
+function BandeauMouqabala({ matchId, prenom }: { matchId: string; prenom: string }) {
+  return (
+    <div className="flex-shrink-0 px-4 py-4 flex flex-col items-center gap-3 text-center"
+      style={{ background: 'rgba(212,175,55,0.06)', borderTop: '1px solid rgba(212,175,55,0.2)' }}>
+      <div className="w-10 h-10 rounded-full flex items-center justify-center"
+        style={{ background: 'rgba(212,175,55,0.15)', border: '1px solid rgba(212,175,55,0.3)' }}>
+        <Video size={18} style={{ color: '#D4AF37' }} />
+      </div>
+      <div>
+        <p className="text-white font-semibold text-sm">La conversation de 72h est terminée</p>
+        <p className="text-xs mt-1" style={{ color: 'rgba(255,255,255,0.45)' }}>
+          Si vous souhaitez approfondir votre échange, vous pouvez demander une mouqabala supervisée.
+        </p>
+      </div>
+      <Link
+        href={`/mouqabala/reserver/${matchId}`}
+        className="px-5 py-2.5 rounded-xl text-sm font-semibold transition-all"
+        style={{
+          background: 'linear-gradient(135deg, #D4AF37, #f0d060)',
+          color: '#000',
+        }}
+      >
+        Demander une mouqabala avec {prenom}
+      </Link>
+    </div>
+  )
 }
 
 // ─── Composant Message ────────────────────────────────────────────────────────
@@ -153,6 +313,10 @@ export default function ChatPage() {
   const [hasMore, setHasMore] = useState(false)
   const [cursor, setCursor] = useState<string | null>(null)
   const [showEtapeInfo, setShowEtapeInfo] = useState(false)
+  // Charte 72H
+  const [showCharte, setShowCharte] = useState(false)
+  const [charteLoading, setCharteLoading] = useState(false)
+  const [isExpired, setIsExpired] = useState(false)
 
   const endRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
@@ -181,7 +345,17 @@ export default function ChatPage() {
         const convRes = await fetch('/api/conversations')
         const convData = await convRes.json()
         const found = convData.conversations?.find((c: ConversationInfo) => c.id === conversationId)
-        if (found) setConv(found)
+        if (found) {
+          setConv(found)
+          // Vérifier si la charte a déjà été acceptée par cet utilisateur
+          const isUser1 = found.user1Id === userId
+          const maCharteAcceptee = isUser1 ? found.charteAccepteeUser1 : found.charteAccepteeUser2
+          if (!maCharteAcceptee) setShowCharte(true)
+          // Vérifier si la conversation est expirée
+          if (found.isExpired || (found.expiresAt && new Date(found.expiresAt) < new Date())) {
+            setIsExpired(true)
+          }
+        }
       }
 
       if (cursorParam) {
@@ -263,10 +437,35 @@ export default function ChatPage() {
     }
   }, [messages, loading])
 
+  // ─── Accepter la charte ────────────────────────────────────────────────────
+  const accepterCharte = async () => {
+    setCharteLoading(true)
+    try {
+      const res = await fetch(`/api/conversations/${conversationId}/charte`, { method: 'PATCH' })
+      if (res.ok) {
+        const data = await res.json()
+        setShowCharte(false)
+        // Mettre à jour conv local avec les nouvelles infos
+        setConv(prev => prev ? {
+          ...prev,
+          charteAccepteeUser1: prev.user1Id === userId ? true : prev.charteAccepteeUser1,
+          charteAccepteeUser2: prev.user2Id === userId ? true : prev.charteAccepteeUser2,
+          expiresAt: data.expiresAt ?? prev.expiresAt,
+        } : prev)
+      } else {
+        toast.error('Erreur lors de la validation')
+      }
+    } catch {
+      toast.error('Erreur réseau')
+    } finally {
+      setCharteLoading(false)
+    }
+  }
+
   // ─── Envoyer un message ────────────────────────────────────────────────────
   const envoyer = async () => {
     const contenu = texte.trim()
-    if (!contenu || envoi || !userId) return
+    if (!contenu || envoi || !userId || isExpired) return
 
     setTexte('')
     setEnvoi(true)
@@ -352,6 +551,15 @@ export default function ChatPage() {
   return (
     <div className="h-screen bg-dark-900 flex flex-col">
 
+      {/* ── Modal charte 72H ──────────────────────────────────────── */}
+      {showCharte && conv && (
+        <ModalCharte
+          prenom={conv.interlocuteur.prenom}
+          onAccepter={accepterCharte}
+          loading={charteLoading}
+        />
+      )}
+
       {/* ── Header ────────────────────────────────────────────────── */}
       <div
         className="flex-shrink-0 px-4 py-3 flex items-center gap-3"
@@ -403,6 +611,20 @@ export default function ChatPage() {
             </p>
           )}
         </div>
+
+        {/* Countdown 72H ou statut expiré */}
+        {isExpired ? (
+          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full"
+            style={{ background: 'rgba(239,68,68,0.12)', border: '1px solid rgba(239,68,68,0.3)' }}>
+            <AlertCircle size={11} style={{ color: '#f87171' }} />
+            <span className="text-[11px] font-semibold" style={{ color: '#f87171' }}>Expiré</span>
+          </div>
+        ) : conv?.expiresAt ? (
+          <Countdown
+            expiresAt={conv.expiresAt}
+            onExpire={() => setIsExpired(true)}
+          />
+        ) : null}
 
         {/* Bouton info étape */}
         <button
@@ -516,7 +738,13 @@ export default function ChatPage() {
         <div ref={endRef} />
       </div>
 
-      {/* ── Zone saisie ───────────────────────────────────────────── */}
+      {/* ── CTA Mouqabala si expiré ───────────────────────────────── */}
+      {isExpired && conv && (
+        <BandeauMouqabala matchId={conv.matchId} prenom={conv.interlocuteur.prenom} />
+      )}
+
+      {/* ── Zone saisie (bloquée si expiré) ──────────────────────── */}
+      {!isExpired && (
       <div
         className="flex-shrink-0 px-4 py-3"
         style={{ background: 'rgba(10,10,14,0.95)', borderTop: '1px solid rgba(255,255,255,0.07)', backdropFilter: 'blur(20px)' }}
@@ -576,6 +804,7 @@ export default function ChatPage() {
           🔒 Messages supervisés · Ne partagez pas vos coordonnées personnelles
         </p>
       </div>
+      )}
 
       <style jsx global>{`
         @keyframes msgFadeIn {

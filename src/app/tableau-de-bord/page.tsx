@@ -346,6 +346,7 @@ export default function TableauDeBordPage() {
   const [calculant,    setCalculant]    = useState(false)
   const [filtres,      setFiltres]      = useState<Filtres>(FILTRES_VIDES)
   const [showFiltres,  setShowFiltres]  = useState(false)
+  const [nonLusNotifs, setNonLusNotifs] = useState(0)
 
   const charger = useCallback(async () => {
     try {
@@ -354,6 +355,14 @@ export default function TableauDeBordPage() {
       if (res.ok) setResultats(json.resultats ?? [])
     } catch { toast.error('Erreur chargement') }
     finally  { setLoading(false) }
+  }, [])
+
+  // Charger le nombre de notifications non lues
+  useEffect(() => {
+    fetch('/api/notifications')
+      .then(r => r.json())
+      .then(d => setNonLusNotifs(d.nonLues ?? 0))
+      .catch(() => {})
   }, [])
 
   useEffect(() => { charger() }, [charger])
@@ -418,7 +427,7 @@ export default function TableauDeBordPage() {
             { href: '/tableau-de-bord', icon: Heart,         label: 'Mes compatibilités', active: true },
             { href: '/messages',        icon: MessageCircle, label: 'Messages',           badge: conversations > 0 ? conversations : null },
             { href: '/sessions',        icon: Video,         label: 'Mouqabalas' },
-            { href: '/notifications',   icon: Bell,          label: 'Notifications' },
+            { href: '/notifications',   icon: Bell,          label: 'Notifications', badge: nonLusNotifs > 0 ? nonLusNotifs : null },
             { href: '/profil',          icon: User,          label: 'Mon profil' },
             { href: '/abonnement',      icon: TrendingUp,    label: 'Abonnement' },
             { href: '/parametres',      icon: Settings,      label: 'Paramètres' },
@@ -488,6 +497,75 @@ export default function TableauDeBordPage() {
             {calculant ? 'Analyse…' : 'Trouver des profils'}
           </button>
         </div>
+
+        {/* ── Onboarding stepper ───────────────────────────────── */}
+        {!loading && (!session?.user?.questionnaireCompleted || !isPaid) && (
+          <div className="mb-8 p-5 rounded-2xl"
+            style={{ background: 'rgba(212,175,55,0.04)', border: '1px solid rgba(212,175,55,0.15)' }}>
+            <p className="text-white font-semibold text-sm mb-4 flex items-center gap-2">
+              <Trophy size={15} style={{ color: '#D4AF37' }} />
+              Complétez votre profil pour recevoir des compatibilités
+            </p>
+            <div className="flex flex-col sm:flex-row gap-3">
+              {[
+                {
+                  done: true,
+                  step: 1,
+                  label: 'Créer mon compte',
+                  desc: 'Compte créé avec succès',
+                  href: null as string | null,
+                },
+                {
+                  done: !!session?.user?.questionnaireCompleted,
+                  step: 2,
+                  label: 'Compléter mon profil',
+                  desc: session?.user?.questionnaireCompleted
+                    ? 'Profil complété ✓'
+                    : '~10 min — indispensable pour le matching',
+                  href: session?.user?.questionnaireCompleted ? null : '/questionnaire',
+                },
+                {
+                  done: isPaid,
+                  step: 3,
+                  label: 'Choisir un abonnement',
+                  desc: isPaid ? `Plan ${planLbl[plan] ?? plan} actif` : 'Dès 9,99€/mois',
+                  href: isPaid ? null : '/abonnement',
+                },
+              ].map(s => (
+                <div key={s.step} className="flex-1 flex items-start gap-3 p-3 rounded-xl"
+                  style={{
+                    background: s.done ? 'rgba(34,197,94,0.05)' : 'rgba(255,255,255,0.03)',
+                    border: `1px solid ${s.done ? 'rgba(34,197,94,0.2)' : 'rgba(255,255,255,0.08)'}`,
+                  }}>
+                  <div className="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5"
+                    style={{
+                      background: s.done ? 'rgba(34,197,94,0.15)' : 'rgba(212,175,55,0.1)',
+                      border: `1.5px solid ${s.done ? '#22c55e' : 'rgba(212,175,55,0.4)'}`,
+                    }}>
+                    {s.done
+                      ? <CheckCircle2 size={13} style={{ color: '#22c55e' }} />
+                      : <span className="text-[11px] font-bold" style={{ color: '#D4AF37' }}>{s.step}</span>
+                    }
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium"
+                      style={{ color: s.done ? 'rgba(255,255,255,0.45)' : 'white' }}>
+                      {s.label}
+                    </p>
+                    <p className="text-[11px] mt-0.5" style={{ color: 'rgba(255,255,255,0.3)' }}>{s.desc}</p>
+                    {!s.done && s.href && (
+                      <Link href={s.href}
+                        className="inline-flex items-center gap-1 mt-2 text-[11px] font-bold px-3 py-1.5 rounded-lg"
+                        style={{ background: 'linear-gradient(90deg, #D4AF37, #f0d060)', color: '#000' }}>
+                        Commencer <ChevronRight size={10} />
+                      </Link>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* ── Barre de filtres ─────────────────────────────────── */}
         {!loading && resultats.length > 0 && isPaid && (
@@ -784,14 +862,22 @@ export default function TableauDeBordPage() {
         style={{ background: 'rgba(10,10,14,0.97)', borderTop: '1px solid rgba(255,255,255,0.06)', backdropFilter: 'blur(12px)' }}>
         {[
           { href: '/tableau-de-bord', icon: Heart,         label: 'Matchs',    active: true },
-          { href: '/messages',        icon: MessageCircle, label: 'Messages' },
-          { href: '/notifications',   icon: Bell,          label: 'Notifs' },
+          { href: '/messages',        icon: MessageCircle, label: 'Messages',  badge: conversations > 0 ? conversations : null },
+          { href: '/notifications',   icon: Bell,          label: 'Notifs',    badge: nonLusNotifs > 0 ? nonLusNotifs : null },
           { href: '/profil',          icon: User,          label: 'Profil' },
-        ].map(({ href, icon: Icon, label, active }) => (
+        ].map(({ href, icon: Icon, label, active, badge }) => (
           <Link key={href} href={href}
             className="flex-1 flex flex-col items-center py-3 gap-1 text-[10px] transition-colors duration-200"
             style={{ color: active ? '#D4AF37' : 'rgba(255,255,255,0.3)' }}>
-            <Icon size={20} />
+            <div className="relative">
+              <Icon size={20} />
+              {badge ? (
+                <span className="absolute -top-1.5 -right-2 text-[9px] font-bold px-1 py-0 rounded-full leading-4"
+                  style={{ background: '#22c55e', color: '#fff', minWidth: 14, textAlign: 'center' }}>
+                  {badge > 99 ? '99+' : badge}
+                </span>
+              ) : null}
+            </div>
             {label}
           </Link>
         ))}

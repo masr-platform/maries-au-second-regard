@@ -306,14 +306,16 @@ function verifierFiltresBloquants(
   if (r1.consommeAlcool && r2.intolerances?.includes('alcool')) blocages.push('ALCOOL_NON_TOLERE')
   if (r2.consommeAlcool && r1.intolerances?.includes('alcool')) blocages.push('ALCOOL_NON_TOLERE')
 
-  // Enfants issus d'une précédente union
-  if (u1.questionnaireCompleted && !r2.accepteEnfantsPrevious) {
-    // Vérification simplifiée — à enrichir avec un champ 'aEnfants' sur le profil
+  // Critères rédhibitoires déclarés : si un profil pose un critère absolu
+  // et que l'autre l'a déclaré comme inacceptable, c'est un blocage
+  if (r2.accepteEnfantsPrevious === false && r1.accepteEnfantsPrevious === false) {
+    // Les deux refusent d'avoir un partenaire avec enfants d'une union précédente
+    // Cohérent — pas de blocage croisé mais on le note dans le score via projetVie
   }
-
-  // Divorcé
-  if (!r2.accepteDivorce && r1.objectifMariage === 'engagement_progressif') {
-    // Tolérance sur ce point
+  if (r1.accepteDivorce === false && r2.accepteDivorce === false) {
+    // Les deux déclarent ne pas accepter un(e) divorcé(e) — aucun problème en soi
+    // Blocage uniquement si l'un déclare être divorcé ET l'autre refuse
+    // (champ isDivorce non encore implémenté en schéma)
   }
 
   return blocages

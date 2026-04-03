@@ -1,15 +1,18 @@
 export const dynamic = 'force-dynamic'
 
-// ⚠️ ROUTE DE DEV UNIQUEMENT — protégée par DEV_SECRET
+// ⚠️ ROUTE DE DEV UNIQUEMENT — désactivée en production
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { hash } from 'bcryptjs'
 
 const DEV_SECRET = process.env.DEV_SECRET
+const IS_PROD = process.env.NODE_ENV === 'production'
 
-function auth(req: NextRequest) {
+function auth(req: NextRequest): boolean {
+  // Toujours bloquer en production, peu importe le secret
+  if (IS_PROD) return false
   const secret = req.nextUrl.searchParams.get('secret')
-  return DEV_SECRET && secret === DEV_SECRET
+  return Boolean(DEV_SECRET && secret === DEV_SECRET)
 }
 
 // GET ?secret=... → liste tous les comptes (sans les hashes)

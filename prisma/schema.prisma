@@ -239,6 +239,17 @@ model Conversation {
   messageCount Int      @default(0)
   etapeChangedAt DateTime?
 
+  // Charte 72H — les deux utilisateurs doivent accepter avant d'entrer
+  charteAccepteeUser1 Boolean   @default(false)
+  charteAccepteeUser2 Boolean   @default(false)
+  charteAccepteeUser1At DateTime?
+  charteAccepteeUser2At DateTime?
+
+  // Expiration 72H — défini à la création de la conversation
+  expiresAt   DateTime?
+  isExpired   Boolean   @default(false)
+  expiredAt   DateTime?
+
   // Supervision
   isFlagged   Boolean  @default(false)
   flagReason  String?
@@ -355,6 +366,12 @@ model ImamSession {
   stripePaymentId String?
   montant         Float
   paye            Boolean   @default(false)
+
+  // Contre-proposition de créneau (si user2 décline pour raison d'horaire)
+  contrePropositionBy          String?
+  contrePropositionAt          DateTime?
+  scheduledAtContrePropose     DateTime?
+  contrePropositionMessage     String?  @db.Text
 
   // Post-session
   waliContactPartage Boolean @default(false)

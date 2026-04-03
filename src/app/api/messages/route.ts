@@ -56,7 +56,7 @@ export async function GET(req: NextRequest) {
           select: { id: true, prenom: true, photoUrl: true },
         },
       },
-      orderBy: { createdAt: 'desc' },
+      orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
       take: limite + 1,
     })
 

@@ -15,7 +15,7 @@ import { emailService } from '@/lib/email'
 function isAuthorized(req: NextRequest): boolean {
   const auth = req.headers.get('authorization')
   const secret = process.env.CRON_SECRET
-  if (!secret) return true // dev : pas de secret requis
+  if (!secret) return false // secret manquant = accès refusé même en dev
   return auth === `Bearer ${secret}`
 }
 

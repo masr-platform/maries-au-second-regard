@@ -15,8 +15,18 @@ export async function POST(
     return NextResponse.json({ error: 'Non autorisé' }, { status: 401 })
   }
 
-  const { reponse } = await req.json() as { reponse: 'ACCEPTE' | 'REJETE' }
+  const body = await req.json()
+  const { reponse } = body as { reponse: string }
   const userId = session.user.id
+
+  // ── Validation d'entrée ────────────────────────────────────────────
+  if (reponse !== 'ACCEPTE' && reponse !== 'REJETE') {
+    return NextResponse.json(
+      { error: 'Valeur invalide pour reponse. Valeurs acceptées : ACCEPTE, REJETE' },
+      { status: 400 }
+    )
+  }
+  const reponseValidee = reponse as 'ACCEPTE' | 'REJETE'
 
   try {
     const match = await prisma.match.findUnique({
@@ -39,8 +49,8 @@ export async function POST(
       where: { id: params.matchId },
       data: {
         ...(isUser1
-          ? { user1Reponse: reponse, user1ReponduAt: new Date() }
-          : { user2Reponse: reponse, user2ReponduAt: new Date() }
+          ? { user1Reponse: reponseValidee, user1ReponduAt: new Date() }
+          : { user2Reponse: reponseValidee, user2ReponduAt: new Date() }
         ),
       },
     })
@@ -48,7 +58,7 @@ export async function POST(
     // Vérifier si les deux ont accepté
     const autreReponse = isUser1 ? updatedMatch.user2Reponse : updatedMatch.user1Reponse
 
-    if (reponse === 'ACCEPTE' && autreReponse === 'ACCEPTE') {
+    if (reponseValidee === 'ACCEPTE' && autreReponse === 'ACCEPTE') {
       // MATCH MUTUEL — Ouvrir le chat
       await prisma.$transaction([
         prisma.match.update({
@@ -93,7 +103,7 @@ export async function POST(
     }
 
     // USER A ACCEPTE mais B n'a pas encore répondu — notifier + emailer B
-    if (reponse === 'ACCEPTE' && autreReponse === 'EN_ATTENTE') {
+    if (reponseValidee === 'ACCEPTE' && autreReponse === 'EN_ATTENTE') {
       // Récupérer les infos des deux utilisateurs
       const [userA, userB] = await Promise.all([
         prisma.user.findUnique({ where: { id: userId },       select: { prenom: true } }),
@@ -126,7 +136,7 @@ export async function POST(
       }
     }
 
-    if (reponse === 'REJETE') {
+    if (reponseValidee === 'REJETE') {
       await prisma.match.update({
         where: { id: params.matchId },
         data:  { status: 'REJETE' },
@@ -136,7 +146,7 @@ export async function POST(
       // Sans notification de refus pour préserver la dignité
     }
 
-    return NextResponse.json({ success: true, status: reponse })
+    return NextResponse.json({ success: true, status: reponseValidee })
 
   } catch (error) {
     console.error('Erreur réponse match:', error)

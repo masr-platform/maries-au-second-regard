@@ -2,7 +2,7 @@
 
 export const dynamic = 'force-dynamic'
 
-import { useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useSession } from 'next-auth/react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
@@ -51,6 +51,7 @@ export default function MessagesPage() {
   const searchParams = useSearchParams()
   const [conversations, setConversations] = useState<Conversation[]>([])
   const [loading, setLoading] = useState(true)
+  const [nonLusNotifs, setNonLusNotifs] = useState(0)
 
   useEffect(() => {
     const matchId = searchParams.get('matchId')
@@ -69,6 +70,13 @@ export default function MessagesPage() {
       chargerConversations()
     }
   }, [searchParams])
+
+  useEffect(() => {
+    fetch('/api/notifications')
+      .then(r => r.json())
+      .then(d => setNonLusNotifs(d.nonLues ?? 0))
+      .catch(() => {})
+  }, [])
 
   const chargerConversations = async () => {
     try {
@@ -113,15 +121,15 @@ export default function MessagesPage() {
         </div>
 
         <nav className="flex-1 p-4 space-y-1">
-          {[
-            { href: '/tableau-de-bord', icon: Heart, label: 'Mes matchs' },
-            { href: '/messages',      icon: MessageCircle, label: 'Messages',    active: true },
-            { href: '/sessions',      icon: Video,         label: 'Mouqabalas' },
-            { href: '/notifications', icon: Bell,          label: 'Notifications' },
-            { href: '/profil', icon: User, label: 'Mon profil' },
-            { href: '/abonnement', icon: TrendingUp, label: 'Abonnement' },
-            { href: '/parametres', icon: Settings, label: 'Paramètres' },
-          ].map((item) => {
+          {([
+            { href: '/tableau-de-bord', icon: Heart,         label: 'Mes matchs' },
+            { href: '/messages',        icon: MessageCircle, label: 'Messages',      active: true, badge: conversations.reduce((s, c) => s + c.nonLus, 0) || null },
+            { href: '/sessions',        icon: Video,         label: 'Mouqabalas' },
+            { href: '/notifications',   icon: Bell,          label: 'Notifications', badge: nonLusNotifs > 0 ? nonLusNotifs : null },
+            { href: '/profil',          icon: User,          label: 'Mon profil' },
+            { href: '/abonnement',      icon: TrendingUp,    label: 'Abonnement' },
+            { href: '/parametres',      icon: Settings,      label: 'Paramètres' },
+          ] as { href: string; icon: React.ElementType; label: string; active?: boolean; badge?: number | null }[]).map((item) => {
             const Icon = item.icon
             return (
               <Link
@@ -134,7 +142,13 @@ export default function MessagesPage() {
                 }`}
               >
                 <Icon size={17} />
-                {item.label}
+                <span className="flex-1">{item.label}</span>
+                {item.badge ? (
+                  <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full"
+                    style={{ background: '#22c55e', color: '#fff', minWidth: 18, textAlign: 'center' }}>
+                    {item.badge > 99 ? '99+' : item.badge}
+                  </span>
+                ) : null}
               </Link>
             )
           })}
@@ -361,6 +375,35 @@ export default function MessagesPage() {
           </div>
         )}
       </main>
+
+      {/* Mobile bottom padding */}
+      <div className="pb-20 md:pb-0" />
+
+      {/* Mobile nav */}
+      <nav className="fixed bottom-0 left-0 right-0 flex md:hidden z-50"
+        style={{ background: 'rgba(10,10,14,0.97)', borderTop: '1px solid rgba(255,255,255,0.06)', backdropFilter: 'blur(12px)' }}>
+        {([
+          { href: '/tableau-de-bord', icon: Heart,         label: 'Matchs' },
+          { href: '/messages',        icon: MessageCircle, label: 'Messages',  active: true, badge: conversations.reduce((s, c) => s + c.nonLus, 0) || null },
+          { href: '/notifications',   icon: Bell,          label: 'Notifs',    badge: nonLusNotifs > 0 ? nonLusNotifs : null },
+          { href: '/profil',          icon: User,          label: 'Profil' },
+        ] as { href: string; icon: React.ElementType; label: string; active?: boolean; badge?: number | null }[]).map(({ href, icon: Icon, label, active, badge }) => (
+          <Link key={href} href={href}
+            className="flex-1 flex flex-col items-center py-3 gap-1 text-[10px] transition-colors duration-200"
+            style={{ color: active ? '#D4AF37' : 'rgba(255,255,255,0.3)' }}>
+            <div className="relative">
+              <Icon size={20} />
+              {badge ? (
+                <span className="absolute -top-1.5 -right-2 text-[9px] font-bold px-1 py-0 rounded-full leading-4"
+                  style={{ background: '#22c55e', color: '#fff', minWidth: 14, textAlign: 'center' }}>
+                  {badge > 99 ? '99+' : badge}
+                </span>
+              ) : null}
+            </div>
+            {label}
+          </Link>
+        ))}
+      </nav>
 
       <style jsx global>{`
         @keyframes fadeInUp {
