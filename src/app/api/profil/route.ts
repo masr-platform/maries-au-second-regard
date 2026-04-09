@@ -23,12 +23,17 @@ export async function GET() {
       pays:                   true,
       plan:                   true,
       photoUrl:               true,
+      photos:                 true,
       photoPublique:          true,
       questionnaireCompleted: true,
       profileCompleted:       true,
       isVerified:             true,
       waliEnabled:            true,
+      waliEmail:              true,
+      waliNom:                true,
+      phone:                  true,
       createdAt:              true,
+      lastActiveAt:           true,
     },
   })
 
