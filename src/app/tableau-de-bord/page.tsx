@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, useRef } from 'react'
 import { useSession, signOut } from 'next-auth/react'
 import Link from 'next/link'
 import Image from 'next/image'
@@ -340,13 +340,14 @@ function appliquerFiltres(resultats: Resultat[], f: Filtres): Resultat[] {
 
 // ─── Page principale ──────────────────────────────────────────────
 export default function TableauDeBordPage() {
-  const { data: session } = useSession()
+  const { data: session, update } = useSession()
   const [resultats,    setResultats]    = useState<Resultat[]>([])
   const [loading,      setLoading]      = useState(true)
   const [calculant,    setCalculant]    = useState(false)
   const [filtres,      setFiltres]      = useState<Filtres>(FILTRES_VIDES)
   const [showFiltres,  setShowFiltres]  = useState(false)
   const [nonLusNotifs, setNonLusNotifs] = useState(0)
+  const autoMatchingTente = useRef(false)
 
   const charger = useCallback(async () => {
     try {
@@ -366,6 +367,35 @@ export default function TableauDeBordPage() {
   }, [])
 
   useEffect(() => { charger() }, [charger])
+
+  // ── Rafraîchit la session après paiement Stripe réussi ──────────
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    const params = new URLSearchParams(window.location.search)
+    if (params.get('paiement') === 'succes') {
+      update().then(() => {
+        window.history.replaceState({}, '', '/tableau-de-bord')
+      })
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  // ── Auto-déclenche le matching au premier chargement ─────────────
+  // Si questionnaire complété + aucun résultat → on lance automatiquement
+  useEffect(() => {
+    if (loading) return
+    if (resultats.length > 0) return
+    if (!session?.user?.questionnaireCompleted) return
+    if (autoMatchingTente.current) return
+    autoMatchingTente.current = true
+    fetch('/api/matching', { method: 'POST' })
+      .then(r => r.json())
+      .then(json => {
+        if (json.success && json.nombrePropositions > 0) charger()
+      })
+      .catch(() => {})
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loading])
 
   const lancerMatching = async () => {
     setCalculant(true)
