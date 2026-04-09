@@ -9,7 +9,8 @@ import {
   UserCheck, Clock, ChevronRight, BarChart3, Video,
   CalendarDays, ExternalLink, Search, ChevronLeft,
   X, BookOpen, Home, Briefcase, MapPin, Phone, Mail,
-  Camera, Star, Tag,
+  Camera, Star, Tag, CreditCard, Calendar, ArrowRight,
+  MessageSquare, Repeat2,
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 
@@ -20,8 +21,16 @@ interface Stats {
   chatsouverts:           number
   signalementsEnCours:    number
   revenuMois:             number
+  revenuMensuelReel:      number
   usersBannis:            number
   questionnaireCompletes: number
+  subscriptionsActives:   number
+  subscriptionsMois:      Array<{
+    id: string; plan: string; status: string; createdAt: string
+    currentPeriodEnd: string; cancelAtPeriodEnd: boolean
+    user: { id: string; prenom: string; email: string }
+  }>
+  repartitionPlans:       Record<string, number>
 }
 
 interface SessionAdmin {
@@ -342,30 +351,82 @@ function KPIPanel({
           {/* ── REVENU ── */}
           {type === 'revenu' && stats && (
             <>
-              <div className="p-4 rounded-xl mb-4 text-center" style={{ background: 'rgba(251,191,36,0.07)', border: '1px solid rgba(251,191,36,0.2)' }}>
-                <p className="text-3xl font-bold" style={{ color: '#fbbf24' }}>{stats.revenuMois} €</p>
-                <p className="text-xs mt-1" style={{ color: 'rgba(255,255,255,0.4)' }}>Revenu ce mois-ci</p>
+              {/* MRR principal */}
+              <div className="grid grid-cols-2 gap-2 mb-4">
+                <div className="p-4 rounded-xl text-center" style={{ background: 'rgba(251,191,36,0.07)', border: '1px solid rgba(251,191,36,0.2)' }}>
+                  <p className="text-2xl font-bold" style={{ color: '#fbbf24' }}>{stats.revenuMensuelReel?.toFixed(2) ?? '—'} €</p>
+                  <p className="text-[10px] mt-1" style={{ color: 'rgba(255,255,255,0.4)' }}>MRR (récurrent réel)</p>
+                </div>
+                <div className="p-4 rounded-xl text-center" style={{ background: 'rgba(52,211,153,0.07)', border: '1px solid rgba(52,211,153,0.2)' }}>
+                  <p className="text-2xl font-bold" style={{ color: '#34d399' }}>{stats.revenuMois?.toFixed(2) ?? '—'} €</p>
+                  <p className="text-[10px] mt-1" style={{ color: 'rgba(255,255,255,0.4)' }}>Nouveaux ce mois</p>
+                </div>
               </div>
-              <div className="space-y-2">
-                {[
-                  { label: 'Membres total',         val: stats.totalUsers,           icon: Users,        color: '#a78bfa' },
-                  { label: 'Membres bannis',         val: stats.usersBannis,          icon: Ban,          color: '#f87171' },
-                  { label: 'Questionnaires',         val: stats.questionnaireCompletes, icon: CheckCircle2, color: '#34d399' },
-                  { label: 'Nouveaux aujourd\'hui',  val: stats.nouveauxAujourdhui,   icon: Zap,          color: '#60a5fa' },
-                ].map((item) => {
-                  const Icon = item.icon
-                  return (
-                    <div key={item.label} className="flex items-center gap-3 p-3 rounded-xl" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)' }}>
-                      <Icon size={14} style={{ color: item.color }} />
-                      <span className="flex-1 text-sm" style={{ color: 'rgba(255,255,255,0.6)' }}>{item.label}</span>
-                      <span className="font-bold text-sm" style={{ color: item.color }}>{item.val}</span>
+
+              {/* Abonnements actifs + répartition plans */}
+              <div className="mb-4 p-3 rounded-xl" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)' }}>
+                <div className="flex items-center justify-between mb-3">
+                  <span className="text-xs font-semibold" style={{ color: 'rgba(255,255,255,0.5)' }}>Abonnés actifs</span>
+                  <span className="text-sm font-bold" style={{ color: '#fbbf24' }}>{stats.subscriptionsActives ?? 0}</span>
+                </div>
+                <div className="grid grid-cols-3 gap-2">
+                  {[
+                    { key: 'STANDARD', label: 'Essentiel', color: '#fbbf24', prix: '19,90€' },
+                    { key: 'PREMIUM',  label: 'Premium',   color: '#c084fc', prix: '29,90€' },
+                    { key: 'ULTRA',    label: 'Élite',     color: '#22d3ee', prix: '49,90€' },
+                  ].map(p => (
+                    <div key={p.key} className="rounded-lg p-2 text-center" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.06)' }}>
+                      <p className="text-base font-bold" style={{ color: p.color }}>
+                        {(stats.repartitionPlans?.[p.key] ?? 0) + (p.key === 'STANDARD' ? (stats.repartitionPlans?.['BASIQUE'] ?? 0) : 0)}
+                      </p>
+                      <p className="text-[9px] mt-0.5" style={{ color: 'rgba(255,255,255,0.35)' }}>{p.label}</p>
+                      <p className="text-[9px]" style={{ color: 'rgba(255,255,255,0.2)' }}>{p.prix}/mois</p>
                     </div>
-                  )
-                })}
+                  ))}
+                </div>
               </div>
-              <p className="text-[11px] mt-4 text-center" style={{ color: 'rgba(255,255,255,0.2)' }}>
-                Données en temps réel — Tableau de bord financier complet à venir
-              </p>
+
+              {/* Liste nouveaux abonnés ce mois */}
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-wider mb-2" style={{ color: 'rgba(255,255,255,0.3)' }}>
+                  Nouveaux abonnés ce mois ({stats.subscriptionsMois?.length ?? 0})
+                </p>
+                {(!stats.subscriptionsMois || stats.subscriptionsMois.length === 0) ? (
+                  <div className="text-center py-5 rounded-xl" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)' }}>
+                    <p className="text-xs" style={{ color: 'rgba(255,255,255,0.25)' }}>Aucun nouvel abonné ce mois</p>
+                  </div>
+                ) : (
+                  <div className="space-y-1.5">
+                    {stats.subscriptionsMois.map((sub) => {
+                      const planColor: Record<string, string> = {
+                        STANDARD: '#fbbf24', BASIQUE: '#fbbf24', PREMIUM: '#c084fc', ULTRA: '#22d3ee',
+                      }
+                      const statusCls = sub.status === 'ACTIVE'
+                        ? 'bg-emerald-500/10 text-emerald-300'
+                        : 'bg-red-500/10 text-red-300'
+                      return (
+                        <div key={sub.id} className="flex items-center gap-3 p-2.5 rounded-xl" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}>
+                          <div className="w-7 h-7 rounded-full bg-amber-500/20 flex items-center justify-center text-[11px] font-bold text-amber-300 shrink-0">
+                            {sub.user.prenom[0]}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-xs font-semibold text-white truncate">{sub.user.prenom}</p>
+                            <p className="text-[10px] truncate" style={{ color: 'rgba(255,255,255,0.3)' }}>{sub.user.email}</p>
+                          </div>
+                          <div className="text-right shrink-0">
+                            <p className="text-[10px] font-bold" style={{ color: planColor[sub.plan] ?? '#fff' }}>{sub.plan}</p>
+                            <span className={`text-[9px] px-1.5 py-0.5 rounded-full font-semibold ${statusCls}`}>{sub.status}</span>
+                          </div>
+                          <div className="text-right shrink-0 pl-1" style={{ borderLeft: '1px solid rgba(255,255,255,0.07)' }}>
+                            <p className="text-[10px]" style={{ color: 'rgba(255,255,255,0.3)' }}>{new Date(sub.createdAt).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}</p>
+                            {sub.cancelAtPeriodEnd && <p className="text-[9px] text-red-400">↩ annulation</p>}
+                          </div>
+                        </div>
+                      )
+                    })}
+                  </div>
+                )}
+              </div>
             </>
           )}
 
@@ -418,6 +479,31 @@ interface UserDetail extends UserRecent {
     sessionCount:      number
     signalementCount:  number
   }
+  subscriptions: Array<{
+    id: string; plan: string; status: string; profilesParSemaine: number
+    stripeSubscriptionId: string; stripePriceId: string
+    currentPeriodStart: string; currentPeriodEnd: string
+    cancelAtPeriodEnd: boolean; cancelledAt: string | null; createdAt: string
+  }>
+  matchs: Array<{
+    id: string; scoreGlobal: number; status: string
+    user1Reponse: string; user2Reponse: string; createdAt: string
+    user1: { id: string; prenom: string; genre: string }
+    user2: { id: string; prenom: string; genre: string }
+  }>
+  conversations: Array<{
+    id: string; etape: string; messageCount: number
+    isFlagged: boolean; isBlocked: boolean
+    createdAt: string; updatedAt: string
+    user1: { id: string; prenom: string }
+    user2: { id: string; prenom: string }
+  }>
+  sessions: Array<{
+    id: string; scheduledAt: string; dureeMinutes: number; status: string; createdAt: string
+    imam: { prenom: string; nom: string }
+    user1: { id: string; prenom: string }
+    user2: { id: string; prenom: string }
+  }>
   questionnaireReponse: {
     niveauPratique:         string | null
     ecoleJurisprudentielle: string | null
@@ -667,6 +753,200 @@ function DrawerProfil({
               {row('Dernière activité', user.lastActiveAt ? new Date(user.lastActiveAt).toLocaleString('fr-FR') : null)}
               {row('Profil complété',   user.profileCompleted)}
               {user.waliEnabled && row('Wali',  `${user.waliNom || ''} (${user.waliEmail || ''})`)}
+            </div>
+          ))}
+
+          {/* ── Abonnements & Paiements ── */}
+          {section('Abonnements & Paiements', CreditCard, (
+            <div>
+              {(!user.subscriptions || user.subscriptions.length === 0) ? (
+                <div className="flex items-center gap-2 py-3 px-3 rounded-xl" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)' }}>
+                  <CreditCard size={12} style={{ color: 'rgba(255,255,255,0.25)' }} />
+                  <span className="text-xs" style={{ color: 'rgba(255,255,255,0.3)' }}>Aucun abonnement payant</span>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {user.subscriptions.map((sub) => {
+                    const statusMap: Record<string, { label: string; color: string; bg: string }> = {
+                      ACTIVE:    { label: 'Actif',     color: '#34d399', bg: 'rgba(52,211,153,0.1)'  },
+                      CANCELLED: { label: 'Annulé',    color: '#f87171', bg: 'rgba(239,68,68,0.1)'   },
+                      PAST_DUE:  { label: 'En retard', color: '#fbbf24', bg: 'rgba(251,191,36,0.1)'  },
+                      TRIALING:  { label: 'Essai',     color: '#60a5fa', bg: 'rgba(96,165,250,0.1)'  },
+                    }
+                    const st = statusMap[sub.status] ?? { label: sub.status, color: '#94a3b8', bg: 'rgba(255,255,255,0.05)' }
+                    const planColor: Record<string, string> = {
+                      STANDARD: '#fbbf24', BASIQUE: '#fbbf24', PREMIUM: '#c084fc', ULTRA: '#22d3ee', GRATUIT: '#94a3b8',
+                    }
+                    const planPrix: Record<string, string> = {
+                      STANDARD: '19,90€', BASIQUE: '19,90€', PREMIUM: '29,90€', ULTRA: '49,90€',
+                    }
+                    return (
+                      <div key={sub.id} className="rounded-xl p-3 space-y-2" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)' }}>
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs font-bold" style={{ color: planColor[sub.plan] ?? '#fff' }}>{sub.plan}</span>
+                            <span className="text-xs font-semibold" style={{ color: planPrix[sub.plan] ? planColor[sub.plan] : '#fff' }}>{planPrix[sub.plan] ?? ''}/mois</span>
+                          </div>
+                          <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full" style={{ background: st.bg, color: st.color }}>{st.label}</span>
+                        </div>
+                        <div className="grid grid-cols-2 gap-x-4 gap-y-1">
+                          <div>
+                            <p className="text-[10px]" style={{ color: 'rgba(255,255,255,0.3)' }}>Souscrit le</p>
+                            <p className="text-[11px] text-white font-medium">{new Date(sub.createdAt).toLocaleDateString('fr-FR')}</p>
+                          </div>
+                          <div>
+                            <p className="text-[10px]" style={{ color: 'rgba(255,255,255,0.3)' }}>Renouvellement</p>
+                            <p className="text-[11px] font-medium" style={{ color: sub.cancelAtPeriodEnd ? '#f87171' : '#34d399' }}>
+                              {new Date(sub.currentPeriodEnd).toLocaleDateString('fr-FR')}
+                              {sub.cancelAtPeriodEnd && ' (annulé)'}
+                            </p>
+                          </div>
+                          <div>
+                            <p className="text-[10px]" style={{ color: 'rgba(255,255,255,0.3)' }}>Profils/semaine</p>
+                            <p className="text-[11px] text-white font-medium">{sub.profilesParSemaine}</p>
+                          </div>
+                          {sub.cancelledAt && (
+                            <div>
+                              <p className="text-[10px]" style={{ color: 'rgba(255,255,255,0.3)' }}>Annulé le</p>
+                              <p className="text-[11px] text-red-300 font-medium">{new Date(sub.cancelledAt).toLocaleDateString('fr-FR')}</p>
+                            </div>
+                          )}
+                        </div>
+                        <div className="pt-1" style={{ borderTop: '1px solid rgba(255,255,255,0.05)' }}>
+                          <p className="text-[10px] truncate" style={{ color: 'rgba(255,255,255,0.2)' }}>
+                            Stripe: {sub.stripeSubscriptionId}
+                          </p>
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              )}
+            </div>
+          ))}
+
+          {/* ── Matchs ── */}
+          {section('Matchs IA', Heart, (
+            <div>
+              {(!user.matchs || user.matchs.length === 0) ? (
+                <div className="flex items-center gap-2 py-3 px-3 rounded-xl" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)' }}>
+                  <Heart size={12} style={{ color: 'rgba(255,255,255,0.25)' }} />
+                  <span className="text-xs" style={{ color: 'rgba(255,255,255,0.3)' }}>Aucun match</span>
+                </div>
+              ) : (
+                <div className="space-y-1.5">
+                  {user.matchs.map((m) => {
+                    const partenaire = m.user1.id === user.id ? m.user2 : m.user1
+                    const maReponse  = m.user1.id === user.id ? m.user1Reponse : m.user2Reponse
+                    const statusMatchColor: Record<string, string> = {
+                      PROPOSE:      '#60a5fa', ACCEPTE_USER1: '#a78bfa', ACCEPTE_USER2: '#a78bfa',
+                      CHAT_OUVERT:  '#34d399', REFUSE:        '#f87171', EXPIRE:        '#94a3b8',
+                    }
+                    const reponseCls: Record<string, string> = {
+                      EN_ATTENTE: 'text-yellow-400', ACCEPTE: 'text-emerald-400', REFUSE: 'text-red-400',
+                    }
+                    return (
+                      <div key={m.id} className="flex items-center gap-3 p-2.5 rounded-xl" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}>
+                        <div className="w-7 h-7 rounded-full flex items-center justify-center text-[11px] font-bold shrink-0"
+                          style={{ background: partenaire.genre === 'HOMME' ? 'rgba(59,130,246,0.2)' : 'rgba(217,70,239,0.2)', color: partenaire.genre === 'HOMME' ? '#93c5fd' : '#e879f9' }}>
+                          {partenaire.prenom[0]}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-xs font-semibold text-white">{partenaire.prenom}</p>
+                          <p className="text-[10px]" style={{ color: 'rgba(255,255,255,0.35)' }}>
+                            Score: <span style={{ color: '#f472b6' }}>{Math.round(m.scoreGlobal)}%</span>
+                            {' · '}Réponse: <span className={reponseCls[maReponse] ?? 'text-white/50'}>{maReponse === 'EN_ATTENTE' ? '⏳' : maReponse === 'ACCEPTE' ? '✓' : '✗'}</span>
+                          </p>
+                        </div>
+                        <div className="text-right shrink-0">
+                          <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full" style={{ background: 'rgba(255,255,255,0.06)', color: statusMatchColor[m.status] ?? '#fff' }}>
+                            {m.status.replace(/_/g, ' ')}
+                          </span>
+                          <p className="text-[10px] mt-0.5" style={{ color: 'rgba(255,255,255,0.25)' }}>{new Date(m.createdAt).toLocaleDateString('fr-FR')}</p>
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              )}
+            </div>
+          ))}
+
+          {/* ── Conversations ── */}
+          {section('Conversations', MessageSquare, (
+            <div>
+              {(!user.conversations || user.conversations.length === 0) ? (
+                <div className="flex items-center gap-2 py-3 px-3 rounded-xl" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)' }}>
+                  <MessageSquare size={12} style={{ color: 'rgba(255,255,255,0.25)' }} />
+                  <span className="text-xs" style={{ color: 'rgba(255,255,255,0.3)' }}>Aucune conversation</span>
+                </div>
+              ) : (
+                <div className="space-y-1.5">
+                  {user.conversations.map((c) => {
+                    const partenaire = c.user1.id === user.id ? c.user2 : c.user1
+                    return (
+                      <div key={c.id} className="flex items-center gap-3 p-2.5 rounded-xl" style={{ background: c.isFlagged ? 'rgba(239,68,68,0.05)' : 'rgba(255,255,255,0.03)', border: `1px solid ${c.isFlagged ? 'rgba(239,68,68,0.15)' : 'rgba(255,255,255,0.06)'}` }}>
+                        <div className="w-7 h-7 rounded-full bg-emerald-500/20 flex items-center justify-center text-[11px] font-bold text-emerald-300 shrink-0">
+                          {partenaire.prenom[0]}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-1.5">
+                            <p className="text-xs font-semibold text-white">{partenaire.prenom}</p>
+                            {c.isFlagged && <span className="text-[10px] text-red-400">⚑ Signalé</span>}
+                            {c.isBlocked && <span className="text-[10px] text-red-400">🚫 Bloqué</span>}
+                          </div>
+                          <p className="text-[10px]" style={{ color: 'rgba(255,255,255,0.35)' }}>
+                            {c.messageCount} messages · Étape: {c.etape.replace(/_/g, ' ')}
+                          </p>
+                        </div>
+                        <p className="text-[10px] shrink-0" style={{ color: 'rgba(255,255,255,0.25)' }}>{new Date(c.updatedAt).toLocaleDateString('fr-FR')}</p>
+                      </div>
+                    )
+                  })}
+                </div>
+              )}
+            </div>
+          ))}
+
+          {/* ── Sessions mouqabala ── */}
+          {section('Sessions Mouqabala', Video, (
+            <div>
+              {(!user.sessions || user.sessions.length === 0) ? (
+                <div className="flex items-center gap-2 py-3 px-3 rounded-xl" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)' }}>
+                  <Video size={12} style={{ color: 'rgba(255,255,255,0.25)' }} />
+                  <span className="text-xs" style={{ color: 'rgba(255,255,255,0.3)' }}>Aucune session</span>
+                </div>
+              ) : (
+                <div className="space-y-1.5">
+                  {user.sessions.map((s) => {
+                    const partenaire = s.user1.id === user.id ? s.user2 : s.user1
+                    const sessionStatusMap: Record<string, { label: string; color: string }> = {
+                      PLANIFIE: { label: 'Planifiée',  color: '#60a5fa' },
+                      EN_COURS: { label: 'En cours',   color: '#34d399' },
+                      TERMINE:  { label: 'Terminée',   color: '#94a3b8' },
+                      ANNULE:   { label: 'Annulée',    color: '#f87171' },
+                    }
+                    const ss = sessionStatusMap[s.status] ?? { label: s.status, color: '#94a3b8' }
+                    return (
+                      <div key={s.id} className="flex items-center gap-3 p-2.5 rounded-xl" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}>
+                        <div className="text-center w-14 shrink-0">
+                          <p className="text-[11px] font-semibold text-white">{new Date(s.scheduledAt).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}</p>
+                          <p className="text-[10px]" style={{ color: 'rgba(255,255,255,0.3)' }}>{new Date(s.scheduledAt).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}</p>
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-1.5">
+                            <p className="text-xs font-semibold text-white truncate">avec {partenaire.prenom}</p>
+                          </div>
+                          <p className="text-[10px] truncate" style={{ color: 'rgba(255,255,255,0.35)' }}>
+                            Imam: {s.imam.prenom} {s.imam.nom} · {s.dureeMinutes} min
+                          </p>
+                        </div>
+                        <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full shrink-0" style={{ background: 'rgba(255,255,255,0.06)', color: ss.color }}>{ss.label}</span>
+                      </div>
+                    )
+                  })}
+                </div>
+              )}
             </div>
           ))}
 

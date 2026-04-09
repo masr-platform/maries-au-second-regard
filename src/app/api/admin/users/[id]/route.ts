@@ -49,11 +49,69 @@ export async function GET(
 
     if (!user) return NextResponse.json({ error: 'Utilisateur non trouvé' }, { status: 404 })
 
-    const [matchCount, convCount, sessionCount, signalementCount] = await Promise.all([
+    const [
+      matchCount, convCount, sessionCount, signalementCount,
+      subscriptions, matchs, conversations, sessions,
+    ] = await Promise.all([
+      // Comptages
       prisma.match.count({ where: { OR: [{ user1Id: params.id }, { user2Id: params.id }] } }),
       prisma.conversation.count({ where: { OR: [{ user1Id: params.id }, { user2Id: params.id }] } }),
       prisma.imamSession.count({ where: { OR: [{ user1Id: params.id }, { user2Id: params.id }] } }),
       prisma.signalement.count({ where: { OR: [{ signaleurId: params.id }, { signaleId: params.id }] } }),
+
+      // Abonnements Stripe
+      prisma.subscription.findMany({
+        where: { userId: params.id },
+        orderBy: { createdAt: 'desc' },
+        select: {
+          id: true, plan: true, status: true,
+          stripeSubscriptionId: true, stripePriceId: true,
+          currentPeriodStart: true, currentPeriodEnd: true,
+          cancelAtPeriodEnd: true, cancelledAt: true,
+          createdAt: true, profilesParSemaine: true,
+        },
+      }),
+
+      // Derniers matchs avec partenaire
+      prisma.match.findMany({
+        where: { OR: [{ user1Id: params.id }, { user2Id: params.id }] },
+        orderBy: { createdAt: 'desc' },
+        take: 10,
+        select: {
+          id: true, scoreGlobal: true, status: true,
+          user1Reponse: true, user2Reponse: true, createdAt: true,
+          user1: { select: { id: true, prenom: true, genre: true } },
+          user2: { select: { id: true, prenom: true, genre: true } },
+        },
+      }),
+
+      // Dernières conversations
+      prisma.conversation.findMany({
+        where: { OR: [{ user1Id: params.id }, { user2Id: params.id }] },
+        orderBy: { updatedAt: 'desc' },
+        take: 10,
+        select: {
+          id: true, etape: true, messageCount: true,
+          isFlagged: true, isBlocked: true,
+          createdAt: true, updatedAt: true,
+          user1: { select: { id: true, prenom: true } },
+          user2: { select: { id: true, prenom: true } },
+        },
+      }),
+
+      // Dernières sessions mouqabala
+      prisma.imamSession.findMany({
+        where: { OR: [{ user1Id: params.id }, { user2Id: params.id }] },
+        orderBy: { scheduledAt: 'desc' },
+        take: 10,
+        select: {
+          id: true, scheduledAt: true, dureeMinutes: true,
+          status: true, createdAt: true,
+          imam: { select: { prenom: true, nom: true } },
+          user1: { select: { id: true, prenom: true } },
+          user2: { select: { id: true, prenom: true } },
+        },
+      }),
     ])
 
     const age = user.dateNaissance
@@ -61,7 +119,14 @@ export async function GET(
       : null
 
     return NextResponse.json({
-      user: { ...user, age, stats: { matchCount, convCount, sessionCount, signalementCount } },
+      user: {
+        ...user, age,
+        stats: { matchCount, convCount, sessionCount, signalementCount },
+        subscriptions,
+        matchs,
+        conversations,
+        sessions,
+      },
     })
   } catch (error) {
     console.error('Erreur GET admin user:', error)
