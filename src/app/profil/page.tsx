@@ -117,6 +117,9 @@ export default function ProfilPage() {
   const [uploadingPhoto, setUploadingPhoto] = useState(false)
   const [savingToggle,   setSavingToggle]   = useState(false)
   const [waliEnabled,    setWaliEnabled]    = useState(false)
+  const [waliEmail,      setWaliEmail]      = useState('')
+  const [waliNom,        setWaliNom]        = useState('')
+  const [savingWali,     setSavingWali]     = useState(false)
   const [photoPublique,  setPhotoPublique]  = useState(true)
   const [showPwdForm,    setShowPwdForm]    = useState(false)
   const [pwdData,        setPwdData]        = useState({ current: '', nouveau: '', confirm: '' })
@@ -157,6 +160,8 @@ export default function ProfilPage() {
         setEditData({ prenom: data.profil.prenom, ville: data.profil.ville || '' })
         setPhotos(data.profil.photos || [])
         setWaliEnabled(data.profil.waliEnabled ?? false)
+        setWaliEmail(data.profil.waliEmail || '')
+        setWaliNom(data.profil.waliNom || '')
         setPhotoPublique(data.profil.photoPublique ?? true)
         setActivePhoto(data.profil.photoUrl || null)
       }
@@ -207,6 +212,23 @@ export default function ProfilPage() {
     } finally {
       setSavingToggle(false)
     }
+  }
+
+  // ── Sauvegarde wali ──────────────────────────────────────────────
+  const sauvegarderWali = async () => {
+    if (!waliEmail.trim()) { toast.error('Email du wali requis'); return }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(waliEmail.trim())) { toast.error('Email invalide'); return }
+    setSavingWali(true)
+    try {
+      const res = await fetch('/api/profil', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ waliEmail: waliEmail.trim(), waliNom: waliNom.trim() }),
+      })
+      if (res.ok) toast.success('Wali enregistré')
+      else toast.error('Erreur lors de la mise à jour')
+    } catch { toast.error('Erreur réseau') }
+    finally { setSavingWali(false) }
   }
 
   // ── Upload photo ─────────────────────────────────────────────────
@@ -855,12 +877,33 @@ export default function ProfilPage() {
             </button>
           </div>
 
-          {waliEnabled && profil?.waliEmail && (
-            <div className="mt-1 px-3 py-2.5 rounded-xl" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)' }}>
-              <p className="text-xs text-white/40">
-                <span className="text-white/60 font-medium">{profil.waliNom || 'Wali'}</span>
-                {' '} — {profil.waliEmail}
-              </p>
+          {waliEnabled && (
+            <div className="mt-3 space-y-2" style={{ animation: 'fadeInUp 0.2s ease both' }}>
+              <input
+                type="text"
+                placeholder="Nom du wali (ex : Mon frère)"
+                value={waliNom}
+                onChange={e => setWaliNom(e.target.value)}
+                className="w-full px-3 py-2.5 rounded-xl text-sm text-white placeholder-white/30 outline-none"
+                style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.10)' }}
+              />
+              <input
+                type="email"
+                placeholder="Email du wali *"
+                value={waliEmail}
+                onChange={e => setWaliEmail(e.target.value)}
+                className="w-full px-3 py-2.5 rounded-xl text-sm text-white placeholder-white/30 outline-none"
+                style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.10)' }}
+              />
+              <button
+                onClick={sauvegarderWali}
+                disabled={savingWali}
+                className="w-full py-2 rounded-xl text-sm font-medium text-white transition-opacity"
+                style={{ background: 'linear-gradient(135deg, #7c3aed, #a855f7)', opacity: savingWali ? 0.6 : 1 }}
+              >
+                {savingWali ? 'Enregistrement…' : 'Enregistrer le wali'}
+              </button>
+              <p className="text-xs text-white/30 text-center">Le wali recevra un email de notification pour confirmer</p>
             </div>
           )}
         </div>
