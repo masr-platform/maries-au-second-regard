@@ -268,6 +268,15 @@ export default function MatchProfilePage({ params }: { params: { matchId: string
 
         const json = await res.json()
         setData(json)
+
+        // Enregistrer la vue profil pour les stats hebdomadaires (fire & forget)
+        if (json?.profil?.id) {
+          fetch('/api/profil/vue', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ viewedId: json.profil.id }),
+          }).catch(() => { /* silencieux */ })
+        }
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Erreur de chargement')
       } finally {

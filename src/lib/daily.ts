@@ -89,8 +89,6 @@ export async function createDailyRoom(options: {
         enable_chat:           true,
         enable_knocking:       true,       // Les participants sonnent avant d'entrer
         wait_for_host_to_join: 300,        // 5 min d'attente avant fermeture auto
-        // Fond virtuel MASR pour l'identité visuelle
-        meeting_join_hook:     null,
       } satisfies DailyRoomConfig,
     }),
   })

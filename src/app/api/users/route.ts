@@ -3,6 +3,7 @@ export const dynamic = 'force-dynamic'
 // API Inscription utilisateur
 import { NextRequest, NextResponse } from 'next/server'
 import { hash } from 'bcryptjs'
+import { randomBytes } from 'crypto'
 import { prisma } from '@/lib/prisma'
 import { checkRateLimit } from '@/lib/redis'
 import { emailService } from '@/lib/email'
@@ -48,6 +49,10 @@ export async function POST(req: NextRequest) {
     // Hash du mot de passe
     const passwordHash = await hash(data.password, 12)
 
+    // Token de vérification email — valable 24h
+    const emailVerifyToken   = randomBytes(32).toString('hex')
+    const emailVerifyExpires = new Date(Date.now() + 24 * 60 * 60 * 1000)
+
     // Création de l'utilisateur
     const user = await prisma.user.create({
       data: {
@@ -59,6 +64,9 @@ export async function POST(req: NextRequest) {
         ville:         data.ville,
         plan:          'GRATUIT',
         profilesParSemaine: 1,
+        isVerified:         false,
+        emailVerifyToken,
+        emailVerifyExpires,
       },
       select: {
         id:     true,
@@ -68,9 +76,15 @@ export async function POST(req: NextRequest) {
       },
     })
 
-    // Envoyer l'email de bienvenue (await direct — setImmediate ne fonctionne pas en serverless)
+    // Email de bienvenue
     await emailService.sendWelcome({ email: user.email, prenom: user.prenom })
       .catch((err) => console.error('[inscription] Email bienvenue échoué:', err))
+
+    // Email de vérification email
+    const BASE_URL   = process.env.NEXT_PUBLIC_APP_URL || 'https://www.mariesausecondregard.com'
+    const verifyUrl  = `${BASE_URL}/api/auth/verify-email?token=${emailVerifyToken}`
+    await emailService.sendVerifyEmail({ email: user.email, prenom: user.prenom, verifyUrl })
+      .catch((err) => console.error('[inscription] Email vérification échoué:', err))
 
     return NextResponse.json({
       success: true,

@@ -7,6 +7,7 @@ export default withAuth(
     const path  = req.nextUrl.pathname
 
     // Redirection si questionnaire non complété
+    const publicPaths = ['/connexion', '/inscription', '/tarifs', '/faq', '/forgot-password', '/reset-password']
     if (
       token &&
       !token.questionnaireCompleted &&
@@ -14,7 +15,7 @@ export default withAuth(
       !path.startsWith('/api') &&
       !path.startsWith('/_next')
     ) {
-      if (path !== '/connexion' && path !== '/inscription' && path !== '/tarifs' && path !== '/faq') {
+      if (!publicPaths.includes(path)) {
         return NextResponse.redirect(new URL('/questionnaire', req.url))
       }
     }
@@ -38,13 +39,22 @@ export default withAuth(
           path === '/' ||
           path.startsWith('/inscription') ||
           path.startsWith('/connexion') ||
+          path.startsWith('/forgot-password') ||
+          path.startsWith('/reset-password') ||
           path.startsWith('/tarifs') ||
           path.startsWith('/faq') ||
           path.startsWith('/api/auth') ||
           path.startsWith('/api/users') ||
+          // Routes API sans session utilisateur (webhook, cron, liens email)
+          path.startsWith('/api/stripe/webhook') ||
+          path.startsWith('/api/cron/') ||
+          path.includes('/repondre-email') ||
+          path.includes('/confirmer-email') ||
           path.startsWith('/mentions-legales') ||
           path.startsWith('/confidentialite') ||
-          path.startsWith('/cgu')
+          path.startsWith('/cgu') ||
+          path.startsWith('/cgv') ||
+          path.startsWith('/regles')
         ) {
           return true
         }

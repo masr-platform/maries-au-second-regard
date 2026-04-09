@@ -2,7 +2,7 @@
 
 export const dynamic = 'force-dynamic'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { signIn } from 'next-auth/react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
@@ -13,11 +13,20 @@ export default function ConnexionPage() {
   const router       = useRouter()
   const searchParams = useSearchParams()
   const callbackUrl  = searchParams.get('callbackUrl') || '/tableau-de-bord'
+  const verified     = searchParams.get('verified')
+  const errorParam   = searchParams.get('error')
 
   const [email,   setEmail]   = useState('')
   const [pwd,     setPwd]     = useState('')
   const [showPwd, setShowPwd] = useState(false)
   const [loading, setLoading] = useState(false)
+
+  // Messages de redirection (vérification email, erreurs token)
+  useEffect(() => {
+    if (verified === '1') toast.success('Email vérifié ! Vous pouvez vous connecter.')
+    if (errorParam === 'lien-expire') toast.error('Le lien de vérification a expiré. Réinscrivez-vous.')
+    if (errorParam === 'token-invalide') toast.error('Lien invalide.')
+  }, [verified, errorParam])
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -106,7 +115,7 @@ export default function ConnexionPage() {
             </div>
 
             <div className="text-right">
-              <Link href="/mot-de-passe-oublie" className="text-xs text-gold-400 hover:underline">
+              <Link href="/forgot-password" className="text-xs text-gold-400 hover:underline">
                 Mot de passe oublié ?
               </Link>
             </div>

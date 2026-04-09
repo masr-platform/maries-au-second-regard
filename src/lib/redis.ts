@@ -42,7 +42,7 @@ class MemoryCache {
   async keys(pattern: string): Promise<string[]> {
     // Support basique du wildcard *
     const regex = new RegExp('^' + pattern.replace(/\*/g, '.*') + '$')
-    return [...this.store.keys()].filter(k => regex.test(k))
+    return Array.from(this.store.keys()).filter(k => regex.test(k))
   }
 }
 

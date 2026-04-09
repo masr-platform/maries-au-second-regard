@@ -66,6 +66,12 @@ model User {
   updatedAt              DateTime  @updatedAt
   lastActiveAt           DateTime  @default(now())
 
+  // Tokens sécurité (reset password + vérification email)
+  passwordResetToken     String?   @unique
+  passwordResetExpires   DateTime?
+  emailVerifyToken       String?   @unique
+  emailVerifyExpires     DateTime?
+
   // Relations
   questionnaireReponse   QuestionnaireReponse?
   matchesAsUser1         Match[]   @relation("User1Matches")
@@ -83,6 +89,9 @@ model User {
   adminLogsTarget        AdminLog[] @relation("AdminLogsTarget")
   signalementsEmis       Signalement[] @relation("SignaleurRelation")
   signalementsRecus      Signalement[] @relation("SignaleRelation")
+  vuesEnvoyees           ProfilVue[]   @relation("VuesEnvoyees")
+  vuesRecues             ProfilVue[]   @relation("VuesRecues")
+  utilisationsCodes      UtilisationCode[]
 
   @@index([email])
   @@index([genre])
@@ -231,7 +240,7 @@ model Conversation {
 
   // Mode wali
   waliId      String?
-  wali        User?    @relation("ConvWali", fields: [waliId], references: [id])
+  wali        User?    @relation("ConvWali", fields: [waliId], references: [id], onDelete: SetNull)
   waliActif   Boolean  @default(false)
 
   // Progression par étapes islamiques
@@ -274,7 +283,7 @@ model Message {
   conversationId  String
   conversation    Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
   senderId        String
-  sender          User        @relation("SentMessages", fields: [senderId], references: [id])
+  sender          User        @relation("SentMessages", fields: [senderId], references: [id], onDelete: Cascade)
 
   content         String      @db.Text
   type            MessageType @default(TEXTE)
@@ -304,7 +313,7 @@ model Message {
 model Praticien {
   id                  String    @id @default(cuid())
   userId              String    @unique
-  user                User      @relation(fields: [userId], references: [id])
+  user                User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   type                TypePraticien
   nom                 String
@@ -460,14 +469,67 @@ model Signalement {
   @@index([type])
 }
 
+// ─── VUES PROFIL ────────────────────────────────────────────────────
+// Enregistre chaque consultation d'un profil (pour les stats hebdo digest)
+model ProfilVue {
+  id        String   @id @default(cuid())
+  viewerId  String
+  viewedId  String
+  createdAt DateTime @default(now())
+
+  viewer User @relation("VuesEnvoyees", fields: [viewerId], references: [id], onDelete: Cascade)
+  viewed User @relation("VuesRecues",   fields: [viewedId], references: [id], onDelete: Cascade)
+
+  @@index([viewedId, createdAt])
+  @@index([viewerId])
+}
+
+// ─── CODES PROMO AFFILIÉS ────────────────────────────────────────────
+// Chaque influenceur a un code unique → commission sur chaque abonnement
+model CodePromo {
+  id                String   @id @default(cuid())
+  code              String   @unique  // ex: "MARIAM20", "CHEIKH15"
+  influenceurNom    String            // Nom affiché dans l'admin
+  influenceurContact String?          // Email/TikTok pour le contacter
+  tauxCommission    Float    @default(20) // % reversé à l'influenceur
+  tauxReduction     Float    @default(20) // % de réduction pour l'utilisateur
+  stripeCouponId    String?           // ID du coupon Stripe correspondant
+  actif             Boolean  @default(true)
+  createdAt         DateTime @default(now())
+
+  utilisations      UtilisationCode[]
+
+  @@index([code])
+  @@index([actif])
+}
+
+// Chaque utilisation d'un code promo (1 par souscription)
+model UtilisationCode {
+  id               String   @id @default(cuid())
+  codeId           String
+  code             CodePromo @relation(fields: [codeId], references: [id])
+  userId           String
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  plan             String            // BASIQUE, PREMIUM, ULTRA
+  montantHT        Float             // Montant payé par l'utilisateur (après réduction)
+  commissionDue    Float             // Montant à reverser à l'influenceur
+  stripeSessionId  String?           // ID session Stripe pour traçabilité
+  paye             Boolean  @default(false) // Commission déjà versée à l'influenceur ?
+  createdAt        DateTime @default(now())
+
+  @@index([codeId])
+  @@index([userId])
+  @@index([paye])
+}
+
 // ─── LOGS ADMIN ──────────────────────────────────────────────────────
 model AdminLog {
   id              String   @id @default(cuid())
   adminId         String
-  admin           User     @relation("AdminLogs", fields: [adminId], references: [id])
+  admin           User     @relation("AdminLogs", fields: [adminId], references: [id], onDelete: Cascade)
   action          String
   targetUserId    String?
-  targetUser      User?    @relation("AdminLogsTarget", fields: [targetUserId], references: [id])
+  targetUser      User?    @relation("AdminLogsTarget", fields: [targetUserId], references: [id], onDelete: SetNull)
   targetEntityId  String?
   reason          String?  @db.Text
   metadata        String?  @db.Text // JSON

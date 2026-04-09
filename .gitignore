@@ -1,2 +1,22 @@
 node_modules/
 .next/
+
+# Variables d'environnement — NE JAMAIS COMMITER
+.env
+.env.local
+.env.*.local
+.env.development
+.env.production
+
+# Build & cache
+.vercel/
+out/
+dist/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*

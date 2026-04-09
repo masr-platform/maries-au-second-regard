@@ -540,12 +540,21 @@ export default function QuestionnairePage() {
       if (Array.isArray(payload.loisirs)) {
         payload.loisirs = (payload.loisirs as string[]).join(', ')
       }
-      // Convertir les scale radio string → number
-      if (payload.niveauExtraversion && typeof payload.niveauExtraversion === 'string') {
-        payload.niveauExtraversion = parseInt(payload.niveauExtraversion, 10)
-      }
-      if (payload.importanceVoyage && typeof payload.importanceVoyage === 'string') {
-        payload.importanceVoyage = parseInt(payload.importanceVoyage, 10)
+      // Convertir TOUS les champs numériques string → number (ou undefined si vide)
+      const CHAMPS_NUMERIQUES = [
+        'niveauExtraversion', 'importanceVoyage',
+        'proximiteFamily', 'independanceCouple',
+        'nombreEnfantsSouhaite', 'taille',
+      ] as const
+      for (const champ of CHAMPS_NUMERIQUES) {
+        const val = payload[champ]
+        if (val === '' || val === null || val === undefined) {
+          delete payload[champ]
+        } else if (typeof val === 'string') {
+          const parsed = parseInt(val, 10)
+          if (!isNaN(parsed)) payload[champ] = parsed
+          else delete payload[champ]
+        }
       }
 
       const res = await fetch('/api/questionnaire', {

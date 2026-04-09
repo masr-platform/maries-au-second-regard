@@ -127,13 +127,17 @@ export async function GET(req: NextRequest) {
             }),
           ])
 
-          if (nouveauxMatches > 0 || messages > 0) {
+          const vues = await prisma.profilVue.count({
+            where: { viewedId: user.id, createdAt: { gte: il7j } },
+          })
+
+          if (nouveauxMatches > 0 || messages > 0 || vues > 0) {
             await emailService.sendWeeklyDigest({
               email: user.email,
               prenom: user.prenom,
               nouveauxMatches,
               messages,
-              vues: 0, // TODO: tracker les vues
+              vues,
             })
             results.digest++
           }

@@ -6,7 +6,11 @@ import { emailService } from '@/lib/email'
 import { addProfilCredits } from '@/lib/credits'
 import Stripe from 'stripe'
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+if (!process.env.STRIPE_SECRET_KEY || !process.env.STRIPE_WEBHOOK_SECRET) {
+  console.error('[WEBHOOK] Variables d\'environnement Stripe manquantes — module désactivé')
+}
+
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY ?? '', {
   apiVersion: '2024-06-20',
 })
 
@@ -37,7 +41,7 @@ export async function POST(req: NextRequest) {
     event = stripe.webhooks.constructEvent(
       body,
       signature,
-      process.env.STRIPE_WEBHOOK_SECRET!
+      process.env.STRIPE_WEBHOOK_SECRET ?? ''
     )
   } catch (err) {
     console.error('Webhook signature invalide:', err)
@@ -122,6 +126,41 @@ export async function POST(req: NextRequest) {
             contenu: `Votre abonnement est actif. Bienvenue dans Mariés au Second Regard.`,
           },
         })
+
+        // ── Tracking code promo affilié ──────────────────────────────────
+        const couponCode = (session as Stripe.Checkout.Session & {
+          discounts?: Array<{ promotion_code?: string | { code?: string } }>
+        }).discounts?.[0]?.promotion_code
+
+        const codeStr = typeof couponCode === 'string' ? couponCode
+          : (couponCode as { code?: string } | undefined)?.code ?? null
+
+        if (codeStr) {
+          try {
+            // Retrouver le code promo en DB (insensible à la casse)
+            const codePromo = await prisma.codePromo.findFirst({
+              where: { code: { equals: codeStr, mode: 'insensitive' }, actif: true },
+            })
+            if (codePromo) {
+              const montantBrut = (planData.montant.replace(/[^\d,]/g, '').replace(',', '.'))
+              const montantHT   = parseFloat(montantBrut) || 0
+              const commissionDue = montantHT * (codePromo.tauxCommission / 100)
+              await prisma.utilisationCode.create({
+                data: {
+                  codeId:          codePromo.id,
+                  userId,
+                  plan,
+                  montantHT,
+                  commissionDue,
+                  stripeSessionId: session.id,
+                },
+              })
+              console.log(`[WEBHOOK] Code promo "${codeStr}" utilisé — commission ${commissionDue}€ due à ${codePromo.influenceurNom}`)
+            }
+          } catch (err) {
+            console.error('[WEBHOOK] Erreur tracking code promo:', err)
+          }
+        }
 
         // Emails de confirmation
         const user = await prisma.user.findUnique({
@@ -232,6 +271,9 @@ export async function POST(req: NextRequest) {
 
           const nextBilling = new Date(sub.current_period_end * 1000)
 
+          // BASIQUE n'existe pas dans l'enum DB → mapper vers STANDARD
+          const dbPlan = plan === 'BASIQUE' ? 'STANDARD' : plan
+
           // Remettre ACTIVE si PAST_DUE (paiement régularisé)
           await prisma.subscription.updateMany({
             where: { userId, status: { in: ['PAST_DUE', 'ACTIVE'] } },
@@ -243,7 +285,7 @@ export async function POST(req: NextRequest) {
 
           await prisma.user.update({
             where: { id: userId },
-            data:  { plan, profilesParSemaine: PLANS[plan].profilesParSemaine },
+            data:  { plan: dbPlan as 'STANDARD' | 'PREMIUM' | 'ULTRA', profilesParSemaine: PLANS[plan].profilesParSemaine },
           })
 
           const nextStr = nextBilling.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })

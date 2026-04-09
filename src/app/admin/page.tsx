@@ -9,7 +9,7 @@ import {
   UserCheck, Clock, ChevronRight, BarChart3, Video,
   CalendarDays, ExternalLink, Search, ChevronLeft,
   X, BookOpen, Home, Briefcase, MapPin, Phone, Mail,
-  Camera, Star,
+  Camera, Star, Tag,
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 
@@ -865,6 +865,13 @@ export default function AdminPage() {
         </div>
         <div className="flex items-center gap-2 shrink-0">
           {/* Switch vers le dashboard Superviseur */}
+          <Link
+            href="/admin/codes-promo"
+            className="flex items-center gap-2 text-sm font-semibold text-violet-300 bg-violet-500/10 hover:bg-violet-500/20 border border-violet-500/30 px-4 py-2 rounded-xl transition-all"
+          >
+            <Tag size={14} />
+            Codes Promo
+          </Link>
           <Link
             href="/admin/superviseur"
             className="flex items-center gap-2 text-sm font-semibold text-emerald-300 bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 px-4 py-2 rounded-xl transition-all"
