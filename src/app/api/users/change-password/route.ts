@@ -20,27 +20,24 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Le nouveau mot de passe doit faire au moins 8 caractères' }, { status: 400 })
     }
 
-    // Récupérer le hash actuel
     const user = await prisma.user.findUnique({
       where:  { id: session.user.id },
-      select: { id: true, password: true },
+      select: { id: true, passwordHash: true },
     })
     if (!user) return NextResponse.json({ error: 'Utilisateur introuvable' }, { status: 404 })
 
-    // Vérifier le mot de passe actuel
-    if (!user.password) {
+    if (!user.passwordHash) {
       return NextResponse.json({ error: 'Compte sans mot de passe (connexion sociale)' }, { status: 400 })
     }
-    const valid = await compare(currentPassword, user.password)
+    const valid = await compare(currentPassword, user.passwordHash)
     if (!valid) {
       return NextResponse.json({ error: 'Mot de passe actuel incorrect' }, { status: 400 })
     }
 
-    // Mettre à jour
     const hashed = await hash(newPassword, 12)
     await prisma.user.update({
       where: { id: session.user.id },
-      data:  { password: hashed },
+      data:  { passwordHash: hashed },
     })
 
     return NextResponse.json({ success: true })
