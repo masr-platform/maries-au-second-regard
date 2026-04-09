@@ -8,20 +8,25 @@ import { Resend } from 'resend'
 import * as T from './templates'
 
 // ── FROM : utilise le domaine vérifié Resend si dispo, sinon fallback onboarding
+// Accepte RESEND_FROM ou EMAIL_FROM (compatibilité .env existant)
 // Pour utiliser votre domaine custom : vérifiez-le dans Resend et définissez
-// RESEND_FROM="Mariés au Second Regard <noreply@votredomaine.fr>" dans Vercel
+// RESEND_FROM="Mariés au Second Regard <noreply@mariesausecondregard.com>" dans Vercel
 const FROM = process.env.RESEND_FROM
+  || process.env.EMAIL_FROM
   || 'Mariés au Second Regard <onboarding@resend.dev>'   // domaine de test Resend (toujours ok)
 const REPLY_TO = 'mariesausecondregard@gmail.com'
 
+// ── Clé API : accepte RESEND_API_KEY ou EMAIL_SERVER_PASSWORD (compatibilité .env existant)
+const RESEND_API_KEY = process.env.RESEND_API_KEY || process.env.EMAIL_SERVER_PASSWORD
+
 // ─── Fonction d'envoi de base ────────────────────────────────
 async function send(to: string, subject: string, html: string): Promise<void> {
-  if (!process.env.RESEND_API_KEY) {
+  if (!RESEND_API_KEY) {
     console.warn('[email] RESEND_API_KEY manquant — email non envoyé:', subject, '→', to)
     return
   }
   try {
-    const resend = new Resend(process.env.RESEND_API_KEY)
+    const resend = new Resend(RESEND_API_KEY)
     const { data, error } = await resend.emails.send({
       from: FROM,
       to,

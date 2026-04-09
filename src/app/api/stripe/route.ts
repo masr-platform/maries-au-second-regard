@@ -145,7 +145,7 @@ export async function POST(req: NextRequest) {
       customer:   customerId,
       mode:       'subscription',
       line_items: [{ price: priceId, quantity: 1 }],
-      success_url: `${process.env.NEXTAUTH_URL}/tableau-de-bord?paiement=succes`,
+      success_url: `${process.env.NEXTAUTH_URL}/profil?paiement=succes`,
       cancel_url:  `${process.env.NEXTAUTH_URL}/abonnement?paiement=annule`,
       metadata: {
         userId: session.user.id,

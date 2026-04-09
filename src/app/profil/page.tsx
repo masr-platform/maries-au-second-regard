@@ -96,7 +96,7 @@ function useGenreTheme(genre: string | undefined) {
 }
 
 export default function ProfilPage() {
-  const { data: session, status } = useSession()
+  const { data: session, status, update } = useSession()
   const router = useRouter()
   const [profil, setProfil] = useState<ProfilData | null>(null)
   const [loading, setLoading] = useState(true)
@@ -111,6 +111,25 @@ export default function ProfilPage() {
   useEffect(() => {
     if (status === 'authenticated') chargerProfil()
   }, [status])
+
+  // Rafraîchit session + profil après retour depuis Stripe
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    const params = new URLSearchParams(window.location.search)
+    if (params.get('paiement') === 'succes') {
+      // Nettoyer l'URL immédiatement
+      window.history.replaceState({}, '', '/profil')
+      // Rafraîchir le token JWT pour mettre à jour le plan
+      update().then(() => {
+        // Recharger le profil depuis la DB après un court délai (webhook processing)
+        setTimeout(() => {
+          chargerProfil()
+          toast.success('🎉 Abonnement activé ! Bienvenue dans Mariés au Second Regard.')
+        }, 1500)
+      })
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   const chargerProfil = async () => {
     try {
