@@ -41,6 +41,8 @@ model User {
   profilesParSemaine    Int       @default(1)
   stripeCustomerId      String?   @unique
   stripeSubscriptionId  String?
+  mollieCustomerId      String?   @unique
+  mollieSubscriptionId  String?
 
   // Statut
   questionnaireCompleted Boolean  @default(false)
@@ -403,8 +405,10 @@ model Subscription {
 
   plan                  Plan
   profilesParSemaine    Int
-  stripeSubscriptionId  String    @unique
-  stripePriceId         String
+  stripeSubscriptionId  String?   @unique
+  stripePriceId         String?
+  mollieSubscriptionId  String?   @unique
+  molliePlanKey         String?
 
   status                SubStatus @default(ACTIVE)
   currentPeriodStart    DateTime

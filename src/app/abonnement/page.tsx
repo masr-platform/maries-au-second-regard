@@ -103,12 +103,7 @@ const PACKS = [
   { key: 'PACK_3', label: '+ 3 profils supplémentaires', prix: '9,90', emoji: '🔥' },
 ]
 
-// ─── Stripe Payment Links (LIVE) ─────────────────────────────────────────────
-const PAYMENT_LINKS: Record<string, string> = {
-  BASIQUE: 'https://buy.stripe.com/5kQ28qcdTgpU5tTdWignK00',  // Essentiel 19,90€
-  PREMIUM: 'https://buy.stripe.com/3cI14m7XDa1w2hH6tQgnK01',  // Premium   29,90€
-  ULTRA:   'https://buy.stripe.com/3cIbJ06Tz7To9K905sgnK02',  // Élite     49,90€
-}
+// ─── Mollie — paiement via API ────────────────────────────────────────────────
 
 export default function AbonnementPage() {
   const { data: session, status } = useSession()
@@ -120,25 +115,31 @@ export default function AbonnementPage() {
     if (status === 'unauthenticated') router.replace('/connexion')
   }, [status, router])
 
-  const souscire = (planKey: string) => {
-    if (status === 'loading') {
-      toast.error('Veuillez patienter…')
-      return
-    }
+  const souscire = async (planKey: string) => {
+    if (status === 'loading') { toast.error('Veuillez patienter…'); return }
     if (!session?.user?.id) {
       toast.error('Connexion requise pour souscrire')
       router.replace('/connexion')
       return
     }
-    const baseUrl = PAYMENT_LINKS[planKey]
-    if (!baseUrl) {
-      toast.error('Lien de paiement introuvable')
-      return
-    }
     setLoadingPlan(planKey)
-    const userId = (session.user as { id?: string }).id!
-    const url = `${baseUrl}?client_reference_id=${userId}:${planKey}`
-    window.location.href = url
+    try {
+      const res = await fetch('/api/mollie', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ plan: planKey }),
+      })
+      const data = await res.json()
+      if (data.url) {
+        window.location.href = data.url
+      } else {
+        toast.error(data.error || 'Erreur lors de la création du paiement')
+        setLoadingPlan(null)
+      }
+    } catch {
+      toast.error('Erreur réseau')
+      setLoadingPlan(null)
+    }
   }
 
   const acheterPack = async (packKey: string) => {
@@ -488,7 +489,7 @@ export default function AbonnementPage() {
           <div className="space-y-2.5 border-t pt-4" style={{ borderColor: 'rgba(255,255,255,0.06)' }}>
             {[
               { icon: RefreshCw,  text: 'Sans engagement — résiliation en 1 clic' },
-              { icon: CreditCard, text: 'Paiement sécurisé par Stripe' },
+              { icon: CreditCard, text: 'Paiement sécurisé par Mollie' },
               { icon: Zap,        text: 'Plan activé instantanément après paiement' },
             ].map((item, i) => {
               const Icon = item.icon
