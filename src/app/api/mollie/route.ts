@@ -4,7 +4,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession }          from 'next-auth'
 import { authOptions }               from '@/lib/auth'
 import { prisma }                    from '@/lib/prisma'
-import { createMollieClient }        from '@mollie/api-client'
+import { createMollieClient, SequenceType } from '@mollie/api-client'
 
 // ─── Init Mollie ──────────────────────────────────────────────────────────────
 const MOLLIE_KEY = process.env.MOLLIE_API_KEY ?? ''
@@ -15,11 +15,11 @@ const mollieClient = createMollieClient({ apiKey: MOLLIE_KEY })
 
 // ─── Plans ────────────────────────────────────────────────────────────────────
 const PLANS: Record<string, {
-  montant:            string   // ex: "19.90"
-  montantLabel:       string   // ex: "19,90 €"
+  montant:            string
+  montantLabel:       string
   profilesParSemaine: number
   nom:                string
-  intervalMollie:     string   // ex: "1 month"
+  intervalMollie:     string
 }> = {
   BASIQUE: {
     montant:            '19.90',
@@ -69,7 +69,6 @@ export async function POST(req: NextRequest) {
   const appUrl   = process.env.NEXTAUTH_URL ?? 'https://mariesausecondregard.com'
 
   try {
-    // ── Récupérer ou créer le customer Mollie ─────────────────────────────────
     const user = await prisma.user.findUnique({
       where:  { id: userId },
       select: { mollieCustomerId: true, email: true, prenom: true },
@@ -91,18 +90,17 @@ export async function POST(req: NextRequest) {
       console.log(`[MOLLIE] Customer créé: ${mollieCustomerId}`)
     }
 
-    // ── Créer le premier paiement (séquence "first" pour mandate récurrent) ────
     const payment = await mollieClient.payments.create({
-      amount:      { currency: 'EUR', value: planData.montant },
-      description: `Abonnement ${planData.nom} — Mariés au Second Regard`,
-      redirectUrl: `${appUrl}/profil?paiement=succes&plan=${plan}`,
-      webhookUrl:  `${appUrl}/api/mollie/webhook`,
-      sequenceType: 'first',
+      amount:       { currency: 'EUR', value: planData.montant },
+      description:  `Abonnement ${planData.nom} — Mariés au Second Regard`,
+      redirectUrl:  `${appUrl}/profil?paiement=succes&plan=${plan}`,
+      webhookUrl:   `${appUrl}/api/mollie/webhook`,
+      sequenceType: SequenceType.first,
       customerId:   mollieCustomerId,
       metadata:     JSON.stringify({ userId, plan }),
     })
 
-    const checkoutUrl = payment.getCheckoutUrl()
+    const checkoutUrl = payment._links.checkout?.href ?? ''
     console.log(`[MOLLIE] ✅ Paiement créé: ${payment.id} | URL: ${checkoutUrl}`)
 
     return NextResponse.json({ url: checkoutUrl })
