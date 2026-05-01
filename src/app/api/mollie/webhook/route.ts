@@ -3,7 +3,7 @@ export const dynamic = 'force-dynamic'
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma }                    from '@/lib/prisma'
 import { emailService }              from '@/lib/email'
-import { createMollieClient }        from '@mollie/api-client'
+import { createMollieClient, SequenceType } from '@mollie/api-client'
 
 const mollieClient = createMollieClient({ apiKey: process.env.MOLLIE_API_KEY ?? '' })
 
@@ -56,7 +56,7 @@ export async function POST(req: NextRequest) {
   console.log(`[MOLLIE WEBHOOK] status=${payment.status} userId=${userId} plan=${plan}`)
 
   // ── Paiement initial réussi ───────────────────────────────────────────────
-  if (payment.status === 'paid' && payment.sequenceType === 'first') {
+  if (payment.status === 'paid' && payment.sequenceType === SequenceType.first) {
     if (!userId || !plan || !PLANS[plan]) {
       console.error('[MOLLIE WEBHOOK] Métadonnées manquantes')
       return NextResponse.json({ received: true })
@@ -109,16 +109,14 @@ export async function POST(req: NextRequest) {
 
       if (user?.mollieCustomerId) {
         try {
-          const subscription = await mollieClient.customerSubscriptions.create(
-            user.mollieCustomerId,
-            {
-              amount:      { currency: 'EUR', value: (payment.amount as { value: string }).value },
-              interval:    planData.intervalMollie,
-              description: `Abonnement ${plan} MASR — renouvellement`,
-              webhookUrl:  `${process.env.NEXTAUTH_URL}/api/mollie/webhook`,
-              metadata:    JSON.stringify({ userId, plan, type: 'renewal' }),
-            }
-          )
+          const subscription = await mollieClient.customerSubscriptions.create({
+            customerId:  user.mollieCustomerId,
+            amount:      { currency: 'EUR', value: payment.amount.value },
+            interval:    planData.intervalMollie,
+            description: `Abonnement ${plan} MASR — renouvellement`,
+            webhookUrl:  `${process.env.NEXTAUTH_URL}/api/mollie/webhook`,
+            metadata:    JSON.stringify({ userId, plan, type: 'renewal' }),
+          })
           await prisma.user.update({
             where: { id: userId },
             data:  { mollieSubscriptionId: subscription.id },
@@ -154,7 +152,7 @@ export async function POST(req: NextRequest) {
   }
 
   // ── Renouvellement mensuel réussi ─────────────────────────────────────────
-  if (payment.status === 'paid' && payment.sequenceType === 'recurring') {
+  if (payment.status === 'paid' && payment.sequenceType === SequenceType.recurring) {
     if (userId && plan) {
       const nextBilling = new Date(Date.now() + 30 * 24 * 3600 * 1000)
       await prisma.subscription.updateMany({
