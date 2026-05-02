@@ -103,7 +103,7 @@ const PACKS = [
   { key: 'PACK_3', label: '+ 3 profils supplémentaires', prix: '9,90', emoji: '🔥' },
 ]
 
-// ─── Mollie — paiement via API ────────────────────────────────────────────────
+// ─── PayPlug — paiement via API ───────────────────────────────────────────────
 
 export default function AbonnementPage() {
   const { data: session, status } = useSession()
@@ -124,7 +124,7 @@ export default function AbonnementPage() {
     }
     setLoadingPlan(planKey)
     try {
-      const res = await fetch('/api/mollie', {
+      const res = await fetch('/api/payplug', {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
         body:    JSON.stringify({ plan: planKey }),
@@ -145,7 +145,7 @@ export default function AbonnementPage() {
   const acheterPack = async (packKey: string) => {
     setLoadingPack(packKey)
     try {
-      const res = await fetch('/api/stripe/credits', {
+      const res = await fetch('/api/payplug/pack', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ pack: packKey }),
@@ -305,7 +305,7 @@ export default function AbonnementPage() {
             {[{ icon: Shield, text: 'Profils vérifiés' }, { icon: Heart, text: 'Respect des valeurs' }, { icon: Star, text: 'Rencontres encadrées' }, { icon: Check, text: 'Démarche sérieuse uniquement' }].map((item, i) => { const Icon = item.icon; return <div key={i} className="flex items-center gap-2 text-xs" style={{ color: 'rgba(255,255,255,0.5)' }}><Icon size={13} style={{ color: '#D4AF37', flexShrink: 0 }} />{item.text}</div> })}
           </div>
           <div className="space-y-2.5 border-t pt-4" style={{ borderColor: 'rgba(255,255,255,0.06)' }}>
-            {[{ icon: RefreshCw, text: 'Sans engagement — résiliation en 1 clic' }, { icon: CreditCard, text: 'Paiement sécurisé par Mollie' }, { icon: Zap, text: 'Plan activé instantanément après paiement' }].map((item, i) => { const Icon = item.icon; return <div key={i} className="flex items-start gap-3 text-xs" style={{ color: 'rgba(255,255,255,0.4)' }}><Icon size={13} style={{ color: '#D4AF37', marginTop: 1, flexShrink: 0 }} />{item.text}</div> })}
+            {[{ icon: RefreshCw, text: 'Sans engagement — résiliation en 1 clic' }, { icon: CreditCard, text: 'Paiement sécurisé par PayPlug' }, { icon: Zap, text: 'Plan activé instantanément après paiement' }].map((item, i) => { const Icon = item.icon; return <div key={i} className="flex items-start gap-3 text-xs" style={{ color: 'rgba(255,255,255,0.4)' }}><Icon size={13} style={{ color: '#D4AF37', marginTop: 1, flexShrink: 0 }} />{item.text}</div> })}
           </div>
         </div>
         <nav className="fixed bottom-0 left-0 right-0 bg-dark-800 border-t border-dark-700 flex md:hidden z-50">
